@@ -97,10 +97,6 @@ jobs:
     needs: [frontend]
     steps:
       - uses: actions/checkout@v4
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          extensions: mbstring, intl
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -108,12 +104,26 @@ jobs:
       - run: cd admin-ui && npm ci && npm run build
       - run: cd e2e && npm ci
       - run: cd e2e && npx playwright install chromium --with-deps
-      - name: Start PHP built-in server
+      - name: Start Apache stack (shared-hosting-like)
         run: |
           cp .env.dist .env
-          php -S 127.0.0.1:8080 -t public >/tmp/php-server.log 2>&1 &
-          sleep 2
-      - run: cd e2e && BASE_URL=http://127.0.0.1:8080 npm test
+          docker compose build app
+          docker compose up -d mysql app
+          for i in $(seq 1 30); do
+            curl -sf http://127.0.0.1:8080/health >/dev/null && break
+            sleep 2
+          done
+          curl -sf http://127.0.0.1:8080/health
+          curl -sf http://127.0.0.1:8080/admin/index.html | head -c 20
+      - name: Apache web SAPI probe (disable_functions)
+        env:
+          STAGE0_HTTP_PROBE_BASE_URL: http://127.0.0.1:8080
+        run: vendor/bin/phpunit --filter ApacheWebSapiProbeTest
+      - name: Playwright e2e (Apache)
+        run: cd e2e && BASE_URL=http://127.0.0.1:8080 npm test
+      - name: Archive screenshots for docs
+        if: success()
+        run: bash scripts/copy-e2e-screenshots.sh
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -121,6 +131,10 @@ jobs:
           path: |
             e2e/playwright-report
             e2e/test-results
+            docs/stage-0/screenshots
+      - name: Stop Docker stack
+        if: always()
+        run: docker compose down -v
 
   release-artifact:
     runs-on: ubuntu-latest

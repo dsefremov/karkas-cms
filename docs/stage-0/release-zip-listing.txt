@@ -1,0 +1,7 @@
+      288  2026-11-07 11:57   karkas-cms-0.0.0-stage0/RELEASE_MANIFEST.json
+      442  2026-11-07 11:57   karkas-cms-0.0.0-stage0/public/admin/index.html
+      263  2026-11-07 11:49   karkas-cms-0.0.0-stage0/public/index.php
+      985  2026-11-07 11:45   karkas-cms-0.0.0-stage0/vendor/autoload_runtime.php
+      748  2026-11-07 11:45   karkas-cms-0.0.0-stage0/vendor/autoload.php
+      985  2026-11-07 11:45   karkas-cms-0.0.0-stage0/vendor/vendor/autoload_runtime.php
+      748  2026-11-07 11:45   karkas-cms-0.0.0-stage0/vendor/vendor/autoload.php

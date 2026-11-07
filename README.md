@@ -29,10 +29,28 @@ git clone https://github.com/dsefremov/karkas-cms.git
 cd karkas-cms
 cp .env.dist .env
 
-make up          # Apache :8080, MySQL, Mailpit :8025
+make up          # Apache :8080, MySQL 8.0, Mailpit :8025
+make up-mysql84  # same stack with MySQL 8.4 (compose override)
 make lint
 make test
 ```
+
+### MySQL version (local Docker)
+
+Default **MySQL 8.0**:
+
+```bash
+make up
+```
+
+**MySQL 8.4** (matches CI matrix cell):
+
+```bash
+make up-mysql84
+# or: docker compose -f docker-compose.yml -f docker-compose.mysql84.yml up -d
+```
+
+Integration tests from the `cli` container use `host.docker.internal` to reach the published MySQL port (see `docker-compose.yml`).
 
 ### Composer scripts
 

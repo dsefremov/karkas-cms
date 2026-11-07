@@ -27,7 +27,7 @@ Deliver a testable skeleton aligned with Karkas spec v0.8 sections 5 (layers), 2
 ## Known limitations
 
 - Real Timeweb panel cron, Nginx static bypass, `open_basedir`, and exact PHP builds are **not** verified in this environment.
-- MySQL 8.4 local profile is optional (`docker compose --profile mysql84`); CI uses service containers.
+- Local **MySQL 8.4**: `make up-mysql84` or `docker compose -f docker-compose.yml -f docker-compose.mysql84.yml up -d`.
 - Playwright uses PHP built-in server in CI, not Apache; Docker e2e uses Apache when `make test` is run locally.
 - PHP 8.5 images and matrix cells depend on upstream availability in CI (`shivammathur/setup-php`).
 

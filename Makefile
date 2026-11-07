@@ -2,12 +2,18 @@
 
 PHP_VERSION ?= 8.4
 MYSQL_IMAGE_TAG ?= 8.0
-export PHP_VERSION MYSQL_IMAGE_TAG
+MYSQL_SERVER_VERSION ?= $(MYSQL_IMAGE_TAG)
+export PHP_VERSION MYSQL_IMAGE_TAG MYSQL_SERVER_VERSION
 
 up:
 	docker compose build app
 	docker compose up -d mysql mailpit app
 	@echo "App: http://localhost:$${APP_PORT:-8080}  Mailpit: http://localhost:8025"
+
+up-mysql84:
+	docker compose -f docker-compose.yml -f docker-compose.mysql84.yml build app
+	docker compose -f docker-compose.yml -f docker-compose.mysql84.yml up -d mysql mailpit app
+	@echo "MySQL 8.4 stack: http://localhost:$${APP_PORT:-8080}"
 
 down:
 	docker compose down -v
@@ -32,6 +38,7 @@ e2e:
 	cd admin-ui && npm ci
 	cd e2e && npm ci && npx playwright install chromium --with-deps
 	cd e2e && BASE_URL=http://localhost:$${APP_PORT:-8080} npm test
+	docker compose run --rm --no-deps -e STAGE0_HTTP_PROBE_BASE_URL=http://host.docker.internal:$${APP_PORT:-8080} cli vendor/bin/phpunit --filter ApacheWebSapiProbeTest
 
 release:
 	bash scripts/build-release.sh
