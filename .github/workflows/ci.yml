@@ -112,13 +112,18 @@ jobs:
       - name: Start Apache stack (shared-hosting-like)
         run: |
           cp .env.dist .env
+          mkdir -p var/cache var/log
+          chmod -R a+rwX var
           docker compose build app
           docker compose up -d mysql app
           for i in $(seq 1 30); do
             curl -sf http://127.0.0.1:8080/health >/dev/null && break
             sleep 2
           done
-          curl -sf http://127.0.0.1:8080/health
+          if ! curl -sf http://127.0.0.1:8080/health; then
+            docker compose logs --no-color app | tail -80
+            exit 22
+          fi
           curl -sf http://127.0.0.1:8080/admin/index.html | head -c 20
       - name: Apache web SAPI probe (disable_functions)
         env:
