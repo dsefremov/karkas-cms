@@ -6,6 +6,7 @@ namespace Karkas\Adapters\Infrastructure\Persistence;
 
 use InvalidArgumentException;
 use PDO;
+use RuntimeException;
 
 /**
  * Shared-hosting-friendly DB smoke checks (InnoDB, utf8mb4, FULLTEXT on Russian text).
@@ -20,20 +21,20 @@ final class MysqlConnectivityProbe
         $pdo = $this->connect($databaseUrl);
 
         $versionStmt = $pdo->query('SELECT VERSION()');
-        if ($versionStmt === false) {
-            throw new \RuntimeException('Failed to query MySQL version');
+        if (false === $versionStmt) {
+            throw new RuntimeException('Failed to query MySQL version');
         }
         $version = (string) $versionStmt->fetchColumn();
 
         $charsetStmt = $pdo->query("SHOW VARIABLES LIKE 'character_set_database'");
-        if ($charsetStmt === false) {
-            throw new \RuntimeException('Failed to query character_set_database');
+        if (false === $charsetStmt) {
+            throw new RuntimeException('Failed to query character_set_database');
         }
         $charsetRow = $charsetStmt->fetch(PDO::FETCH_ASSOC);
 
         $collationStmt = $pdo->query("SHOW VARIABLES LIKE 'collation_database'");
-        if ($collationStmt === false) {
-            throw new \RuntimeException('Failed to query collation_database');
+        if (false === $collationStmt) {
+            throw new RuntimeException('Failed to query collation_database');
         }
         $collationRow = $collationStmt->fetch(PDO::FETCH_ASSOC);
 
