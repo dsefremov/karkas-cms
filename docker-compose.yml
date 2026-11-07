@@ -1,0 +1,95 @@
+name: karkas-cms
+
+services:
+  app:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      args:
+        PHP_VERSION: ${PHP_VERSION:-8.4}
+    ports:
+      - "${APP_PORT:-8080}:80"
+    volumes:
+      - .:/var/www/html
+    environment:
+      APP_ENV: dev
+      APP_DEBUG: 1
+      APP_SECRET: dev_secret_change_in_production_32ch
+      DATABASE_URL: mysql://karkas:karkas_secret@host.docker.internal:3306/karkas?serverVersion=${MYSQL_SERVER_VERSION:-8.0}&charset=utf8mb4
+      DEFAULT_URI: http://localhost:8080
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+
+  mysql:
+    image: mysql:${MYSQL_IMAGE_TAG:-8.0}
+    environment:
+      MYSQL_ROOT_PASSWORD: root_secret
+      MYSQL_DATABASE: karkas
+      MYSQL_USER: karkas
+      MYSQL_PASSWORD: karkas_secret
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot_secret"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
+
+  mysql84:
+    profiles: ["mysql84"]
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: root_secret
+      MYSQL_DATABASE: karkas
+      MYSQL_USER: karkas
+      MYSQL_PASSWORD: karkas_secret
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+    ports:
+      - "3307:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot_secret"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+
+  cli:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      args:
+        PHP_VERSION: ${PHP_VERSION:-8.4}
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    environment:
+      APP_ENV: test
+      APP_DEBUG: 1
+      APP_SECRET: test_secret_32_characters_minimum
+      DATABASE_URL: mysql://karkas:karkas_secret@host.docker.internal:3306/karkas_test?serverVersion=${MYSQL_SERVER_VERSION:-8.0}&charset=utf8mb4
+      DEFAULT_URI: http://app
+    depends_on:
+      mysql:
+        condition: service_healthy
+    entrypoint: ["bash", "-lc"]

@@ -1,0 +1,195 @@
+name: CI
+
+on:
+  push:
+    branches: [grok_bot, develop, main]
+  pull_request:
+    branches: [develop]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  php-static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, intl, pdo_mysql, zip
+          coverage: none
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+      - run: composer install --no-interaction --prefer-dist
+      - run: composer phpstan
+      - run: composer lint:php
+
+  phpunit-matrix:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.4', '8.5']
+        mysql: ['8.0', '8.4']
+    services:
+      mysql:
+        image: mysql:${{ matrix.mysql }}
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: karkas_test
+          MYSQL_USER: karkas
+          MYSQL_PASSWORD: karkas_secret
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mbstring, intl, pdo_mysql, zip
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}-${{ matrix.php }}
+      - run: composer install --no-interaction --prefer-dist
+      - name: Wait for MySQL
+        run: |
+          for i in $(seq 1 30); do
+            mysqladmin ping -h 127.0.0.1 -uroot -proot --silent && break
+            sleep 2
+          done
+      - name: Init test database charset
+        run: |
+          mysql -h 127.0.0.1 -uroot -proot -e "ALTER DATABASE karkas_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+      - name: PHPUnit
+        env:
+          DATABASE_URL: mysql://karkas:karkas_secret@127.0.0.1:3306/karkas_test?serverVersion=${{ matrix.mysql }}&charset=utf8mb4
+          APP_SECRET: ci_secret_32_characters_minimum_xx
+        run: vendor/bin/phpunit
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: admin-ui/package-lock.json
+      - run: cd admin-ui && npm ci
+      - run: cd admin-ui && npm run lint
+      - run: cd admin-ui && npm run typecheck
+      - run: cd admin-ui && npm run build
+
+  playwright:
+    runs-on: ubuntu-latest
+    needs: [frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, intl, pdo_mysql, zip
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: composer install --no-interaction --prefer-dist
+      - run: cd admin-ui && npm ci && npm run build
+      - run: cd e2e && npm ci
+      - run: cd e2e && npx playwright install chromium --with-deps
+      - name: Start Apache stack (shared-hosting-like)
+        run: |
+          cp .env.dist .env
+          mkdir -p var/cache var/log
+          chmod -R a+rwX var
+          docker compose build app
+          docker compose up -d mysql app
+          for i in $(seq 1 30); do
+            curl -sf http://127.0.0.1:8080/health >/dev/null && break
+            sleep 2
+          done
+          if ! curl -sf http://127.0.0.1:8080/health; then
+            docker compose logs --no-color app | tail -80
+            exit 22
+          fi
+          curl -sf http://127.0.0.1:8080/admin/index.html | head -c 20
+      - name: Apache web SAPI probe (disable_functions)
+        env:
+          STAGE0_HTTP_PROBE_BASE_URL: http://127.0.0.1:8080
+        run: vendor/bin/phpunit --filter ApacheWebSapiProbeTest
+      - name: Playwright e2e (Apache)
+        run: cd e2e && BASE_URL=http://127.0.0.1:8080 npm test
+      - name: Archive screenshots for docs
+        if: success()
+        run: bash scripts/copy-e2e-screenshots.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: |
+            e2e/playwright-report
+            e2e/test-results
+            docs/stage-0/screenshots
+      - name: Stop Docker stack
+        if: always()
+        run: docker compose down -v
+
+  release-artifact:
+    runs-on: ubuntu-latest
+    needs: [php-static, phpunit-matrix, frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, intl, pdo_mysql, zip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: composer install --no-interaction --no-dev --prefer-dist
+      - run: cd admin-ui && npm ci && npm run build
+      - run: bash scripts/build-release.sh --verify-only
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-zip-pr-build
+          path: build/release/*
+
+  release-on-tag:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    needs: [php-static, phpunit-matrix, frontend]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, intl, pdo_mysql, zip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Resolve version from tag
+        run: echo "RELEASE_VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
+      - run: composer install --no-interaction --no-dev --prefer-dist
+      - run: cd admin-ui && npm ci && npm run build
+      - run: bash scripts/build-release.sh --verify-only
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build/release/karkas-cms-${{ env.RELEASE_VERSION }}.zip
+            build/release/SHA256SUMS
+            build/release/manifest.json
