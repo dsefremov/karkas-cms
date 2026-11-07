@@ -1,0 +1,5 @@
+controllers:
+    resource:
+        path: ../src/Adapters/Entry/Http/Controller/
+        namespace: Karkas\Adapters\Entry\Http\Controller
+    type: attribute

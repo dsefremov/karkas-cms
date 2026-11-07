@@ -1,0 +1,11 @@
+{
+    "symfony/framework-bundle": {
+        "version": "7.4",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "7.4",
+            "ref": "stub"
+        }
+    }
+}

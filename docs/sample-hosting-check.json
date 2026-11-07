@@ -1,0 +1,83 @@
+{
+    "meta": {
+        "product": "Karkas CMS hosting check",
+        "report_version": "1.0.0",
+        "generated_at": "2026-11-07T11:51:09+00:00",
+        "timezone": "UTC"
+    },
+    "php": {
+        "version": "8.4.27",
+        "sapi": "cli",
+        "ini_loaded": null,
+        "ini_scanned": "\/usr\/local\/etc\/php\/conf.d\/docker-php-ext-gd.ini,\n\/usr\/local\/etc\/php\/conf.d\/docker-php-ext-intl.ini,\n\/usr\/local\/etc\/php\/conf.d\/docker-php-ext-opcache.ini,\n\/usr\/local\/etc\/php\/conf.d\/docker-php-ext-pdo_mysql.ini,\n\/usr\/local\/etc\/php\/conf.d\/docker-php-ext-sodium.ini,\n\/usr\/local\/etc\/php\/conf.d\/docker-php-ext-zip.ini,\n\/usr\/local\/etc\/php\/conf.d\/karkas-shared.ini\n",
+        "extensions": {
+            "pdo": true,
+            "pdo_mysql": true,
+            "mbstring": true,
+            "intl": true,
+            "fileinfo": true,
+            "openssl": true,
+            "ctype": true,
+            "iconv": true,
+            "json": true,
+            "gd": true,
+            "imagick": false,
+            "sodium": true,
+            "zip": true
+        },
+        "disabled_functions": [],
+        "limits": {
+            "memory_limit": "256M",
+            "max_execution_time": "0",
+            "post_max_size": "8M",
+            "upload_max_filesize": "2M",
+            "open_basedir": null
+        },
+        "opcache": {
+            "available": true,
+            "enabled": false,
+            "note": "CLI and web SAPI may differ on shared hosting"
+        }
+    },
+    "crypto": {
+        "password_argon2id": true,
+        "password_hash_probe": true,
+        "random_bytes": true,
+        "sodium_loaded": true
+    },
+    "paths": {
+        "script_directory": "\/var\/www\/html\/tools",
+        "script_directory_writable": true,
+        "private_write_probe": {
+            "attempted": true,
+            "writable": true
+        }
+    },
+    "web_server": {
+        "software": null,
+        "mod_rewrite_hint": {
+            "htaccess_present_near_script": false,
+            "apache_get_modules": null,
+            "note": "Confirm front-controller rewrite in panel; static files may bypass Apache."
+        },
+        "document_root": ""
+    },
+    "https": {
+        "request_is_https": false,
+        "x_forwarded_proto": null,
+        "x_https": null
+    },
+    "database": null,
+    "assessment": {
+        "blocking": [],
+        "warnings": [
+            "Function shell_exec is not disabled (expected on hardened shared hosting)",
+            "Function exec is not disabled (expected on hardened shared hosting)",
+            "Function system is not disabled (expected on hardened shared hosting)",
+            "Function passthru is not disabled (expected on hardened shared hosting)",
+            "Function proc_open is not disabled (expected on hardened shared hosting)",
+            "Function popen is not disabled (expected on hardened shared hosting)"
+        ],
+        "pass": true
+    }
+}
