@@ -17,7 +17,7 @@ final class Stage0WebSapiController extends AbstractController
     #[Route('/_stage0/web-sapi-probe', name: 'stage0_web_sapi_probe', methods: ['GET'])]
     public function probe(): Response
     {
-        if ($this->getParameter('kernel.environment') === 'prod') {
+        if ('prod' === $this->getParameter('kernel.environment')) {
             return new Response('', Response::HTTP_NOT_FOUND);
         }
 

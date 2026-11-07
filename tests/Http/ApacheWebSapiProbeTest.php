@@ -14,11 +14,11 @@ final class ApacheWebSapiProbeTest extends TestCase
     public function testWebSapiDisablesShellFunctions(): void
     {
         $base = getenv('STAGE0_HTTP_PROBE_BASE_URL') ?: $_ENV['STAGE0_HTTP_PROBE_BASE_URL'] ?? '';
-        if ($base === '') {
+        if ('' === $base) {
             self::markTestSkipped('STAGE0_HTTP_PROBE_BASE_URL is not set (requires Apache Docker stack).');
         }
 
-        $url = rtrim($base, '/') . '/_stage0/web-sapi-probe';
+        $url = rtrim($base, '/').'/_stage0/web-sapi-probe';
         $json = file_get_contents($url);
         self::assertIsString($json);
 
