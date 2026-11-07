@@ -1,0 +1,19 @@
+parameters:
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    Karkas\:
+        resource: '../src/'
+        exclude:
+            - '../src/Domain/'
+            - '../src/Application/'
+
+    Karkas\Adapters\Entry\Http\Controller\:
+        resource: '../src/Adapters/Entry/Http/Controller/'
+        tags: ['controller.service_arguments']
+
+    Karkas\Adapters\Infrastructure\Persistence\MysqlConnectivityProbe:
+        public: true
