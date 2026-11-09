@@ -90,7 +90,7 @@ New Stage 2 coverage includes ZIP quarantine refusal, install/rollback/downgrade
 
 ## CI
 
-Pushed on `grok_bot`; PR CI run: _(filled after push — see PR checks)_.
+PR CI run: https://github.com/dsefremov/karkas-cms/actions/runs/42652731184
 
 ## Additional small decisions (this PR)
 

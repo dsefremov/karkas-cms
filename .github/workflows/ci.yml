@@ -112,6 +112,7 @@ jobs:
       - name: Start Apache stack (shared-hosting-like)
         run: |
           cp .env.dist .env
+          echo 'KARKAS_ADMIN_PASSWORD=test-admin-password-stage2' >> .env
           mkdir -p var/cache var/log
           chmod -R a+rwX var
           docker compose build app
