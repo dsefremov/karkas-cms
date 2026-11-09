@@ -1,0 +1,5 @@
+parameters:
+    karkas.platform.core_version: '1.0.0'
+    karkas.platform.sdk_version: '1.0.0'
+    karkas.platform.package_catalog_dir: '%kernel.project_dir%/resources/package-catalog'
+    karkas.manifest.schema_path: '%kernel.project_dir%/resources/schemas/cms-package-manifest-v1.schema.json'

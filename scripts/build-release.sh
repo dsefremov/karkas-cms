@@ -9,7 +9,7 @@ if [[ "${1:-}" == "--verify-only" ]]; then
   VERIFY_ONLY=1
 fi
 
-VERSION="${RELEASE_VERSION:-0.0.0-stage0}"
+VERSION="${RELEASE_VERSION:-0.0.0-stage1}"
 BUILD_DIR="$ROOT/build/release"
 STAGE="$BUILD_DIR/karkas-cms-$VERSION"
 ARCHIVE="$BUILD_DIR/karkas-cms-$VERSION.zip"
@@ -66,7 +66,7 @@ cat > "$MANIFEST" <<EOF
   "product": "Karkas CMS",
   "version": "$VERSION",
   "built_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-  "stage": 0,
+  "stage": 1,
   "php": ">=8.4",
   "notes": "Self-contained release artifact for shared hosting upload. Built in CI; no runtime Composer on production."
 }
