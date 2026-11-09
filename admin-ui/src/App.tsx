@@ -258,6 +258,13 @@ export function App(): React.JSX.Element {
             <button type="button" data-testid="scan-incoming" onClick={() => void scanIncoming()} disabled={!authenticated}>
               Сканировать incoming
             </button>
+          </div>
+          <p className="muted">ZIP upload: {zipEnabled ? 'включён (файл-флаг на сервере)' : 'выключен по умолчанию'}</p>
+        </section>
+
+        <section className="card" data-testid="site-blog-panel">
+          <h2>Blog на сайте</h2>
+          <div className="actions actions-stack">
             <button type="button" data-testid="enable-blog" onClick={() => void enableBlog()} disabled={!authenticated}>
               Включить blog на сайте
             </button>
@@ -265,7 +272,6 @@ export function App(): React.JSX.Element {
               Сохранить демо-статью
             </button>
           </div>
-          <p className="muted">ZIP upload: {zipEnabled ? 'включён (файл-флаг на сервере)' : 'выключен по умолчанию'}</p>
         </section>
       </main>
     </div>
