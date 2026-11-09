@@ -73,4 +73,4 @@ Unchanged from Stage 2 (`karkas.package.limits` in `config/packages/karkas_stage
 
 ## CI
 
-Green: [Actions run 42680126489](https://github.com/dsefremov/karkas-cms/actions/runs/42680126489) (head `091d27f`, PR #7).
+Green: [Actions run 42682959137](https://github.com/dsefremov/karkas-cms/actions/runs/42682959137) (head `7477548`, PR #7).
