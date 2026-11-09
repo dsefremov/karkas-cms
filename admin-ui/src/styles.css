@@ -158,4 +158,13 @@ button:disabled {
     border-right: none;
     border-bottom: 1px solid var(--border);
   }
+
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .actions button {
+    width: 100%;
+  }
 }

@@ -146,7 +146,7 @@ jobs:
           path: |
             e2e/playwright-report
             e2e/test-results
-            docs/stage-2/screenshots
+            docs/stage-3/screenshots
       - name: Stop Docker stack
         if: always()
         run: docker compose down -v
