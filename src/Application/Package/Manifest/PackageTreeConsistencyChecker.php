@@ -40,10 +40,10 @@ final class PackageTreeConsistencyChecker
             if (false === $manifestJson) {
                 $errors[] = 'Cannot read manifest.json.';
             } else {
-                $normalized = json_encode(
-                    json_decode($manifestJson, true),
-                    JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE,
-                );
+                /** @var array<string, mixed> $decoded */
+                $decoded = json_decode($manifestJson, true);
+                unset($decoded['manifest_digest']);
+                $normalized = json_encode($decoded, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
                 if (false === $normalized) {
                     $errors[] = 'manifest.json is not valid JSON.';
                 } elseif ($manifest->manifestDigest !== hash('sha256', $normalized)) {
