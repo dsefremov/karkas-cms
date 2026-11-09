@@ -90,7 +90,7 @@ New Stage 2 coverage includes ZIP quarantine refusal, install/rollback/downgrade
 
 ## CI
 
-PR CI run: https://github.com/dsefremov/karkas-cms/actions/runs/42652731184
+PR CI run: https://github.com/dsefremov/karkas-cms/actions/runs/42653643066
 
 ## Additional small decisions (this PR)
 
