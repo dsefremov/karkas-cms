@@ -1,0 +1,31 @@
+{
+  "format": "cms-module/v1",
+  "component": {
+    "type": "module",
+    "id": "karkas/blog",
+    "display_name": "Blog"
+  },
+  "version": "1.0.0",
+  "requires": {
+    "core": "^1.0.0",
+    "sdk": "^1.0.0",
+    "php": "^8.4.0",
+    "mysql": {
+      "engine": "innodb",
+      "server": "^8.0.0"
+    }
+  },
+  "migrations": [
+    {
+      "id": "blog_initial",
+      "checksum": "3cbfe0b1a44af16da668d70647ea3d88b252a13340134095b2dad06203933f66"
+    }
+  ],
+  "files": [
+    {
+      "path": "module/bootstrap.php",
+      "size_bytes": 45,
+      "sha256": "043223a25ef04baa69e45ac8e66440824ea1bdc3b2de930c5dc9c79d56025449"
+    }
+  ]
+}

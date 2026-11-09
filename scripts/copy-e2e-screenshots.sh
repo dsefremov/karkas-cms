@@ -2,7 +2,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-DEST="$ROOT/docs/stage-0/screenshots"
+STAGE="${KARKAS_SCREENSHOT_STAGE:-1}"
+DEST="$ROOT/docs/stage-${STAGE}/screenshots"
 mkdir -p "$DEST"
 
 find "$ROOT/e2e/test-results" -name 'home-1440.png' -exec cp {} "$DEST/home-1440.png" \; 2>/dev/null || true

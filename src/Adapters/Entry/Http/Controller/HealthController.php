@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Karkas\Adapters\Entry\Http\Controller;
 
+use Karkas\Domain\Platform\Version;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
@@ -14,10 +15,10 @@ final class HealthController extends AbstractController
     public function home(): JsonResponse
     {
         return new JsonResponse([
-            'name' => 'Karkas CMS',
-            'stage' => 0,
+            'name' => Version::PRODUCT,
+            'stage' => (int) Version::STAGE,
             'status' => 'ok',
-            'message' => 'Infrastructure skeleton — CMS features arrive in later stages.',
+            'message' => 'Stage 1 — package contracts, manifest validation, and version metadata.',
         ]);
     }
 
