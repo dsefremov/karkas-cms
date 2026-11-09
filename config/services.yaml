@@ -9,7 +9,12 @@ services:
         resource: '../src/'
         exclude:
             - '../src/Domain/'
-            - '../src/Application/'
+
+    Karkas\Application\Package\:
+        resource: '../src/Application/Package/'
+
+    Karkas\Adapters\Infrastructure\Package\:
+        resource: '../src/Adapters/Infrastructure/Package/'
 
     Karkas\Adapters\Entry\Http\Controller\:
         resource: '../src/Adapters/Entry/Http/Controller/'
@@ -17,3 +22,13 @@ services:
 
     Karkas\Adapters\Infrastructure\Persistence\MysqlConnectivityProbe:
         public: true
+
+    Karkas\Application\Package\Manifest\JsonSchemaManifestValidator:
+        arguments:
+            $schemaPath: '%karkas.manifest.schema_path%'
+
+    Karkas\Application\Package\Inventory\PlatformVersionInventory:
+        arguments:
+            $coreVersion: '%karkas.platform.core_version%'
+            $sdkVersion: '%karkas.platform.sdk_version%'
+            $localCatalogDir: '%karkas.platform.package_catalog_dir%'

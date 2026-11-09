@@ -1,0 +1,20 @@
+{
+  "format": "cms-module/v2",
+  "component": {
+    "type": "module",
+    "id": "karkas/example"
+  },
+  "version": "1.0.0",
+  "requires": {
+    "core": "^1.0.0",
+    "sdk": "^1.0.0",
+    "php": "^8.4.0"
+  },
+  "files": [
+    {
+      "path": "module/a.php",
+      "size_bytes": 1,
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  ]
+}
