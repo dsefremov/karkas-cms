@@ -12,9 +12,30 @@ services:
 
     Karkas\Application\Package\:
         resource: '../src/Application/Package/'
+        exclude:
+            - '../src/Application/Package/Plan/PlatformPlanService.php'
+            - '../src/Application/Package/Lifecycle/AtomicInstallOrchestrator.php'
+            - '../src/Application/Package/Lifecycle/PackageStagingService.php'
+            - '../src/Application/Package/Quarantine/FolderIngestService.php'
+            - '../src/Application/Package/Quarantine/ZipIngestService.php'
+
+    Karkas\Application\Admin\:
+        resource: '../src/Application/Admin/'
+        exclude:
+            - '../src/Application/Admin/AdminAuthService.php'
+            - '../src/Application/Admin/ZipUploadGate.php'
 
     Karkas\Adapters\Infrastructure\Package\:
         resource: '../src/Adapters/Infrastructure/Package/'
+
+    Karkas\Adapters\Infrastructure\Persistence\:
+        resource: '../src/Adapters/Infrastructure/Persistence/'
+        exclude:
+            - '../src/Adapters/Infrastructure/Persistence/DatabaseConnectionFactory.php'
+            - '../src/Adapters/Infrastructure/Persistence/PlatformSchemaBootstrap.php'
+
+    Karkas\Adapters\Entry\Http\EventSubscriber\:
+        resource: '../src/Adapters/Entry/Http/EventSubscriber/'
 
     Karkas\Adapters\Entry\Http\Controller\:
         resource: '../src/Adapters/Entry/Http/Controller/'
@@ -32,3 +53,46 @@ services:
             $coreVersion: '%karkas.platform.core_version%'
             $sdkVersion: '%karkas.platform.sdk_version%'
             $localCatalogDir: '%karkas.platform.package_catalog_dir%'
+
+    Karkas\Adapters\Infrastructure\Persistence\DatabaseConnectionFactory:
+        arguments:
+            $databaseUrl: '%env(default::DATABASE_URL)%'
+
+    Karkas\Adapters\Infrastructure\Persistence\PlatformSchemaBootstrap:
+        arguments:
+            $schemaSqlPath: '%kernel.project_dir%/resources/schema/stage2_platform.sql'
+
+    Karkas\Domain\Platform\PackageDeliveryLimits:
+        factory: ['Karkas\Domain\Platform\PackageDeliveryLimits', 'fromConfig']
+        arguments:
+            - '%karkas.package.limits%'
+
+    Karkas\Application\Package\Lifecycle\PackageStagingService:
+        arguments:
+            $packagesRoot: '%karkas.packages.root%'
+
+    Karkas\Application\Package\Plan\PlatformPlanService:
+        arguments:
+            $localCatalogDir: '%karkas.platform.package_catalog_dir%'
+            $fallbackCoreVersion: '%karkas.platform.core_version%'
+
+    Karkas\Application\Package\Lifecycle\AtomicInstallOrchestrator:
+        arguments:
+            $localCatalogDir: '%karkas.platform.package_catalog_dir%'
+
+    Karkas\Application\Admin\AdminAuthService:
+        arguments:
+            $adminPassword: '%karkas.admin.password%'
+
+    Karkas\Application\Admin\ZipUploadGate:
+        arguments:
+            $flagPath: '%karkas.zip_upload.flag_path%'
+
+    Karkas\Application\Package\Quarantine\FolderIngestService:
+        arguments:
+            $incomingRoot: '%karkas.packages.incoming_dir%'
+            $quarantineRoot: '%karkas.packages.quarantine_dir%'
+
+    Karkas\Application\Package\Quarantine\ZipIngestService:
+        arguments:
+            $quarantineRoot: '%karkas.packages.quarantine_dir%'

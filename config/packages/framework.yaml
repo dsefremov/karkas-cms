@@ -7,7 +7,9 @@ framework:
     router:
         utf8: true
     session:
-        enabled: false
+        enabled: true
+        cookie_secure: auto
+        cookie_samesite: lax
 
 when@test:
     framework:

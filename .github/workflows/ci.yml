@@ -130,11 +130,13 @@ jobs:
           STAGE0_HTTP_PROBE_BASE_URL: http://127.0.0.1:8080
         run: vendor/bin/phpunit --filter ApacheWebSapiProbeTest
       - name: Playwright e2e (Apache)
-        run: cd e2e && BASE_URL=http://127.0.0.1:8080 npm test
+        env:
+          KARKAS_ADMIN_PASSWORD: test-admin-password-stage2
+        run: cd e2e && BASE_URL=http://127.0.0.1:8080 KARKAS_ADMIN_PASSWORD=test-admin-password-stage2 npm test
       - name: Archive screenshots for docs
         if: success()
         env:
-          KARKAS_SCREENSHOT_STAGE: '1'
+          KARKAS_SCREENSHOT_STAGE: '2'
         run: bash scripts/copy-e2e-screenshots.sh
       - uses: actions/upload-artifact@v4
         if: always()
@@ -143,7 +145,7 @@ jobs:
           path: |
             e2e/playwright-report
             e2e/test-results
-            docs/stage-1/screenshots
+            docs/stage-2/screenshots
       - name: Stop Docker stack
         if: always()
         run: docker compose down -v
