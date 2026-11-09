@@ -105,6 +105,73 @@ export function App(): React.JSX.Element {
     await loadVersions();
   }
 
+  async function scanIncoming(): Promise<void> {
+    setMessage(null);
+    setError(null);
+    const response = await fetch('/api/v1/admin/packages/scan-incoming', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Karkas-Reauth': password },
+      body: '{}',
+    });
+    if (!response.ok) {
+      setError('Сканирование incoming не выполнено');
+      return;
+    }
+    const body = (await response.json()) as { discovered: string[] };
+    setMessage(`Incoming: найдено ${body.discovered.length} READY-папок.`);
+  }
+
+  async function enableBlog(): Promise<void> {
+    setMessage(null);
+    setError(null);
+    const response = await fetch('/api/v1/sites/default/modules/karkas/blog/enable', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Karkas-Reauth': password },
+      body: JSON.stringify({ site_label: 'Каркас — демо' }),
+    });
+    if (!response.ok) {
+      setError('Включение blog на сайте отклонено');
+      return;
+    }
+    setMessage('Blog включён на сайте (миграции + mount /blog).');
+  }
+
+  async function saveDemoPost(): Promise<void> {
+    setMessage(null);
+    setError(null);
+    const slug = `demo-post-${Date.now()}`;
+    const create = await fetch('/api/v1/blog/posts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: 'Демо-статья',
+        slug,
+        body_text: 'Контент статьи этапа 3.',
+        activity: 'inactive',
+      }),
+    });
+    if (!create.ok) {
+      setError('Не удалось создать черновик');
+      return;
+    }
+    const created = (await create.json()) as { id: string };
+    const save = await fetch(`/api/v1/blog/posts/${created.id}/save`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: 'Демо-статья',
+        slug,
+        body_text: 'Контент статьи этапа 3.',
+        activity: 'active',
+      }),
+    });
+    if (!save.ok) {
+      setError('Save статьи отклонён');
+      return;
+    }
+    setMessage('Статья сохранена (manual Save, activity=active).');
+  }
+
   return (
     <div className="shell" data-testid="admin-shell" role="document">
       <aside className="sidebar" aria-label="Навигация">
@@ -116,8 +183,8 @@ export function App(): React.JSX.Element {
       </aside>
       <main className="content">
         <header className="topbar">
-          <h1>Админка — этап 2</h1>
-          <p className="subtitle">Доставка пакетов, журнал операций, установка из локального каталога.</p>
+          <h1>Админка — этап 3</h1>
+          <p className="subtitle">G3: enable blog на сайте, миграции, mount /blog и ручной Save.</p>
         </header>
 
         {maintenance && (
@@ -145,8 +212,16 @@ export function App(): React.JSX.Element {
           ) : (
             <p data-testid="admin-authenticated">Сессия активна (повторная аутентификация для установки через заголовок).</p>
           )}
-          {error !== null && <p role="alert">{error}</p>}
-          {message !== null && <p role="status">{message}</p>}
+          {error !== null && (
+            <p role="alert" data-testid="admin-error">
+              {error}
+            </p>
+          )}
+          {message !== null && (
+            <p role="status" data-testid="admin-message">
+              {message}
+            </p>
+          )}
         </section>
 
         <section className="card" data-testid="versions-panel">
@@ -179,6 +254,15 @@ export function App(): React.JSX.Element {
             </button>
             <button type="button" data-testid="install-blog" onClick={() => void installBlog()} disabled={!authenticated}>
               Установить blog из каталога
+            </button>
+            <button type="button" data-testid="scan-incoming" onClick={() => void scanIncoming()} disabled={!authenticated}>
+              Сканировать incoming
+            </button>
+            <button type="button" data-testid="enable-blog" onClick={() => void enableBlog()} disabled={!authenticated}>
+              Включить blog на сайте
+            </button>
+            <button type="button" data-testid="blog-save-demo" onClick={() => void saveDemoPost()} disabled={!authenticated}>
+              Сохранить демо-статью
             </button>
           </div>
           <p className="muted">ZIP upload: {zipEnabled ? 'включён (файл-флаг на сервере)' : 'выключен по умолчанию'}</p>

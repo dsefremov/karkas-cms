@@ -137,7 +137,7 @@ jobs:
       - name: Archive screenshots for docs
         if: success()
         env:
-          KARKAS_SCREENSHOT_STAGE: '2'
+          KARKAS_SCREENSHOT_STAGE: '3'
         run: bash scripts/copy-e2e-screenshots.sh
       - uses: actions/upload-artifact@v4
         if: always()

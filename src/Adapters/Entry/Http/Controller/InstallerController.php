@@ -9,6 +9,7 @@ use Karkas\Adapters\Infrastructure\Persistence\InstallStateRepository;
 use Karkas\Adapters\Infrastructure\Persistence\PlatformSchemaBootstrap;
 use Karkas\Application\Admin\AdminAuthException;
 use Karkas\Application\Admin\AdminAuthService;
+use Karkas\Application\Package\Catalog\PackageCatalogRepository;
 use Karkas\Application\Package\Lifecycle\AtomicInstallOrchestrator;
 use Karkas\Application\Package\Plan\PlatformPlanService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -26,6 +27,7 @@ final class InstallerController extends AbstractController
         private readonly AdminAuthService $adminAuth,
         private readonly PlatformPlanService $planService,
         private readonly AtomicInstallOrchestrator $orchestrator,
+        private readonly PackageCatalogRepository $catalog,
     ) {
     }
 
@@ -71,12 +73,15 @@ final class InstallerController extends AbstractController
             return new JsonResponse(['error' => $e->getMessage()], 401);
         }
 
-        $plan = $this->planService->buildPlanFromCatalog(['karkas/core'], PHP_VERSION, '8.0');
+        $baselineCore = $this->catalog->loadForInstallerCore();
+        $plan = $this->planService->buildPlanFromCatalog([], PHP_VERSION, '8.0');
         if (!$plan->compatibility->compatible) {
             return new JsonResponse($plan->toArray(), 422);
         }
         try {
-            $operationId = $this->orchestrator->installFromCatalog($plan, ['karkas/core'], 'installer');
+            $operationId = $this->orchestrator->installFromCatalog($plan, ['karkas/core'], 'installer', [
+                'karkas/core' => $baselineCore->version->canonical,
+            ]);
         } catch (Throwable $e) {
             return new JsonResponse(['error' => $e->getMessage()], 409);
         }

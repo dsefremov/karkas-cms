@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ site_label }} — Блог</title>
+</head>
+<body>
+    <main>
+        <h1>{{ site_label }} — Блог</h1>
+        {% if articles is empty %}
+            <p>Пока нет опубликованных статей.</p>
+        {% else %}
+            <ul>
+                {% for article in articles %}
+                    <li><strong>{{ article.title }}</strong> ({{ article.slug }})</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </main>
+</body>
+</html>

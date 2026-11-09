@@ -97,4 +97,15 @@ final class ModuleInstallationRepository
             'updated_at' => Types::DATETIME_MUTABLE,
         ]);
     }
+
+    public function updateLifecycleStatus(string $packageId, string $lifecycleStatus): void
+    {
+        $connection = $this->connections->create();
+        $connection->update('module_installation', [
+            'lifecycle_status' => $lifecycleStatus,
+            'updated_at' => new DateTime(),
+        ], ['package_id' => $packageId], [
+            'updated_at' => Types::DATETIME_MUTABLE,
+        ]);
+    }
 }

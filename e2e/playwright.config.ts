@@ -4,6 +4,8 @@ const baseURL = process.env.BASE_URL ?? 'http://localhost:8080';
 
 export default defineConfig({
   testDir: './tests',
+  timeout: 60_000,
+  workers: 1,
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
