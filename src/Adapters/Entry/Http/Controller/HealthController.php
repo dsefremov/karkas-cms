@@ -18,7 +18,7 @@ final class HealthController extends AbstractController
             'name' => Version::PRODUCT,
             'stage' => (int) Version::STAGE,
             'status' => 'ok',
-            'message' => 'Stage 1 — package contracts, manifest validation, and version metadata.',
+            'message' => 'Stage 2 — package delivery, install orchestration, and registry.',
         ]);
     }
 

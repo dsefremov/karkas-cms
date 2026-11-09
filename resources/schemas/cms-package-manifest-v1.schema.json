@@ -48,7 +48,7 @@
     "requires": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["core", "sdk", "php"],
+      "required": ["sdk", "php"],
       "properties": {
         "core": { "type": "string", "minLength": 1 },
         "sdk": { "type": "string", "minLength": 1 },

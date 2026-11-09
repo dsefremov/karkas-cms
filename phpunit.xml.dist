@@ -9,6 +9,7 @@
         <env name="APP_DEBUG" value="1"/>
         <env name="KERNEL_CLASS" value="Karkas\Adapters\Entry\Http\Kernel"/>
         <env name="DATABASE_URL" value="mysql://karkas:karkas_secret@127.0.0.1:3306/karkas_test?serverVersion=8.0&amp;charset=utf8mb4"/>
+        <env name="KARKAS_ADMIN_PASSWORD" value="test-admin-password-stage2"/>
         <env name="DEFAULT_URI" value="http://localhost"/>
     </php>
     <testsuites>

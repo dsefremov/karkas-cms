@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-STAGE="${KARKAS_SCREENSHOT_STAGE:-1}"
+STAGE="${KARKAS_SCREENSHOT_STAGE:-2}"
 DEST="$ROOT/docs/stage-${STAGE}/screenshots"
 mkdir -p "$DEST"
 

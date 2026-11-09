@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Karkas\Application\Package\Inventory;
 
+use Karkas\Adapters\Infrastructure\Persistence\DatabaseConnectionFactory;
+use Karkas\Adapters\Infrastructure\Persistence\ModuleInstallationRepository;
+use Karkas\Adapters\Infrastructure\Persistence\PlatformCoreStateRepository;
 use Karkas\Application\Package\Compatibility\WholePlanCompatibilityChecker;
 use Karkas\Application\Package\Manifest\ManifestJsonParser;
 use Karkas\Domain\Package\VersionAvailabilityStatus;
@@ -12,9 +15,6 @@ use Karkas\Domain\Platform\SemVerVersion;
 use Symfony\Component\Finder\Finder;
 use Throwable;
 
-/**
- * Stage 1 read model: current from deployment config, available from local catalog directory.
- */
 final class PlatformVersionInventory
 {
     public function __construct(
@@ -23,6 +23,9 @@ final class PlatformVersionInventory
         private readonly string $localCatalogDir,
         private readonly ManifestJsonParser $parser,
         private readonly WholePlanCompatibilityChecker $planChecker,
+        private readonly DatabaseConnectionFactory $connections,
+        private readonly PlatformCoreStateRepository $coreState,
+        private readonly ModuleInstallationRepository $moduleInstallations,
     ) {
     }
 
@@ -31,8 +34,8 @@ final class PlatformVersionInventory
      */
     public function buildInventory(string $targetPhpVersion, string $targetMysqlServer): array
     {
+        $coreCurrent = $this->resolveCoreCurrent();
         $slots = [];
-        $coreCurrent = new SemVerVersion($this->coreVersion);
         $slots[] = new PackageVersionSlot(
             packageId: 'karkas/core',
             current: $coreCurrent,
@@ -44,7 +47,7 @@ final class PlatformVersionInventory
         );
 
         foreach ($this->discoverModuleCatalogEntries() as $moduleId) {
-            $current = null;
+            $current = $this->resolveModuleCurrent($moduleId);
             $available = $this->readCatalogVersion($moduleId, $current);
             $status = VersionAvailabilityStatus::Untrusted;
             $reason = 'Local catalog metadata is untrusted until install plan validation.';
@@ -73,6 +76,37 @@ final class PlatformVersionInventory
     public function sdkVersion(): string
     {
         return $this->sdkVersion;
+    }
+
+    private function resolveCoreCurrent(): SemVerVersion
+    {
+        if ($this->connections->isConfigured()) {
+            try {
+                $row = $this->coreState->get();
+                if (null !== $row) {
+                    return new SemVerVersion((string) $row['version']);
+                }
+            } catch (Throwable) {
+            }
+        }
+
+        return new SemVerVersion($this->coreVersion);
+    }
+
+    private function resolveModuleCurrent(string $packageId): ?SemVerVersion
+    {
+        if (!$this->connections->isConfigured()) {
+            return null;
+        }
+        try {
+            $row = $this->moduleInstallations->find($packageId);
+            if (null !== $row) {
+                return new SemVerVersion((string) $row['version']);
+            }
+        } catch (Throwable) {
+        }
+
+        return null;
     }
 
     private function readCatalogVersion(string $packageId, ?SemVerVersion $current): ?SemVerVersion
@@ -133,8 +167,8 @@ final class PlatformVersionInventory
                 format: $core->format,
                 componentId: $core->componentId,
                 componentType: $core->componentType,
-                version: new SemVerVersion($this->coreVersion),
-                requiresCore: $core->requiresCore,
+                version: $this->resolveCoreCurrent(),
+                requiresCore: '',
                 requiresSdk: $core->requiresSdk,
                 requiresPhp: $core->requiresPhp,
                 requiresMysqlServer: $core->requiresMysqlServer,

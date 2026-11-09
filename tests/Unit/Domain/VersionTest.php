@@ -9,9 +9,9 @@ use PHPUnit\Framework\TestCase;
 
 final class VersionTest extends TestCase
 {
-    public function testStageOne(): void
+    public function testStageTwo(): void
     {
-        self::assertSame('1', Version::STAGE);
+        self::assertSame('2', Version::STAGE);
         self::assertSame('Karkas CMS', Version::PRODUCT);
     }
 }

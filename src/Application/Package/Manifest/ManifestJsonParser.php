@@ -99,12 +99,20 @@ final class ManifestJsonParser
 
         $this->assertFileListSortedUnique($files);
 
+        $requiresCore = '';
+        if ('module' === $componentType) {
+            if (!isset($requires->core)) {
+                throw new ManifestValidationException('Module manifest must declare requires.core.');
+            }
+            $requiresCore = (string) $requires->core;
+        }
+
         return new PackageManifest(
             format: $format,
             componentId: new ModuleId((string) $component->id),
             componentType: $componentType,
             version: new SemVerVersion((string) $decoded->version),
-            requiresCore: (string) $requires->core,
+            requiresCore: $requiresCore,
             requiresSdk: (string) $requires->sdk,
             requiresPhp: (string) $requires->php,
             requiresMysqlServer: $mysqlServer,

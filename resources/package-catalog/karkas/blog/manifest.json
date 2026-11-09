@@ -6,6 +6,7 @@
     "display_name": "Blog"
   },
   "version": "1.0.0",
+  "manifest_digest": "56e065d5fd00929929bd4b110e56ba853290480b9ba44bcadd3ebdc70fe6c744",
   "requires": {
     "core": "^1.0.0",
     "sdk": "^1.0.0",

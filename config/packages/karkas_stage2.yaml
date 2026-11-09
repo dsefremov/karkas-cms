@@ -1,0 +1,62 @@
+parameters:
+    karkas.admin.password.default: ''
+    karkas.packages.root: '%kernel.project_dir%/var/packages'
+    karkas.packages.incoming_dir: '%kernel.project_dir%/var/packages/incoming'
+    karkas.packages.quarantine_dir: '%kernel.project_dir%/var/packages/quarantine'
+    karkas.zip_upload.flag_path: '%kernel.project_dir%/var/flags/zip-upload.enabled'
+    karkas.admin.password: '%env(default:karkas.admin.password.default:KARKAS_ADMIN_PASSWORD)%'
+    karkas.package.limits:
+        zip_max_compressed_bytes: 52428800
+        manifest_max_bytes: 1048576
+        max_zip_entries: 5000
+        max_files_in_package: 2000
+        max_uncompressed_bytes_total: 209715200
+        max_uncompressed_bytes_per_file: 52428800
+        max_compression_ratio: 200
+        max_path_depth: 12
+        max_path_segment_bytes: 120
+        max_processing_walltime_seconds: 120
+
+services:
+    Karkas\Domain\Platform\PackageDeliveryLimits:
+        factory: ['Karkas\Domain\Platform\PackageDeliveryLimits', 'fromConfig']
+        arguments:
+            - '%karkas.package.limits%'
+
+    Karkas\Adapters\Infrastructure\Persistence\DatabaseConnectionFactory:
+        arguments:
+            $databaseUrl: '%env(default::DATABASE_URL)%'
+
+    Karkas\Adapters\Infrastructure\Persistence\PlatformSchemaBootstrap:
+        arguments:
+            $schemaSqlPath: '%kernel.project_dir%/resources/schema/stage2_platform.sql'
+
+    Karkas\Application\Package\Lifecycle\PackageStagingService:
+        arguments:
+            $packagesRoot: '%karkas.packages.root%'
+
+    Karkas\Application\Package\Plan\PlatformPlanService:
+        arguments:
+            $localCatalogDir: '%karkas.platform.package_catalog_dir%'
+            $fallbackCoreVersion: '%karkas.platform.core_version%'
+
+    Karkas\Application\Package\Lifecycle\AtomicInstallOrchestrator:
+        arguments:
+            $localCatalogDir: '%karkas.platform.package_catalog_dir%'
+
+    Karkas\Application\Admin\AdminAuthService:
+        arguments:
+            $adminPassword: '%karkas.admin.password%'
+
+    Karkas\Application\Admin\ZipUploadGate:
+        arguments:
+            $flagPath: '%karkas.zip_upload.flag_path%'
+
+    Karkas\Application\Package\Quarantine\FolderIngestService:
+        arguments:
+            $incomingRoot: '%karkas.packages.incoming_dir%'
+            $quarantineRoot: '%karkas.packages.quarantine_dir%'
+
+    Karkas\Application\Package\Quarantine\ZipIngestService:
+        arguments:
+            $quarantineRoot: '%karkas.packages.quarantine_dir%'
