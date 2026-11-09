@@ -73,4 +73,4 @@ Unchanged from Stage 2 (`karkas.package.limits` in `config/packages/karkas_stage
 
 ## CI
 
-_(Green run URL updated after push to `grok_bot` / PR #7.)_
+Green: [Actions run 42678256709](https://github.com/dsefremov/karkas-cms/actions/runs/42678256709) (head `a522b57`, PR #7).
