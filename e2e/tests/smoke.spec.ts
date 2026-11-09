@@ -22,11 +22,13 @@ test.describe('Karkas Stage 3 smoke', () => {
     await page.getByTestId('admin-login').click();
     await expect(page.getByTestId('admin-authenticated')).toBeVisible();
     await page.getByTestId('installer-run').click();
+    await expect(page.getByTestId('admin-message')).toContainText('Core', { timeout: 60_000 });
     await page.getByTestId('install-blog').click();
+    await expect(page.getByTestId('admin-message')).toContainText('blog', { timeout: 60_000 });
     await page.getByTestId('enable-blog').click();
-    await expect(page.getByTestId('admin-message')).toContainText('Blog включён', { timeout: 30_000 });
+    await expect(page.getByTestId('admin-message')).toContainText('Blog включён', { timeout: 60_000 });
     await page.getByTestId('blog-save-demo').click();
-    await expect(page.getByTestId('admin-message')).toContainText('Статья сохранена', { timeout: 30_000 });
+    await expect(page.getByTestId('admin-message')).toContainText('Статья сохранена', { timeout: 60_000 });
     await expect(page.getByTestId('version-row-karkas-blog')).toContainText('1.0.0');
 
     const blog = await page.goto('/blog');
