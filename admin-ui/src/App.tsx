@@ -193,6 +193,17 @@ export function App(): React.JSX.Element {
           </div>
         )}
 
+        {error !== null && (
+          <p className="status-banner" role="alert" data-testid="admin-error">
+            {error}
+          </p>
+        )}
+        {message !== null && (
+          <p className="status-banner" role="status" data-testid="admin-message">
+            {message}
+          </p>
+        )}
+
         <section className="card" aria-labelledby="auth-heading">
           <h2 id="auth-heading">Вход администратора</h2>
           {!authenticated ? (
@@ -212,38 +223,30 @@ export function App(): React.JSX.Element {
           ) : (
             <p data-testid="admin-authenticated">Сессия активна (повторная аутентификация для установки через заголовок).</p>
           )}
-          {error !== null && (
-            <p role="alert" data-testid="admin-error">
-              {error}
-            </p>
-          )}
-          {message !== null && (
-            <p role="status" data-testid="admin-message">
-              {message}
-            </p>
-          )}
         </section>
 
         <section className="card" data-testid="versions-panel">
           <h2>Версии</h2>
-          <table className="versions-table">
-            <thead>
-              <tr>
-                <th scope="col">Пакет</th>
-                <th scope="col">Текущая</th>
-                <th scope="col">Доступная (локально)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {versions?.packages.map((row) => (
-                <tr key={row.package_id} data-testid={`version-row-${row.package_id.replace('/', '-')}`}>
-                  <td>{row.package_id}</td>
-                  <td>{row.current ?? '—'}</td>
-                  <td>{row.available ?? '—'}</td>
+          <div className="table-scroll">
+            <table className="versions-table">
+              <thead>
+                <tr>
+                  <th scope="col">Пакет</th>
+                  <th scope="col">Текущая</th>
+                  <th scope="col">Доступная (локально)</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {versions?.packages.map((row) => (
+                  <tr key={row.package_id} data-testid={`version-row-${row.package_id.replace('/', '-')}`}>
+                    <td>{row.package_id}</td>
+                    <td>{row.current ?? '—'}</td>
+                    <td>{row.available ?? '—'}</td>
+                </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </section>
 
         <section className="card" data-testid="installer-panel">
@@ -259,7 +262,7 @@ export function App(): React.JSX.Element {
               Сканировать incoming
             </button>
           </div>
-          <p className="muted">ZIP upload: {zipEnabled ? 'включён (файл-флаг на сервере)' : 'выключен по умолчанию'}</p>
+          <p className="muted installer-footnote">ZIP upload: {zipEnabled ? 'включён (файл-флаг на сервере)' : 'выключен по умолчанию'}</p>
         </section>
 
         <section className="card" data-testid="site-blog-panel">

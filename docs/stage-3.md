@@ -41,6 +41,12 @@ Unchanged from Stage 2 (`karkas.package.limits` in `config/packages/karkas_stage
 - **301 preparation**: `blog_slug_redirect` row on slug change (routing layer uses in G4).
 - Plan payload includes `incoming_scan` metadata.
 
+## Mobile admin layout fix (Playwright 390px)
+
+**Cause:** On narrow viewports, `.shell` switched to a single-column grid while `.content` kept desktop `grid-column: 2; grid-row: 1 / span 2`. The main column overlapped the stacked cards: the installer footnote (“ZIP upload…”) and the **Blog на сайте** panel sat on the same hit area as `enable-blog`, so Playwright reported pointer interception.
+
+**Fix:** At `max-width: 640px`, use a **flex column** shell; make `.content` a flex column with explicit `gap`; each `.card` uses `display: flow-root` and does not collapse margins into neighbours; status messages moved out of the auth card; versions table wrapped in `overflow-x: auto`.
+
 ## Known limitations
 
 - No history last-10/diff/restore UI, ETag headers, or category bindings.
@@ -56,7 +62,7 @@ Unchanged from Stage 2 (`karkas.package.limits` in `config/packages/karkas_stage
 
 ## Screenshots
 
-See `docs/stage-3/screenshots/` (Playwright + axe at 1440px and 390px).
+`docs/stage-3/screenshots/` — Playwright full-page captures at **1440** and **390** (admin after blog enable + `/blog` flow); axe **0 violations** on desktop admin.
 
 ## Tests
 
@@ -67,4 +73,4 @@ See `docs/stage-3/screenshots/` (Playwright + axe at 1440px and 390px).
 
 ## CI
 
-_(PR check link added after push.)_
+_(Green run URL updated after push to `grok_bot` / PR #7.)_
