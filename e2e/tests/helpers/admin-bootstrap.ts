@@ -14,13 +14,17 @@ export async function bootstrapBlogAdmin(page: Page): Promise<void> {
   const coreCurrent = await page.getByTestId('version-row-karkas-core').locator('td').nth(1).textContent();
   if (!(coreCurrent ?? '').match(/\d+\.\d+\.\d+/)) {
     await page.getByTestId('installer-run').click();
-    await expect(page.getByTestId('admin-message')).toContainText('Core', { timeout: 60_000 });
+    await expect(page.getByTestId('version-row-karkas-core').locator('td').nth(1)).toContainText(/\d+\.\d+\.\d+/, {
+      timeout: 60_000,
+    });
   }
 
   const blogCurrent = await page.getByTestId('version-row-karkas-blog').locator('td').nth(1).textContent();
   if (!(blogCurrent ?? '').includes('1.0.0')) {
     await page.getByTestId('install-blog').click();
-    await expect(page.getByTestId('admin-message')).toContainText('blog', { timeout: 60_000 });
+    await expect(page.getByTestId('version-row-karkas-blog').locator('td').nth(1)).toContainText('1.0.0', {
+      timeout: 60_000,
+    });
   }
 
   const blogProbe = await page.request.get('/blog');
@@ -28,6 +32,15 @@ export async function bootstrapBlogAdmin(page: Page): Promise<void> {
   const blogReady = blogProbe.ok() && !blogHtml.includes('not enabled');
   if (!blogReady) {
     await page.getByTestId('enable-blog').click();
-    await expect(page.getByTestId('admin-message')).toContainText('Blog включён', { timeout: 60_000 });
+    await expect
+      .poll(async () => {
+        const response = await page.request.get('/blog');
+        if (!response.ok()) {
+          return false;
+        }
+        const html = await response.text();
+        return !html.includes('not enabled');
+      })
+      .toBe(true);
   }
 }

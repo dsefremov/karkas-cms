@@ -135,6 +135,7 @@ final class BlogPostRepository
             ['limit' => Types::INTEGER],
         );
 
+        /** @var list<array{version_seq: int, saved_at: string, snapshot_json: string}> $rows */
         return $rows;
     }
 
@@ -158,7 +159,7 @@ final class BlogPostRepository
         if ($total <= $keep) {
             return 0;
         }
-        $deleted = $connection->executeStatement(
+        return (int) $connection->executeStatement(
             'DELETE FROM blog_post_version WHERE post_id = :id AND version_seq NOT IN (
                 SELECT version_seq FROM (
                     SELECT version_seq FROM blog_post_version
@@ -170,8 +171,6 @@ final class BlogPostRepository
             ['id' => $postId, 'id2' => $postId, 'keep' => $keep],
             ['keep' => Types::INTEGER],
         );
-
-        return $deleted;
     }
 
     /**

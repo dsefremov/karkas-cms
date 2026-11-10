@@ -81,6 +81,7 @@ export function App(): React.JSX.Element {
   async function runInstaller(): Promise<void> {
     setMessage(null);
     setError(null);
+    setMessage('Установка Core…');
     await fetch('/api/v1/installer/bootstrap', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Karkas-Reauth': password },
@@ -102,6 +103,7 @@ export function App(): React.JSX.Element {
   async function installBlog(): Promise<void> {
     setMessage(null);
     setError(null);
+    setMessage('Установка blog…');
     const response = await fetch('/api/v1/platform/install', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Karkas-Reauth': password },

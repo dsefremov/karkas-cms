@@ -35,12 +35,16 @@ final class Stage4CoreUpgradeTest extends KernelTestCase
 
         /** @var PlatformCoreStateRepository $core */
         $core = $container->get(PlatformCoreStateRepository::class);
-        self::assertSame('1.0.0', $core->get()['version']);
+        $before = $core->get();
+        self::assertNotNull($before);
+        self::assertSame('1.0.0', $before['version']);
 
         $upgradePlan = $planService->buildExplicitCoreUpgradePlan([], PHP_VERSION, '8.0');
         self::assertTrue($upgradePlan->compatibility->compatible);
         $installer->installFromCatalog($upgradePlan, ['karkas/core'], 'test');
 
-        self::assertSame('1.1.0', $core->get()['version']);
+        $after = $core->get();
+        self::assertNotNull($after);
+        self::assertSame('1.1.0', $after['version']);
     }
 }
