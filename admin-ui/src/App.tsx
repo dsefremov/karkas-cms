@@ -109,6 +109,7 @@ export function App(): React.JSX.Element {
       const defaultSite = body.sites.find((s) => s.is_default) ?? body.sites[0];
       if (defaultSite !== undefined) {
         setEnableBlogSiteId(defaultSite.id);
+        setPageTreeSiteId(defaultSite.id);
       }
     }
   }, [loadVersions]);
@@ -329,28 +330,36 @@ export function App(): React.JSX.Element {
   async function seedDemoPages(): Promise<void> {
     setError(null);
     setMessage(null);
+    const suffix = Date.now().toString(36);
+    const aboutSlug = `about-${suffix}`;
+    const teamSlug = `team-${suffix}`;
     const aboutRes = await fetch(`/api/v1/sites/${pageTreeSiteId}/pages`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: 'О компании', slug: 'about', activity: 'active', body_text: 'О нас' }),
+      body: JSON.stringify({ title: 'О компании', slug: aboutSlug, activity: 'active', body_text: 'О нас' }),
     });
     if (!aboutRes.ok) {
-      setError('Не удалось создать корневую страницу');
+      const err = (await aboutRes.json()) as { message?: string };
+      setError(err.message ?? 'Не удалось создать корневую страницу');
       return;
     }
     const about = (await aboutRes.json()) as PageTreeNode;
-    await fetch(`/api/v1/sites/${pageTreeSiteId}/pages`, {
+    const teamRes = await fetch(`/api/v1/sites/${pageTreeSiteId}/pages`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         title: 'Команда',
-        slug: 'team',
+        slug: teamSlug,
         parent_id: about.id,
         activity: 'active',
         body_text: 'Команда',
       }),
     });
-    setMessage('Демо-дерево страниц создано.');
+    if (!teamRes.ok) {
+      setError('Не удалось создать дочернюю страницу');
+      return;
+    }
+    setMessage(`Демо-дерево страниц создано (${aboutSlug}/${teamSlug}).`);
     await loadPageTree();
   }
 
