@@ -4,11 +4,12 @@ on:
   push:
     branches: [grok_bot, develop, main]
   pull_request:
-    branches: [develop]
+    branches: [develop, main]
+  workflow_dispatch:
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: false
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.head.sha || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'push' && github.ref == 'refs/heads/grok_bot' }}
 
 jobs:
   php-static:
@@ -93,6 +94,7 @@ jobs:
       - run: cd admin-ui && npm run build
 
   playwright:
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     needs: [frontend]
     steps:
@@ -137,7 +139,7 @@ jobs:
       - name: Archive screenshots for docs
         if: success()
         env:
-          KARKAS_SCREENSHOT_STAGE: '4'
+          KARKAS_SCREENSHOT_STAGE: '5'
         run: bash scripts/copy-e2e-screenshots.sh
       - uses: actions/upload-artifact@v4
         if: always()
@@ -146,7 +148,7 @@ jobs:
           path: |
             e2e/playwright-report
             e2e/test-results
-            docs/stage-4/screenshots
+            docs/stage-5/screenshots
       - name: Stop Docker stack
         if: always()
         run: docker compose down -v

@@ -65,7 +65,7 @@ final class BlogPostSaveService
         $toSlug = $payload['slug'];
         $this->posts->update($postId, $toSlug, $payload['title'], $payload['body_text'], $payload['activity'], $etag);
         if ($fromSlug !== $toSlug) {
-            $this->posts->recordSlugRedirect($postId, $fromSlug, $toSlug);
+            $this->posts->recordSlugRedirect((int) $existing['site_id'], $postId, $fromSlug, $toSlug);
         }
         $seq = $this->posts->nextVersionSeq($postId);
         $this->posts->appendVersion($postId, $seq, json_encode($payload, JSON_THROW_ON_ERROR));
