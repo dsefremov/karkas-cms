@@ -19,12 +19,15 @@ test.describe('Karkas Stage 5', () => {
   test('multisite panel lists default site and can create partner', async ({ page }) => {
     await bootstrapBlogAdmin(page);
     await expect(page.getByTestId('sites-panel')).toBeVisible();
-    await page.getByTestId('new-site-key').fill(`p-${Date.now()}`);
+    const siteKey = `p-${Date.now()}`;
+    await page.getByTestId('new-site-key').fill(siteKey);
     await page.getByTestId('new-site-label').fill('Партнёр E2E');
-    await page.getByTestId('new-site-host').fill('partner-e2e.example.test');
+    await page.getByTestId('new-site-host').fill(`partner-${Date.now()}.example.test`);
     await page.getByTestId('create-site').click();
     await expect(page.getByTestId('admin-message')).toContainText('создан', { timeout: 30_000 });
-    await expect(page.getByTestId('sites-panel').getByRole('row')).toHaveCount(3);
+    await expect(page.getByTestId(`site-row-${siteKey}`)).toBeVisible();
+    const rowCount = await page.getByTestId('sites-panel').getByRole('row').count();
+    expect(rowCount).toBeGreaterThanOrEqual(2);
   });
 
   test('admin screenshots at 1440 and 390 with plan panel', async ({ page }, testInfo) => {

@@ -250,7 +250,7 @@ export function App(): React.JSX.Element {
       setError('Не удалось создать сайт');
       return;
     }
-    setMessage(`Сайт «${newSiteLabel}» создан.`);
+    setMessage(`Сайт «${newSiteLabel}» создан (multisite).`);
     await loadSites();
   }
 
@@ -379,18 +379,18 @@ export function App(): React.JSX.Element {
           ) : (
             <p className="muted">Данные Core недоступны</p>
           )}
+          <div className="actions actions-stack">
+            <button type="button" data-testid="load-core-plan" onClick={() => void loadCorePlan()} disabled={!authenticated}>
+              Показать план обновления Core
+            </button>
+          </div>
+          {corePlan !== null && (
+            <pre className="plan-preview" data-testid="core-plan-preview">
+              {JSON.stringify(corePlan.plan?.targets ?? [], null, 2)}
+            </pre>
+          )}
           {coreUpgradeAvailable ? (
             <>
-              <div className="actions actions-stack">
-                <button type="button" data-testid="load-core-plan" onClick={() => void loadCorePlan()} disabled={!authenticated}>
-                  Показать план обновления Core
-                </button>
-              </div>
-              {corePlan !== null && (
-                <pre className="plan-preview" data-testid="core-plan-preview">
-                  {JSON.stringify(corePlan.plan?.targets ?? [], null, 2)}
-                </pre>
-              )}
               <div className="form-row">
                 <label htmlFor="core-upgrade-confirm">
                   <input
