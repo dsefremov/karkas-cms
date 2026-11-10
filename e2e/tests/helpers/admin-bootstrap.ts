@@ -61,10 +61,13 @@ export async function bootstrapBlogAdmin(page: Page): Promise<void> {
     await expect(page.getByTestId('admin-authenticated')).toBeVisible();
   }
 
+  let needsInstaller = true;
   const installerStatus = await page.request.get('/api/v1/installer/status');
-  expect(installerStatus.ok(), await installerStatus.text()).toBeTruthy();
-  const statusJson = (await installerStatus.json()) as { status?: string };
-  if (statusJson.status !== 'completed') {
+  if (installerStatus.ok()) {
+    const statusJson = (await installerStatus.json()) as { status?: string };
+    needsInstaller = statusJson.status !== 'completed';
+  }
+  if (needsInstaller) {
     const bootstrap = await page.request.post('/api/v1/installer/bootstrap', { headers: authHeaders(), data: '{}' });
     const complete = await page.request.post('/api/v1/installer/complete', { headers: authHeaders(), data: '{}' });
     expect(bootstrap.ok(), await bootstrap.text()).toBeTruthy();

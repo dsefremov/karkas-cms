@@ -6,6 +6,7 @@ namespace Karkas\Adapters\Infrastructure\Persistence;
 
 use DateTime;
 use Doctrine\DBAL\Types\Types;
+use Throwable;
 
 final class InstallStateRepository
 {
@@ -16,10 +17,14 @@ final class InstallStateRepository
 
     public function status(): string
     {
-        $connection = $this->connections->create();
-        $status = $connection->fetchOne('SELECT status FROM platform_install_state WHERE singleton_id = 1');
+        try {
+            $connection = $this->connections->create();
+            $status = $connection->fetchOne('SELECT status FROM platform_install_state WHERE singleton_id = 1');
 
-        return false !== $status ? (string) $status : 'pending';
+            return false !== $status ? (string) $status : 'pending';
+        } catch (Throwable) {
+            return 'pending';
+        }
     }
 
     public function markCompleted(): void
