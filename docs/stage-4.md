@@ -54,7 +54,7 @@ Prior Stage 2–3 policies: explicit core only via admin plan; incoming scan on 
 
 | Suite | Count | Notes |
 |-------|------:|-------|
-| PHPUnit | 40 | 100 assertions, 1 skipped; +`Stage4BlogVersionPruneTest`, `Stage4CoreUpgradeTest` |
+| PHPUnit | 40 | 102 assertions, 1 skipped; +`Stage4BlogVersionPruneTest`, `Stage4CoreUpgradeTest` |
 | Playwright | 10 | 2 specs × 2 viewports (smoke + stage4 core/history/screenshots) |
 
 ## CI

@@ -135,6 +135,7 @@ final class BlogPostRepository
             ['limit' => Types::INTEGER],
         );
 
+        /** @var list<array{version_seq: int, saved_at: string, snapshot_json: string}> $normalized */
         $normalized = [];
         foreach ($rows as $row) {
             $normalized[] = [
