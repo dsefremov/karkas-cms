@@ -8,6 +8,7 @@ use Karkas\Application\Admin\AdminAuthException;
 use Karkas\Application\Admin\AdminAuthService;
 use Karkas\Application\Content\SitePageService;
 use Karkas\Domain\Content\SitePageException;
+use Karkas\Domain\Content\SitePageTree;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -55,7 +56,7 @@ final class SitePageController extends AbstractController
                 'slug' => (string) ($body['slug'] ?? ''),
                 'body_text' => (string) ($body['body_text'] ?? ''),
                 'activity' => (string) ($body['activity'] ?? 'inactive'),
-                'parent_id' => isset($body['parent_id']) ? (string) $body['parent_id'] : null,
+                'parent_id' => isset($body['parent_id']) ? (string) $body['parent_id'] : SitePageTree::SENTINEL_PARENT_ID,
             ]);
         } catch (SitePageException $e) {
             return new JsonResponse(['error' => $e->errorCode(), 'message' => $e->getMessage()], 409);

@@ -35,9 +35,6 @@ final class ModuleMountRepository
     }
 
     /**
-     * @return array{path_prefix: string, module_instance_id: string}|null
-     */
-    /**
      * @return list<string> normalized paths without leading slash, e.g. blog
      */
     public function listPathPrefixesForSite(int $siteId): array
@@ -55,6 +52,9 @@ final class ModuleMountRepository
         return $normalized;
     }
 
+    /**
+     * @return array{path_prefix: string, module_instance_id: string}|null
+     */
     public function resolveByPrefix(int $siteId, string $pathPrefix): ?array
     {
         $connection = $this->connections->create();
