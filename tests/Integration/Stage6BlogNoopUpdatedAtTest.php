@@ -59,11 +59,15 @@ final class Stage6BlogNoopUpdatedAtTest extends KernelTestCase
             'activity' => 'inactive',
         ];
         $posts->save($postId, $payload);
-        $before = (string) $repo->find($postId)['updated_at'];
+        $rowBefore = $repo->find($postId);
+        self::assertNotNull($rowBefore);
+        $before = (string) $rowBefore['updated_at'];
         usleep(50_000);
         $noop = $posts->save($postId, $payload);
         self::assertTrue($noop['noop']);
-        $after = (string) $repo->find($postId)['updated_at'];
+        $rowAfter = $repo->find($postId);
+        self::assertNotNull($rowAfter);
+        $after = (string) $rowAfter['updated_at'];
         self::assertSame($before, $after);
     }
 }
