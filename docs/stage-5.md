@@ -56,4 +56,4 @@ Close Stage 4 open questions with Den decisions: **noop Save** (no version/prune
 
 ## CI
 
-Green on final head `86953b2`: https://github.com/dsefremov/karkas-cms/actions/runs/42883862353 — php-static, phpunit matrix (8.4/8.5 × MySQL 8.0/8.4), frontend, Playwright (axe **0** on desktop), release artifact verify. Screenshots below from Playwright artifact on run `42876316837` (same UI; captured before contrast CSS commit).
+Green on final head `c4c7b6f`: https://github.com/dsefremov/karkas-cms/actions/runs/42884508113 — php-static, phpunit matrix (8.4/8.5 × MySQL 8.0/8.4), frontend, Playwright (axe **0** on desktop), release artifact verify. Screenshots below from Playwright artifact on run `42876316837` (same UI; captured before contrast CSS commit).
