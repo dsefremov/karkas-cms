@@ -135,8 +135,16 @@ final class BlogPostRepository
             ['limit' => Types::INTEGER],
         );
 
-        /* @var list<array{version_seq: int, saved_at: string, snapshot_json: string}> $rows */
-        return $rows;
+        $normalized = [];
+        foreach ($rows as $row) {
+            $normalized[] = [
+                'version_seq' => (int) $row['version_seq'],
+                'saved_at' => (string) $row['saved_at'],
+                'snapshot_json' => (string) $row['snapshot_json'],
+            ];
+        }
+
+        return $normalized;
     }
 
     public function countVersions(string $postId): int
