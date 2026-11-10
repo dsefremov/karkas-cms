@@ -113,7 +113,7 @@ final class PlatformSiteRepository
     /**
      * @return array{id: int, site_key: string, label: string, is_default: bool, canonical_host: string|null}
      */
-    public function create(string $siteKey, string $label, ?string $canonicalHost): array
+    public function create(string $siteKey, string $label, ?string $canonicalHost, bool $isDefault = false): array
     {
         if ('' === trim($siteKey) || !preg_match('/^[a-z0-9][a-z0-9\-]{0,62}$/', $siteKey)) {
             throw new RuntimeException('Invalid site_key.');
@@ -121,15 +121,25 @@ final class PlatformSiteRepository
         if (null !== $canonicalHost && '' === trim($canonicalHost)) {
             $canonicalHost = null;
         }
+        if ($isDefault && $this->hasDefaultSite()) {
+            throw new RuntimeException('default_site_exists');
+        }
         $connection = $this->connections->create();
         $now = new DateTime();
-        $connection->insert('platform_site', [
-            'site_key' => $siteKey,
-            'label' => $label,
-            'is_default' => 0,
-            'canonical_host' => $canonicalHost,
-            'updated_at' => $now,
-        ], ['updated_at' => Types::DATETIME_MUTABLE]);
+        try {
+            $connection->insert('platform_site', [
+                'site_key' => $siteKey,
+                'label' => $label,
+                'is_default' => $isDefault ? 1 : 0,
+                'canonical_host' => $canonicalHost,
+                'updated_at' => $now,
+            ], ['updated_at' => Types::DATETIME_MUTABLE]);
+        } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $e) {
+            if ($isDefault) {
+                throw new RuntimeException('default_site_exists', 0, $e);
+            }
+            throw $e;
+        }
         $id = (int) $connection->lastInsertId();
         $created = $this->findById($id);
         if (null === $created) {
@@ -137,6 +147,14 @@ final class PlatformSiteRepository
         }
 
         return $created;
+    }
+
+    public function hasDefaultSite(): bool
+    {
+        $connection = $this->connections->create();
+        $count = $connection->fetchOne('SELECT COUNT(*) FROM platform_site WHERE is_default = 1');
+
+        return (int) $count > 0;
     }
 
     /**

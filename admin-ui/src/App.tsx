@@ -48,6 +48,7 @@ export function App(): React.JSX.Element {
   const [lastPostId, setLastPostId] = useState<string | null>(null);
   const [blogHistory, setBlogHistory] = useState<BlogVersionRow[]>([]);
   const [sites, setSites] = useState<SiteRow[]>([]);
+  const [enableBlogSiteId, setEnableBlogSiteId] = useState(1);
   const [newSiteKey, setNewSiteKey] = useState('partner');
   const [newSiteLabel, setNewSiteLabel] = useState('Партнёрский сайт');
   const [newSiteHost, setNewSiteHost] = useState('partner.example.test');
@@ -83,6 +84,10 @@ export function App(): React.JSX.Element {
     if (sitesResponse.ok) {
       const body = (await sitesResponse.json()) as { sites: SiteRow[] };
       setSites(body.sites);
+      const defaultSite = body.sites.find((s) => s.is_default) ?? body.sites[0];
+      if (defaultSite !== undefined) {
+        setEnableBlogSiteId(defaultSite.id);
+      }
     }
   }, [loadVersions]);
 
@@ -163,7 +168,7 @@ export function App(): React.JSX.Element {
   async function enableBlog(): Promise<void> {
     setMessage(null);
     setError(null);
-    const response = await fetch('/api/v1/sites/default/modules/karkas/blog/enable', {
+    const response = await fetch(`/api/v1/sites/${enableBlogSiteId}/modules/karkas/blog/enable`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Karkas-Reauth': password },
       body: JSON.stringify({ site_label: 'Каркас — демо' }),
@@ -172,7 +177,8 @@ export function App(): React.JSX.Element {
       setError('Включение blog на сайте отклонено');
       return;
     }
-    setMessage('Blog включён на сайте (миграции + mount /blog).');
+    const site = sites.find((s) => s.id === enableBlogSiteId);
+    setMessage(`Blog включён на сайте «${site?.site_key ?? enableBlogSiteId}» (миграции + mount /blog).`);
   }
 
   async function saveDemoPost(): Promise<void> {
@@ -303,8 +309,8 @@ export function App(): React.JSX.Element {
       </aside>
       <main className="content">
         <header className="topbar">
-          <h1>Админка — этап 5</h1>
-          <p className="subtitle">G5: превью плана Core, мультисайт (CRUD), slug redirect по site_id, noop Save.</p>
+          <h1>Админка — этап 6</h1>
+          <p className="subtitle">G6: noop Save без updated_at, единственный default site, выбор сайта для enable blog.</p>
         </header>
 
         {maintenance && (
@@ -429,6 +435,7 @@ export function App(): React.JSX.Element {
                   <th scope="col">Ключ</th>
                   <th scope="col">Название</th>
                   <th scope="col">Host</th>
+                  <th scope="col">Default</th>
                 </tr>
               </thead>
               <tbody>
@@ -438,6 +445,7 @@ export function App(): React.JSX.Element {
                     <td>{site.site_key}</td>
                     <td>{site.label}</td>
                     <td>{site.canonical_host ?? '—'}</td>
+                    <td data-testid={`site-default-${site.site_key}`}>{site.is_default ? 'да' : '—'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -474,9 +482,25 @@ export function App(): React.JSX.Element {
 
         <section className="card" data-testid="site-blog-panel">
           <h2>Blog на сайте</h2>
+          <div className="form-row">
+            <label htmlFor="enable-blog-site">Сайт для enable blog</label>
+            <select
+              id="enable-blog-site"
+              data-testid="enable-blog-site"
+              value={enableBlogSiteId}
+              onChange={(e) => setEnableBlogSiteId(Number(e.target.value))}
+              disabled={!authenticated || sites.length === 0}
+            >
+              {sites.map((site) => (
+                <option key={site.id} value={site.id}>
+                  {site.site_key} ({site.label}){site.is_default ? ' — default' : ''}
+                </option>
+              ))}
+            </select>
+          </div>
           <div className="actions actions-stack">
             <button type="button" data-testid="enable-blog" onClick={() => void enableBlog()} disabled={!authenticated}>
-              Включить blog на сайте
+              Включить blog на выбранном сайте
             </button>
             <button type="button" data-testid="blog-save-demo" onClick={() => void saveDemoPost()} disabled={!authenticated}>
               Сохранить демо-статью

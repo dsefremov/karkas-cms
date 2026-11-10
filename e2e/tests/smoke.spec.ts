@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { bootstrapBlogAdmin } from './helpers/admin-bootstrap';
 
-test.describe('Karkas Stage 5 smoke', () => {
+test.describe('Karkas Stage 6 smoke', () => {
   test('home API page responds', async ({ page }, testInfo) => {
     const response = await page.goto('/');
     expect(response?.ok()).toBeTruthy();

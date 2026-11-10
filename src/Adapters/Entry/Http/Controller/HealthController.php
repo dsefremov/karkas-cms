@@ -18,7 +18,7 @@ final class HealthController extends AbstractController
             'name' => Version::PRODUCT,
             'stage' => (int) Version::STAGE,
             'status' => 'ok',
-            'message' => 'Stage 2 — package delivery, install orchestration, and registry.',
+            'message' => 'Stage 6 — default site guard, noop Save metadata, admin blog enable by site.',
         ]);
     }
 
