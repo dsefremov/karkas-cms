@@ -34,12 +34,14 @@ Close Stage 4 open questions with Den decisions: **noop Save** (no version/prune
 - No host+basepath longest-prefix routing (stage II).
 - Blog create API remains on default site instance context (multisite posts via same API path as stage 4).
 - G5 production readiness (forms privacy drill, backup restore evidence) not in this slice.
+- Core plan preview `<pre>` uses dark theme tokens (fix for axe `color-contrast` on CI).
 
 ## Open questions (with proposal)
 
 1. **Should noop Save still update `updated_at` metadata?** — Proposal: no DB writes on noop (current behaviour).
 2. **Default site when multiple sites lack `canonical_host`?** — Proposal: require explicit default flag + reject duplicate defaults in a later migration.
 3. **Enable blog on non-default site from admin UI button?** — Proposal: add site selector in stage 6; stage 5 uses API route only.
+4. **Fork PRs into `develop` run full Docker/Playwright CI with untrusted code (no repo secrets today).** — Proposal: keep as-is for transparency; optional `pull_request` approval gate later if abuse appears.
 
 ## Screenshots
 
@@ -54,4 +56,4 @@ Close Stage 4 open questions with Den decisions: **noop Save** (no version/prune
 
 ## CI
 
-Awaiting green run on head `c71c16b` (Playwright fix: core plan button always visible). Last complete pipeline on `74157b9`: https://github.com/dsefremov/karkas-cms/actions/runs/42864163801 (Playwright only; fixed in `c71c16b`).
+Functional green on `26d73af` (plan preview contrast): https://github.com/dsefremov/karkas-cms/actions/runs/42876316837. Screenshots below taken from that Playwright artifact.
