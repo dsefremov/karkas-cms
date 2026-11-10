@@ -59,4 +59,4 @@ Prior Stage 2–3 policies: explicit core only via admin plan; incoming scan on 
 
 ## CI
 
-Green run (head `11ec268`): https://github.com/dsefremov/karkas-cms/actions/runs/42802907476
+Green run for PR head `46ed781`: https://github.com/dsefremov/karkas-cms/actions/runs/42804585213
