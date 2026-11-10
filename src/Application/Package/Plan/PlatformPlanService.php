@@ -4,29 +4,28 @@ declare(strict_types=1);
 
 namespace Karkas\Application\Package\Plan;
 
-use InvalidArgumentException;
 use Karkas\Adapters\Infrastructure\Persistence\ModuleInstallationRepository;
 use Karkas\Adapters\Infrastructure\Persistence\PlatformCoreStateRepository;
+use Karkas\Application\Package\Catalog\PackageCatalogRepository;
 use Karkas\Application\Package\Compatibility\DowngradeRefusalException;
 use Karkas\Application\Package\Compatibility\VersionTransitionPolicy;
 use Karkas\Application\Package\Compatibility\WholePlanCompatibilityChecker;
 use Karkas\Application\Package\Compatibility\WholePlanCompatibilityResult;
 use Karkas\Application\Package\Manifest\ManifestDigestService;
-use Karkas\Application\Package\Manifest\ManifestJsonParser;
+use Karkas\Application\Package\Quarantine\IncomingPackageScanService;
 use Karkas\Domain\Package\Manifest\PackageManifest;
 use Karkas\Domain\Platform\SemVerVersion;
-use RuntimeException;
 
 final class PlatformPlanService
 {
     public function __construct(
-        private readonly string $localCatalogDir,
-        private readonly ManifestJsonParser $parser,
+        private readonly PackageCatalogRepository $catalog,
         private readonly WholePlanCompatibilityChecker $planChecker,
         private readonly VersionTransitionPolicy $transitionPolicy,
         private readonly ManifestDigestService $digestService,
         private readonly PlatformCoreStateRepository $coreState,
         private readonly ModuleInstallationRepository $moduleInstallations,
+        private readonly IncomingPackageScanService $incomingScan,
         private readonly string $fallbackCoreVersion,
     ) {
     }
@@ -36,12 +35,30 @@ final class PlatformPlanService
      */
     public function buildPlanFromCatalog(array $modulePackageIds, string $targetPhp, string $targetMysql): PlatformPlanResult
     {
+        $incoming = $this->incomingScan->scanAndIngest();
         $candidates = [];
         foreach ($modulePackageIds as $packageId) {
-            $candidates[] = $this->loadCatalogManifest($packageId);
+            $candidates[] = $this->catalog->loadLatest($packageId);
         }
 
-        return $this->evaluate($candidates, $targetPhp, $targetMysql);
+        return $this->evaluate($candidates, $targetPhp, $targetMysql, $incoming);
+    }
+
+    /**
+     * @param list<string> $modulePackageIds
+     */
+    public function buildExplicitCoreUpgradePlan(array $modulePackageIds, string $targetPhp, string $targetMysql): PlatformPlanResult
+    {
+        $incoming = $this->incomingScan->scanAndIngest();
+        $candidates = [$this->catalog->loadLatest('karkas/core')];
+        foreach ($modulePackageIds as $packageId) {
+            if ('karkas/core' === $packageId) {
+                continue;
+            }
+            $candidates[] = $this->catalog->loadLatest($packageId);
+        }
+
+        return $this->evaluate($candidates, $targetPhp, $targetMysql, $incoming);
     }
 
     /**
@@ -51,18 +68,19 @@ final class PlatformPlanService
     {
         $candidates = [];
         foreach ($targets as $target) {
-            $candidates[] = $this->loadCatalogManifest($target['package_id']);
+            $candidates[] = $this->catalog->loadLatest($target['package_id']);
         }
 
-        return $this->evaluate($candidates, $targetPhp, $targetMysql);
+        return $this->evaluate($candidates, $targetPhp, $targetMysql, ['discovered' => [], 'staged_package_ids' => []]);
     }
 
     /**
      * @param list<PackageManifest> $candidates
+     * @param array<string, mixed>  $incoming
      */
-    private function evaluate(array $candidates, string $targetPhp, string $targetMysql): PlatformPlanResult
+    private function evaluate(array $candidates, string $targetPhp, string $targetMysql, array $incoming): PlatformPlanResult
     {
-        $coreManifest = $this->loadCatalogManifest('karkas/core');
+        $coreManifest = $this->catalog->loadLatest('karkas/core');
         $coreRow = $this->coreState->get();
         $currentCoreVersion = null !== $coreRow
             ? new SemVerVersion((string) $coreRow['version'])
@@ -88,7 +106,7 @@ final class PlatformPlanService
 
         $installed = [];
         foreach ($this->moduleInstallations->allByPackageId() as $packageId => $row) {
-            $installed[$packageId] = $this->loadCatalogManifest($packageId);
+            $installed[$packageId] = $this->catalog->loadLatest($packageId);
         }
 
         $errors = [];
@@ -130,6 +148,7 @@ final class PlatformPlanService
             ], $candidates),
             'compatible' => $compatible,
             'errors' => $allErrors,
+            'incoming_scan' => $incoming,
         ];
         $digest = $this->digestService->normalizedDigest(json_encode($planPayload, JSON_THROW_ON_ERROR));
 
@@ -138,19 +157,5 @@ final class PlatformPlanService
             $compatible ? WholePlanCompatibilityResult::ok() : WholePlanCompatibilityResult::failed($allErrors),
             $planPayload,
         );
-    }
-
-    private function loadCatalogManifest(string $packageId): PackageManifest
-    {
-        $path = $this->localCatalogDir.'/'.$packageId.'/manifest.json';
-        if (!is_file($path)) {
-            throw new InvalidArgumentException(sprintf('Catalog manifest missing for "%s".', $packageId));
-        }
-        $json = file_get_contents($path);
-        if (false === $json) {
-            throw new RuntimeException('Cannot read catalog manifest.');
-        }
-
-        return $this->parser->parse($json);
     }
 }

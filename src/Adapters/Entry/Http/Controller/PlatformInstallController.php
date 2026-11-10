@@ -34,13 +34,24 @@ final class PlatformInstallController extends AbstractController
         }
 
         $body = json_decode($request->getContent(), true);
-        if (!is_array($body) || !isset($body['modules']) || !is_array($body['modules'])) {
+        if (!is_array($body)) {
             return new JsonResponse(['error' => 'invalid_request'], 400);
         }
 
+        $includeCore = (bool) ($body['include_core'] ?? false);
         /** @var list<string> $modules */
-        $modules = array_values(array_filter($body['modules'], is_string(...)));
-        $plan = $this->planService->buildPlanFromCatalog($modules, PHP_VERSION, '8.0');
+        $modules = isset($body['modules']) && is_array($body['modules'])
+            ? array_values(array_filter($body['modules'], is_string(...)))
+            : [];
+        if (!$includeCore && [] === $modules) {
+            return new JsonResponse(['error' => 'invalid_request'], 400);
+        }
+        $plan = $includeCore
+            ? $this->planService->buildExplicitCoreUpgradePlan($modules, PHP_VERSION, '8.0')
+            : $this->planService->buildPlanFromCatalog($modules, PHP_VERSION, '8.0');
+        if ($includeCore && !in_array('karkas/core', $modules, true)) {
+            $modules[] = 'karkas/core';
+        }
         if (!$plan->compatibility->compatible) {
             return new JsonResponse($plan->toArray(), 422);
         }
