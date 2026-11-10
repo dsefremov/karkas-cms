@@ -54,4 +54,4 @@ Close Stage 4 open questions with Den decisions: **noop Save** (no version/prune
 
 ## CI
 
-_(Green run URL updated on final push to `grok_bot`.)_
+Awaiting green run on head `c71c16b` (Playwright fix: core plan button always visible). Last complete pipeline on `74157b9`: https://github.com/dsefremov/karkas-cms/actions/runs/42864163801 (Playwright only; fixed in `c71c16b`).
