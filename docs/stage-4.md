@@ -59,4 +59,4 @@ Prior Stage 2–3 policies: explicit core only via admin plan; incoming scan on 
 
 ## CI
 
-_(Green run URL updated on final push to `grok_bot`.)_
+Green run (head `cc3a2d3`): https://github.com/dsefremov/karkas-cms/actions/runs/42801405497
