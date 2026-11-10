@@ -10,19 +10,24 @@ use RuntimeException;
 
 final class PlatformSchemaBootstrap
 {
+    /**
+     * @param list<string> $schemaSqlPaths
+     */
     public function __construct(
-        private readonly string $schemaSqlPath,
+        private readonly array $schemaSqlPaths,
     ) {
     }
 
     public function apply(Connection $connection): void
     {
-        $sql = file_get_contents($this->schemaSqlPath);
-        if (false === $sql) {
-            throw new RuntimeException('Cannot read platform schema SQL.');
-        }
-        foreach ($this->splitStatements($sql) as $statement) {
-            $connection->executeStatement($statement);
+        foreach ($this->schemaSqlPaths as $schemaSqlPath) {
+            $sql = file_get_contents($schemaSqlPath);
+            if (false === $sql) {
+                throw new RuntimeException('Cannot read platform schema SQL.');
+            }
+            foreach ($this->splitStatements($sql) as $statement) {
+                $connection->executeStatement($statement);
+            }
         }
         $connection->executeStatement(
             'INSERT IGNORE INTO platform_install_state (singleton_id, status, current_step, updated_at) VALUES (1, :status, NULL, :now)',

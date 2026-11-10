@@ -7,8 +7,8 @@ on:
     branches: [develop]
 
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   php-static:
@@ -137,7 +137,7 @@ jobs:
       - name: Archive screenshots for docs
         if: success()
         env:
-          KARKAS_SCREENSHOT_STAGE: '2'
+          KARKAS_SCREENSHOT_STAGE: '3'
         run: bash scripts/copy-e2e-screenshots.sh
       - uses: actions/upload-artifact@v4
         if: always()
@@ -146,7 +146,7 @@ jobs:
           path: |
             e2e/playwright-report
             e2e/test-results
-            docs/stage-2/screenshots
+            docs/stage-3/screenshots
       - name: Stop Docker stack
         if: always()
         run: docker compose down -v

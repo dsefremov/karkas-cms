@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Karkas\Application\Package\Lifecycle;
 
+use DateTime;
 use DateTimeImmutable;
 use Doctrine\DBAL\Connection;
 use Karkas\Adapters\Infrastructure\Persistence\DatabaseConnectionFactory;
@@ -13,6 +14,7 @@ use Karkas\Adapters\Infrastructure\Persistence\ModuleInstallationRepository;
 use Karkas\Adapters\Infrastructure\Persistence\OperationJournalRepository;
 use Karkas\Adapters\Infrastructure\Persistence\PlatformCoreStateRepository;
 use Karkas\Adapters\Infrastructure\Persistence\RollbackSlotRepository;
+use Karkas\Application\Package\Catalog\PackageCatalogRepository;
 use Karkas\Application\Package\Compatibility\VersionTransitionPolicy;
 use Karkas\Application\Package\Plan\PlatformPlanResult;
 use Karkas\Domain\Package\Rollback\SavedDeploymentGeneration;
@@ -25,7 +27,7 @@ final class AtomicInstallOrchestrator
     public function __construct(
         private readonly DatabaseConnectionFactory $connections,
         private readonly PackageStagingService $staging,
-        private readonly string $localCatalogDir,
+        private readonly PackageCatalogRepository $catalog,
         private readonly OperationJournalRepository $journal,
         private readonly MaintenanceModeRepository $maintenance,
         private readonly ModuleInstallationRepository $modules,
@@ -37,9 +39,10 @@ final class AtomicInstallOrchestrator
     }
 
     /**
-     * @param list<string> $catalogPackageIds module ids to install/update from catalog (may include karkas/core)
+     * @param list<string>          $catalogPackageIds module ids to install/update from catalog (may include karkas/core)
+     * @param array<string, string> $versionPins       package id => canonical version
      */
-    public function installFromCatalog(PlatformPlanResult $plan, array $catalogPackageIds, string $actor): string
+    public function installFromCatalog(PlatformPlanResult $plan, array $catalogPackageIds, string $actor, array $versionPins = []): string
     {
         if (!$plan->compatibility->compatible) {
             throw new RuntimeException('Refusing install: plan is not compatible.');
@@ -57,7 +60,10 @@ final class AtomicInstallOrchestrator
 
             $staged = [];
             foreach ($catalogPackageIds as $packageId) {
-                $source = $this->localCatalogDir.'/'.$packageId;
+                $manifest = isset($versionPins[$packageId])
+                    ? $this->catalog->loadAtVersion($packageId, new SemVerVersion($versionPins[$packageId]))
+                    : $this->catalog->loadLatest($packageId);
+                $source = $this->catalog->packageSourceDirectory($packageId, $manifest->version);
                 $staged[] = $this->staging->stageFromDirectory($source);
             }
 
@@ -161,12 +167,12 @@ final class AtomicInstallOrchestrator
         // Registry-only rollback in Stage 2: restore version metadata recorded in the slot (paths remain on disk).
         $connection->executeStatement(
             'UPDATE platform_core_state SET version = :version, updated_at = :now WHERE singleton_id = 1',
-            ['version' => $slot->coreVersion->canonical, 'now' => new DateTimeImmutable()],
+            ['version' => $slot->coreVersion->canonical, 'now' => new DateTime()],
         );
         foreach ($slot->moduleVersions as $packageId => $version) {
             $connection->executeStatement(
                 'UPDATE module_installation SET version = :version, updated_at = :now WHERE package_id = :id',
-                ['version' => $version->canonical, 'now' => new DateTimeImmutable(), 'id' => $packageId],
+                ['version' => $version->canonical, 'now' => new DateTime(), 'id' => $packageId],
             );
         }
     }

@@ -29,20 +29,30 @@ services:
 
     Karkas\Adapters\Infrastructure\Persistence\PlatformSchemaBootstrap:
         arguments:
-            $schemaSqlPath: '%kernel.project_dir%/resources/schema/stage2_platform.sql'
+            $schemaSqlPaths:
+                - '%kernel.project_dir%/resources/schema/stage2_platform.sql'
+                - '%kernel.project_dir%/resources/schema/stage3_platform.sql'
 
     Karkas\Application\Package\Lifecycle\PackageStagingService:
         arguments:
             $packagesRoot: '%karkas.packages.root%'
 
+    Karkas\Application\Package\Catalog\PackageCatalogRepository:
+        arguments:
+            $localCatalogDir: '%karkas.platform.package_catalog_dir%'
+            $installerCoreVersion: '%karkas.platform.core_version%'
+
     Karkas\Application\Package\Plan\PlatformPlanService:
         arguments:
-            $localCatalogDir: '%karkas.platform.package_catalog_dir%'
             $fallbackCoreVersion: '%karkas.platform.core_version%'
 
-    Karkas\Application\Package\Lifecycle\AtomicInstallOrchestrator:
+    Karkas\Application\Package\Lifecycle\SiteModuleEnableService:
         arguments:
-            $localCatalogDir: '%karkas.platform.package_catalog_dir%'
+            $packagesRoot: '%karkas.packages.root%'
+
+    Karkas\Application\Package\Quarantine\IncomingPackageScanService:
+        arguments:
+            $incomingRoot: '%karkas.packages.incoming_dir%'
 
     Karkas\Application\Admin\AdminAuthService:
         arguments:

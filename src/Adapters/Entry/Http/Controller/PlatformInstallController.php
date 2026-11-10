@@ -40,7 +40,13 @@ final class PlatformInstallController extends AbstractController
 
         /** @var list<string> $modules */
         $modules = array_values(array_filter($body['modules'], is_string(...)));
-        $plan = $this->planService->buildPlanFromCatalog($modules, PHP_VERSION, '8.0');
+        $includeCore = (bool) ($body['include_core'] ?? false);
+        $plan = $includeCore
+            ? $this->planService->buildExplicitCoreUpgradePlan($modules, PHP_VERSION, '8.0')
+            : $this->planService->buildPlanFromCatalog($modules, PHP_VERSION, '8.0');
+        if ($includeCore && !in_array('karkas/core', $modules, true)) {
+            $modules[] = 'karkas/core';
+        }
         if (!$plan->compatibility->compatible) {
             return new JsonResponse($plan->toArray(), 422);
         }

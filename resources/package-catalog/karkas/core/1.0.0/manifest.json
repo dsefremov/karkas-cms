@@ -1,0 +1,29 @@
+{
+  "format": "cms-core/v1",
+  "component": {
+    "type": "core",
+    "id": "karkas/core",
+    "display_name": "Karkas Core"
+  },
+  "version": "1.0.0",
+  "manifest_digest": "7db8f323a6fcc6cb3f286d138296f91be90ea6c20956c5f75616db994c3eb20e",
+  "requires": {
+    "sdk": "^1.0.0",
+    "php": "^8.4.0",
+    "mysql": {
+      "engine": "innodb",
+      "server": "^8.0.0"
+    },
+    "extensions": {
+      "mbstring": "*",
+      "pdo_mysql": "*"
+    }
+  },
+  "files": [
+    {
+      "path": "module/bootstrap.php",
+      "size_bytes": 45,
+      "sha256": "987fc6b69e4fa45be7ba7aceeb500eb0d414aecf22f1b3917eb0419837773c21"
+    }
+  ]
+}

@@ -7,6 +7,7 @@ namespace Karkas\Application\Package\Inventory;
 use Karkas\Adapters\Infrastructure\Persistence\DatabaseConnectionFactory;
 use Karkas\Adapters\Infrastructure\Persistence\ModuleInstallationRepository;
 use Karkas\Adapters\Infrastructure\Persistence\PlatformCoreStateRepository;
+use Karkas\Application\Package\Catalog\PackageCatalogRepository;
 use Karkas\Application\Package\Compatibility\WholePlanCompatibilityChecker;
 use Karkas\Application\Package\Manifest\ManifestJsonParser;
 use Karkas\Domain\Package\VersionAvailabilityStatus;
@@ -22,6 +23,7 @@ final class PlatformVersionInventory
         private readonly string $sdkVersion,
         private readonly string $localCatalogDir,
         private readonly ManifestJsonParser $parser,
+        private readonly PackageCatalogRepository $catalog,
         private readonly WholePlanCompatibilityChecker $planChecker,
         private readonly DatabaseConnectionFactory $connections,
         private readonly PlatformCoreStateRepository $coreState,
@@ -111,14 +113,8 @@ final class PlatformVersionInventory
 
     private function readCatalogVersion(string $packageId, ?SemVerVersion $current): ?SemVerVersion
     {
-        $manifestPath = $this->localCatalogDir.'/'.$packageId.'/manifest.json';
-        if (!is_file($manifestPath)) {
-            return $current;
-        }
         try {
-            $manifest = $this->parser->parse((string) file_get_contents($manifestPath));
-
-            return $manifest->version;
+            return $this->catalog->resolveLatestCatalogVersion($packageId) ?? $current;
         } catch (Throwable) {
             return null;
         }
@@ -134,14 +130,17 @@ final class PlatformVersionInventory
             return $result;
         }
         $finder = new Finder();
-        $finder->files()->name('manifest.json')->in($this->localCatalogDir);
+        $finder->files()->name('manifest.json')->depth('< 3')->in($this->localCatalogDir);
         foreach ($finder as $file) {
             $relativeDir = $file->getRelativePath();
             if ('' === $relativeDir) {
                 continue;
             }
+            if (preg_match('/\/\d+\.\d+\.\d+$/', $relativeDir)) {
+                continue;
+            }
             $moduleId = str_replace(DIRECTORY_SEPARATOR, '/', $relativeDir);
-            if ('karkas/core' === $moduleId) {
+            if ('karkas/core' === $moduleId || str_starts_with($moduleId, 'karkas/core/')) {
                 continue;
             }
             $result[] = $moduleId;
