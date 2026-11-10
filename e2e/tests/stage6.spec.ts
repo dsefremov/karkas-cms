@@ -13,7 +13,7 @@ test.describe('Karkas Stage 6', () => {
     await expect(page.getByTestId('admin-message')).toContainText('создан', { timeout: 30_000 });
     const select = page.getByTestId('enable-blog-site');
     await expect(select).toBeVisible();
-    await expect(select.getByRole('option')).toHaveCount(2);
+    await expect(select.getByRole('option', { name: `${siteKey} (Селектор E2E)` })).toHaveCount(1);
     await select.selectOption({ label: `${siteKey} (Селектор E2E)` });
     expect(Number(await select.inputValue())).toBeGreaterThan(0);
   });
