@@ -61,15 +61,17 @@ export async function bootstrapBlogAdmin(page: Page): Promise<void> {
     await expect(page.getByTestId('admin-authenticated')).toBeVisible();
   }
 
-  let coreCurrent = await coreCurrentVersion(page);
-  if (!(coreCurrent ?? '').match(/\d+\.\d+\.\d+/)) {
+  const installerStatus = await page.request.get('/api/v1/installer/status');
+  expect(installerStatus.ok(), await installerStatus.text()).toBeTruthy();
+  const statusJson = (await installerStatus.json()) as { status?: string };
+  if (statusJson.status !== 'completed') {
     const bootstrap = await page.request.post('/api/v1/installer/bootstrap', { headers: authHeaders(), data: '{}' });
     const complete = await page.request.post('/api/v1/installer/complete', { headers: authHeaders(), data: '{}' });
     expect(bootstrap.ok(), await bootstrap.text()).toBeTruthy();
     expect(complete.ok(), await complete.text()).toBeTruthy();
-    coreCurrent = await coreCurrentVersion(page);
-    expect(coreCurrent ?? '').toMatch(/\d+\.\d+\.\d+/);
   }
+  const coreCurrent = await coreCurrentVersion(page);
+  expect(coreCurrent ?? '').toMatch(/\d+\.\d+\.\d+/);
 
   const blogCurrent = await blogCurrentVersion(page);
   if (!(blogCurrent ?? '').includes('1.0.0')) {
