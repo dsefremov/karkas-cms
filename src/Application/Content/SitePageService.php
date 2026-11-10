@@ -7,6 +7,7 @@ namespace Karkas\Application\Content;
 use Karkas\Adapters\Infrastructure\Persistence\ModuleMountRepository;
 use Karkas\Domain\Content\SitePageException;
 use Karkas\Domain\Content\SitePageTree;
+use Throwable;
 
 final class SitePageService
 {
@@ -154,7 +155,7 @@ final class SitePageService
                 $redirectCount = 0;
             }
             $connection->commit();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $connection->rollBack();
             throw $e;
         }
@@ -239,7 +240,7 @@ final class SitePageService
                 $this->pages->recordPathRedirect($siteId, $id, $change['from'], $change['to']);
             }
             $connection->commit();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $connection->rollBack();
             throw $e;
         }
@@ -475,18 +476,12 @@ final class SitePageService
     {
         foreach ($this->mounts->listPathPrefixesForSite($siteId) as $prefix) {
             if ($this->pathsCollide($fullPath, $prefix)) {
-                throw new SitePageException(
-                    'mount_conflict',
-                    'Адрес конфликтует с модулем по префиксу «/'.$prefix.'».',
-                );
+                throw new SitePageException('mount_conflict', 'Адрес конфликтует с модулем по префиксу «/'.$prefix.'».');
             }
         }
         foreach (SitePageTree::RESERVED_SEGMENTS as $reserved) {
             if ($this->pathsCollide($fullPath, $reserved)) {
-                throw new SitePageException(
-                    'reserved_path',
-                    'Сегмент «'.$reserved.'» зарезервирован системой.',
-                );
+                throw new SitePageException('reserved_path', 'Сегмент «'.$reserved.'» зарезервирован системой.');
             }
         }
     }

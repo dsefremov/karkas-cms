@@ -12,7 +12,6 @@ use Karkas\Application\Package\Lifecycle\AtomicInstallOrchestrator;
 use Karkas\Application\Package\Lifecycle\SiteModuleEnableService;
 use Karkas\Application\Package\Plan\PlatformPlanService;
 use Karkas\Domain\Content\SitePageException;
-use Karkas\Domain\Content\SitePageTree;
 use Karkas\Tests\Support\PlatformSchemaTestTrait;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
