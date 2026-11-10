@@ -1,9 +1,8 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { bootstrapBlogAdmin } from './helpers/admin-bootstrap';
 
-const ADMIN_PASSWORD = process.env.KARKAS_ADMIN_PASSWORD ?? 'test-admin-password-stage2';
-
-test.describe('Karkas Stage 3 smoke', () => {
+test.describe('Karkas Stage 4 smoke', () => {
   test('home API page responds', async ({ page }, testInfo) => {
     const response = await page.goto('/');
     expect(response?.ok()).toBeTruthy();
@@ -16,17 +15,7 @@ test.describe('Karkas Stage 3 smoke', () => {
 
   test('admin blog enable flow with accessibility scan', async ({ page }, testInfo) => {
     test.setTimeout(120_000);
-    await page.goto('/admin/');
-    await expect(page.getByTestId('admin-shell')).toBeVisible();
-    await page.getByTestId('admin-password').fill(ADMIN_PASSWORD);
-    await page.getByTestId('admin-login').click();
-    await expect(page.getByTestId('admin-authenticated')).toBeVisible();
-    await page.getByTestId('installer-run').click();
-    await expect(page.getByTestId('admin-message')).toContainText('Core', { timeout: 60_000 });
-    await page.getByTestId('install-blog').click();
-    await expect(page.getByTestId('admin-message')).toContainText('blog', { timeout: 60_000 });
-    await page.getByTestId('enable-blog').click();
-    await expect(page.getByTestId('admin-message')).toContainText('Blog включён', { timeout: 60_000 });
+    await bootstrapBlogAdmin(page);
     await page.getByTestId('blog-save-demo').click();
     await expect(page.getByTestId('admin-message')).toContainText('Статья сохранена', { timeout: 60_000 });
     await expect(page.getByTestId('version-row-karkas-blog')).toContainText('1.0.0');

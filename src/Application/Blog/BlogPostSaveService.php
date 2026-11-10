@@ -11,6 +11,8 @@ use RuntimeException;
 
 final class BlogPostSaveService
 {
+    public const int MAX_VERSION_HISTORY = 10;
+
     public function __construct(
         private readonly BlogPostRepository $posts,
         private readonly ModuleInstanceRepository $instances,
@@ -67,8 +69,40 @@ final class BlogPostSaveService
         }
         $seq = $this->posts->nextVersionSeq($postId);
         $this->posts->appendVersion($postId, $seq, json_encode($payload, JSON_THROW_ON_ERROR));
+        $this->posts->pruneVersionsKeepingLast($postId, self::MAX_VERSION_HISTORY);
+        $versionCount = $this->posts->countVersions($postId);
 
-        return ['id' => $postId, 'content_etag' => $etag, 'noop' => false, 'slug_redirect' => $fromSlug !== $toSlug];
+        return [
+            'id' => $postId,
+            'content_etag' => $etag,
+            'noop' => false,
+            'slug_redirect' => $fromSlug !== $toSlug,
+            'version_count' => $versionCount,
+        ];
+    }
+
+    /**
+     * @return list<array{version_seq: int, saved_at: string, title: string, activity: string}>
+     */
+    public function listVersionHistory(string $postId): array
+    {
+        if (null === $this->posts->find($postId)) {
+            throw new RuntimeException('Post not found.');
+        }
+        $rows = $this->posts->listVersions($postId, self::MAX_VERSION_HISTORY);
+        $history = [];
+        foreach ($rows as $row) {
+            /** @var array<string, mixed> $snapshot */
+            $snapshot = json_decode((string) $row['snapshot_json'], true, 512, JSON_THROW_ON_ERROR);
+            $history[] = [
+                'version_seq' => (int) $row['version_seq'],
+                'saved_at' => (string) $row['saved_at'],
+                'title' => (string) ($snapshot['title'] ?? ''),
+                'activity' => (string) ($snapshot['activity'] ?? 'inactive'),
+            ];
+        }
+
+        return $history;
     }
 
     /**

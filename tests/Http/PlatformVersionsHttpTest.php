@@ -26,7 +26,7 @@ final class PlatformVersionsHttpTest extends WebTestCase
         self::assertResponseIsSuccessful();
         $payload = json_decode($client->getResponse()->getContent() ?: '', true, 512, JSON_THROW_ON_ERROR);
         self::assertSame('karkas-platform-versions/v1', $payload['schema']);
-        self::assertSame(3, $payload['stage']);
+        self::assertSame(4, $payload['stage']);
         self::assertNotEmpty($payload['packages']);
         $core = null;
         foreach ($payload['packages'] as $row) {

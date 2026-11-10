@@ -12,6 +12,13 @@ type VersionsPayload = {
   stage: number;
 };
 
+type BlogVersionRow = {
+  version_seq: number;
+  saved_at: string;
+  title: string;
+  activity: string;
+};
+
 export function App(): React.JSX.Element {
   const [password, setPassword] = useState('');
   const [authenticated, setAuthenticated] = useState(false);
@@ -20,6 +27,9 @@ export function App(): React.JSX.Element {
   const [maintenance, setMaintenance] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [coreUpgradeConfirm, setCoreUpgradeConfirm] = useState(false);
+  const [lastPostId, setLastPostId] = useState<string | null>(null);
+  const [blogHistory, setBlogHistory] = useState<BlogVersionRow[]>([]);
 
   const loadVersions = useCallback(async () => {
     const response = await fetch('/api/v1/platform/versions');
@@ -170,7 +180,47 @@ export function App(): React.JSX.Element {
       return;
     }
     setMessage('Статья сохранена (manual Save, activity=active).');
+    setLastPostId(created.id);
+    setBlogHistory([]);
   }
+
+  async function upgradeCore(): Promise<void> {
+    setMessage(null);
+    setError(null);
+    const response = await fetch('/api/v1/platform/install', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Karkas-Reauth': password },
+      body: JSON.stringify({ modules: [], include_core: true }),
+    });
+    if (!response.ok) {
+      setError('Обновление Core отклонено');
+      return;
+    }
+    setMessage('Core обновлён по плану (include_core).');
+    setCoreUpgradeConfirm(false);
+    await loadVersions();
+  }
+
+  async function loadBlogHistory(): Promise<void> {
+    setMessage(null);
+    setError(null);
+    if (null === lastPostId) {
+      setError('Сначала сохраните демо-статью');
+      return;
+    }
+    const response = await fetch(`/api/v1/blog/posts/${lastPostId}/versions`);
+    if (!response.ok) {
+      setError('Не удалось загрузить историю версий');
+      return;
+    }
+    const body = (await response.json()) as { versions: BlogVersionRow[] };
+    setBlogHistory(body.versions);
+    setMessage(`История версий: ${body.versions.length} записей (макс. 10).`);
+  }
+
+  const coreRow = versions?.packages.find((row) => row.package_id === 'karkas/core');
+  const coreUpgradeAvailable =
+    coreRow !== undefined && coreRow.current !== null && coreRow.available !== null && coreRow.current !== coreRow.available;
 
   return (
     <div className="shell" data-testid="admin-shell" role="document">
@@ -183,8 +233,8 @@ export function App(): React.JSX.Element {
       </aside>
       <main className="content">
         <header className="topbar">
-          <h1>Админка — этап 3</h1>
-          <p className="subtitle">G3: enable blog на сайте, миграции, mount /blog и ручной Save.</p>
+          <h1>Админка — этап 4</h1>
+          <p className="subtitle">G4: обновление Core через план, история версий поста (последние 10), публичный slug.</p>
         </header>
 
         {maintenance && (
@@ -249,6 +299,46 @@ export function App(): React.JSX.Element {
           </div>
         </section>
 
+        <section className="card" data-testid="core-upgrade-panel">
+          <h2>Обновление Core</h2>
+          {coreRow !== undefined ? (
+            <p className="muted" data-testid="core-version-summary">
+              Текущая: <strong>{coreRow.current ?? '—'}</strong> → доступная (локально):{' '}
+              <strong>{coreRow.available ?? '—'}</strong>
+            </p>
+          ) : (
+            <p className="muted">Данные Core недоступны</p>
+          )}
+          {coreUpgradeAvailable ? (
+            <>
+              <div className="form-row">
+                <label htmlFor="core-upgrade-confirm">
+                  <input
+                    id="core-upgrade-confirm"
+                    data-testid="core-upgrade-confirm"
+                    type="checkbox"
+                    checked={coreUpgradeConfirm}
+                    onChange={(e) => setCoreUpgradeConfirm(e.target.checked)}
+                  />{' '}
+                  Подтверждаю явное обновление Core до {coreRow?.available}
+                </label>
+              </div>
+              <div className="actions actions-stack">
+                <button
+                  type="button"
+                  data-testid="upgrade-core"
+                  onClick={() => void upgradeCore()}
+                  disabled={!authenticated || !coreUpgradeConfirm}
+                >
+                  Обновить Core (include_core)
+                </button>
+              </div>
+            </>
+          ) : (
+            <p className="muted">Обновление не требуется (текущая совпадает с локально доступной).</p>
+          )}
+        </section>
+
         <section className="card" data-testid="installer-panel">
           <h2>Установщик и модули</h2>
           <div className="actions">
@@ -274,7 +364,37 @@ export function App(): React.JSX.Element {
             <button type="button" data-testid="blog-save-demo" onClick={() => void saveDemoPost()} disabled={!authenticated}>
               Сохранить демо-статью
             </button>
+            <button type="button" data-testid="blog-load-history" onClick={() => void loadBlogHistory()} disabled={!authenticated}>
+              Показать историю версий
+            </button>
           </div>
+          {lastPostId !== null && (
+            <p className="muted" data-testid="blog-last-post-id">
+              Последний пост: {lastPostId}
+            </p>
+          )}
+          {blogHistory.length > 0 && (
+            <div className="table-scroll" data-testid="blog-history-panel">
+              <table className="versions-table">
+                <thead>
+                  <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Заголовок</th>
+                    <th scope="col">Activity</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {blogHistory.map((row) => (
+                    <tr key={row.version_seq} data-testid={`blog-version-row-${row.version_seq}`}>
+                      <td>{row.version_seq}</td>
+                      <td>{row.title}</td>
+                      <td>{row.activity}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </section>
       </main>
     </div>

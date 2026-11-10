@@ -72,4 +72,25 @@ final class BlogPostController extends AbstractController
 
         return new JsonResponse($result);
     }
+
+    #[Route('/api/v1/blog/posts/{postId}/versions', name: 'api_blog_posts_versions', methods: ['GET'])]
+    public function versions(string $postId): JsonResponse
+    {
+        try {
+            $this->adminAuth->assertAuthenticated();
+        } catch (AdminAuthException $e) {
+            return new JsonResponse(['error' => $e->getMessage()], 401);
+        }
+        try {
+            $versions = $this->posts->listVersionHistory($postId);
+        } catch (Throwable $e) {
+            return new JsonResponse(['error' => $e->getMessage()], 404);
+        }
+
+        return new JsonResponse([
+            'post_id' => $postId,
+            'max_versions' => BlogPostSaveService::MAX_VERSION_HISTORY,
+            'versions' => $versions,
+        ]);
+    }
 }
