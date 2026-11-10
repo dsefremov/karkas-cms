@@ -42,4 +42,26 @@ final class SiteModuleController extends AbstractController
 
         return new JsonResponse(['status' => 'enabled', 'operation_id' => $operationId], 202);
     }
+
+    #[Route('/api/v1/sites/{siteId}/modules/karkas/blog/enable', name: 'api_site_enable_blog_by_id', methods: ['POST'], requirements: ['siteId' => '\d+'])]
+    public function enableBlogOnSite(int $siteId, Request $request): JsonResponse
+    {
+        try {
+            $this->adminAuth->assertAuthenticated();
+            $this->adminAuth->resolveReauthFromRequest($request);
+        } catch (AdminAuthException $e) {
+            return new JsonResponse(['error' => $e->getMessage()], 401);
+        }
+        $body = json_decode($request->getContent(), true);
+        $label = is_array($body) && isset($body['site_label']) && is_string($body['site_label'])
+            ? $body['site_label']
+            : 'Сайт '.$siteId;
+        try {
+            $operationId = $this->enableService->enableBlogOnSite($siteId, 'admin', $label);
+        } catch (Throwable $e) {
+            return new JsonResponse(['error' => $e->getMessage()], 409);
+        }
+
+        return new JsonResponse(['status' => 'enabled', 'site_id' => $siteId, 'operation_id' => $operationId], 202);
+    }
 }

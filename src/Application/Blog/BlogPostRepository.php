@@ -103,11 +103,12 @@ final class BlogPostRepository
         ]);
     }
 
-    public function recordSlugRedirect(string $postId, string $fromSlug, string $toSlug): void
+    public function recordSlugRedirect(int $siteId, string $postId, string $fromSlug, string $toSlug): void
     {
         $connection = $this->connections->create();
         $connection->insert('blog_slug_redirect', [
             'post_id' => $postId,
+            'site_id' => $siteId,
             'from_slug' => $fromSlug,
             'to_slug' => $toSlug,
             'created_at' => new DateTime(),
@@ -202,8 +203,8 @@ final class BlogPostRepository
     {
         $connection = $this->connections->create();
         $to = $connection->fetchOne(
-            'SELECT to_slug FROM blog_slug_redirect WHERE from_slug = :from_slug ORDER BY created_at DESC LIMIT 1',
-            ['from_slug' => $fromSlug],
+            'SELECT to_slug FROM blog_slug_redirect WHERE site_id = :site AND from_slug = :from_slug ORDER BY created_at DESC LIMIT 1',
+            ['site' => $siteId, 'from_slug' => $fromSlug],
         );
 
         return false === $to ? null : (string) $to;

@@ -1,7 +1,12 @@
 CREATE TABLE IF NOT EXISTS platform_site (
-    id TINYINT NOT NULL PRIMARY KEY DEFAULT 1,
+    id TINYINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    site_key VARCHAR(64) NOT NULL,
     label VARCHAR(128) NOT NULL,
-    updated_at DATETIME(6) NOT NULL
+    is_default TINYINT(1) NOT NULL DEFAULT 0,
+    canonical_host VARCHAR(255) NULL,
+    updated_at DATETIME(6) NOT NULL,
+    UNIQUE KEY uq_platform_site_key (site_key),
+    UNIQUE KEY uq_platform_site_host (canonical_host)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS site_module (

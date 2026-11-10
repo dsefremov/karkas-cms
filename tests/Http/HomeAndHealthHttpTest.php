@@ -22,7 +22,7 @@ final class HomeAndHealthHttpTest extends WebTestCase
         self::assertResponseIsSuccessful();
         $json = json_decode($this->client->getResponse()->getContent() ?: '', true, 512, JSON_THROW_ON_ERROR);
         self::assertSame('ok', $json['status']);
-        self::assertSame(4, $json['stage']);
+        self::assertSame(5, $json['stage']);
     }
 
     public function testHealthEndpoint(): void

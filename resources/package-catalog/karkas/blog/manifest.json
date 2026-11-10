@@ -6,7 +6,7 @@
     "display_name": "Blog"
   },
   "version": "1.0.0",
-  "manifest_digest": "a4153f27ff9ba6f4876cf45e9c21e30ec08e1db829321b5e50c8783e32405891",
+  "manifest_digest": "67392a1ccef9c36aeb67db508403ed5b9fbe3a4790572245cca4091eb8fff8ef",
   "requires": {
     "core": "^1.0.0",
     "sdk": "^1.0.0",
@@ -19,14 +19,14 @@
   "migrations": [
     {
       "id": "blog_initial",
-      "checksum": "5d9ee24a5cdc6b4be23874fe24511a45d37ee03665bf4445918ec5f3b58d1682"
+      "checksum": "ac82676f43582fcd93c63ac7d664bc3f8169b769f1a7673f042b1501c5ea05e8"
     }
   ],
   "files": [
     {
       "path": "migrations/blog_initial.sql",
-      "size_bytes": 1316,
-      "sha256": "5d9ee24a5cdc6b4be23874fe24511a45d37ee03665bf4445918ec5f3b58d1682"
+      "size_bytes": 1369,
+      "sha256": "ac82676f43582fcd93c63ac7d664bc3f8169b769f1a7673f042b1501c5ea05e8"
     },
     {
       "path": "module/bootstrap.php",

@@ -25,10 +25,15 @@ final class PlatformPlanController extends AbstractController
         $this->adminAuth->assertAuthenticated();
         /** @var list<string> $modules */
         $modules = array_values(array_filter($request->query->all('modules'), is_string(...)));
-        if ([] === $modules) {
-            $modules = ['karkas/blog'];
+        $includeCore = filter_var($request->query->get('include_core', '0'), FILTER_VALIDATE_BOOLEAN);
+        if ($includeCore) {
+            $result = $this->planService->buildExplicitCoreUpgradePlan($modules, PHP_VERSION, '8.0');
+        } else {
+            if ([] === $modules) {
+                $modules = ['karkas/blog'];
+            }
+            $result = $this->planService->buildPlanFromCatalog($modules, PHP_VERSION, '8.0');
         }
-        $result = $this->planService->buildPlanFromCatalog($modules, PHP_VERSION, '8.0');
 
         return new JsonResponse($result->toArray(), $result->compatibility->compatible ? 200 : 422);
     }

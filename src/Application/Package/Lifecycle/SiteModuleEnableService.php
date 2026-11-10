@@ -35,10 +35,15 @@ final class SiteModuleEnableService
 
     public function enableBlogOnDefaultSite(string $actor, string $siteLabel = 'Каркас — демо'): string
     {
-        return $this->enable('karkas/blog', '/blog', $actor, $siteLabel);
+        return $this->enableBlogOnSite(PlatformSiteRepository::DEFAULT_SITE_ID, $actor, $siteLabel);
     }
 
-    public function enable(string $packageId, string $mountPrefix, string $actor, string $siteLabel): string
+    public function enableBlogOnSite(int $siteId, string $actor, string $siteLabel): string
+    {
+        return $this->enable('karkas/blog', '/blog', $actor, $siteLabel, $siteId);
+    }
+
+    public function enable(string $packageId, string $mountPrefix, string $actor, string $siteLabel, int $siteId = PlatformSiteRepository::DEFAULT_SITE_ID): string
     {
         $installed = $this->installations->find($packageId);
         if (null === $installed) {
@@ -53,8 +58,11 @@ final class SiteModuleEnableService
         $this->maintenance->setEnabled(true, 'Module enable in progress');
 
         try {
-            $this->sites->ensureDefaultSite($siteLabel);
-            $siteId = PlatformSiteRepository::DEFAULT_SITE_ID;
+            if (PlatformSiteRepository::DEFAULT_SITE_ID === $siteId) {
+                $this->sites->ensureDefaultSite($siteLabel);
+            } elseif (null === $this->sites->findById($siteId)) {
+                throw new RuntimeException('Site not found.');
+            }
 
             $stagingRoot = rtrim($this->packagesRoot, '/').'/staging/'.$installed['staging_relative_path'];
             $manifestPath = $stagingRoot.'/manifest.json';
