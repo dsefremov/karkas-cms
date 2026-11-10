@@ -1,54 +1,70 @@
-# Stage 6 — Den follow-ups from stage 5 (spec v0.8 G6 pragmatic slice)
+# Stage 6 — default site, blog fixes, PageTree (nested URLs)
 
 ## Goal
 
-Close Den-approved answers to stage 5 open questions 1–4: noop Save without touching `updated_at`, explicit **single** default site (API + DB), admin **site selector** for blog enable. Leave fork PR CI policy unchanged (question 4).
+Complete stage 6 on branch `grok_bot` / PR [#13](https://github.com/dsefremov/karkas-cms/pull/13): Den decisions 1–4 (noop Save, single default site, admin site selector for blog enable) **plus** PageTree with nested paths, 301 redirects, admin tree UI, public delivery, tests.
 
-## Delivered
+## Spec alignment note
+
+Spec v0.8 §12 mockups still describe **flat** `/p/{slug}` URLs unchanged on move; Den’s approved **stage 6 plan** requires **nested paths from parent slug chain** and **301 for page + descendants** on move/slug change. Implementation follows the **stage 6 plan** (this section).
+
+## Delivered — Decisions 1–4
 
 | Area | Outcome |
 |------|---------|
 | Noop Save / `updated_at` | Identical payload → no row update (`Stage6BlogNoopUpdatedAtTest`) |
-| Default site | `is_default` + generated `default_mark` unique index; API rejects second default (`Stage6DefaultSiteHttpTest`, `Stage6DefaultSiteConstraintTest`) |
-| Admin | `<select data-testid="enable-blog-site">` → `POST /api/v1/sites/{id}/modules/karkas/blog/enable` |
-| Schema | `PlatformStage6SchemaUpgrade`; baseline `stage3_platform.sql` updated |
+| Default site | `is_default` + `default_mark` unique index; API rejects second default |
+| Admin blog | `<select data-testid="enable-blog-site">` → per-site blog enable |
+| Fork PR CI | Unchanged |
 
-## Den decisions (confirmed)
+## Delivered — PageTree (stage 6 remainder)
 
-1. Noop Save does not update `updated_at`.
-2. Explicit default flag; second default forbidden (validation + DB).
-3. Admin site selector for blog enable.
-4. Fork PRs without manual approval — workflow unchanged.
+| Area | Outcome |
+|------|---------|
+| Schema | `site_page`, `site_page_redirect`; `PlatformStage6PageTreeSchemaUpgrade` |
+| Paths | Materialized `full_path` = chain of slugs (`about/team`) |
+| CRUD API | `GET/POST /api/v1/sites/{id}/pages/tree`, create/save/delete, move + move-preview |
+| Move | Cycle guard, slug/path conflicts, mount `/blog` + reserved segments; transactional move + redirects |
+| Public | `GET /{nested-path}`; inactive → 404; old paths → **301** via `site_page_redirect` |
+| Admin | Panel `page-tree-panel`: tree list, keyboard up/down reorder, move preview impact count |
+| Tests | `Stage6PageTreeTest`, `Stage6PageTreeHttpTest`; Playwright tree + move screenshots + axe |
 
-## Small spec-aligned decisions
+## v1 coverage (one site) — status for Den
 
-- New sites default to `is_default: false`; only `POST` body may request default when none exists.
-- `default_mark` generated column keeps MySQL partial-unique semantics (only one `is_default=1`).
-- `/api/v1/sites/default/.../enable` route retained for compatibility; admin uses site id path.
+| Capability | Status | Remaining (est. days) |
+|------------|--------|----------------------:|
+| Blog (posts, save, history10, 301 slug) | **Done** (stages 3–5) | 0 |
+| PageTree nested URLs + move + 301 | **Done** (this PR) | 0 |
+| FULLTEXT search | **None** | 4–6 |
+| Public cabinet (register/login/profile) | **None** | 6–8 |
+| Staff MFA + RBAC | **Partial** (admin password only) | 5–7 |
+| Categories N:M | **None** | 3–4 |
+| Media | **None** | 4–5 |
+| Mail + cron outbox | **None** | 4–6 |
+| Install wizard (protected) | **Partial** (bootstrap API) | 5–8 |
+| Blog module settings UI | **Partial** (enable only) | 2–3 |
+| Module ZIP policy file | **Partial** (read-only flag) | 2–3 |
+| Multisite / Landings / Services | **Out of I** (queue II) | — |
 
-## Known limitations
+**Rough total remaining for v1 I-queue:** ~35–50 person-days (unchanged order of magnitude; PageTree slice closed).
 
-- No API to **transfer** default to another site (create-time default only).
-- Blog create/save API still uses default site instance context (unchanged from stage 5).
-- Full spec G6 queue II (domains/basepath, Landings, template DSL) not in this slice.
+## Open questions
 
-## Open questions (with proposal)
-
-1. **API to reassign default site on existing row?** — Proposal: `PATCH /api/v1/sites/{id}` with transactional unset of previous default in stage 7.
-2. **Show blog-enabled state per site in sites table?** — Proposal: add column after mount lookup in admin stage 7.
-3. **Block delete of default site?** — Proposal: forbid until another site promoted (not implemented).
+1. **Flat vs nested URL in sitemap/SEO helpers** — Proposal: canonical = `full_path` only; drop `/p/` prefix everywhere in docs/UI copy (stage 7 hygiene).
+2. **Delete cascade** — Current: reject delete when children exist; Proposal: optional «удалить с потомками» with audit (stage 7).
+3. **Page revisions workflow (v0.4)** — Not in this slice; generic pages still single-row + activity boolean; Proposal: stage 8+.
 
 ## Screenshots
 
-`docs/stage-6/screenshots/` — Playwright full-page **1440** and **390** (admin with site selector); axe **0** violations on desktop.
+Playwright artifacts: `tree-1440`, `tree-390`, `tree-move-1440`, `admin-1440`, `admin-390` — copied to `docs/stage-6/screenshots/` after green CI.
 
 ## Tests
 
-| Suite | Count | Notes |
-|-------|------:|-------|
-| PHPUnit | 47 | 132 assertions, 1 skipped; +3 stage-6 tests |
-| Playwright | 20 | stage6 + smoke + stage4/5 (+ desktop/mobile) |
+| Suite | Notes |
+|-------|--------|
+| PHPUnit | Page path build, cycle, mount/reserved conflict, descendant 301, rollback on failed move; + stage 6 prior tests |
+| Playwright | Tree seed, move preview, axe on tree panel (1440) |
 
 ## CI
 
-Green on final head `e7527dd`: https://github.com/dsefremov/karkas-cms/actions/runs/42902040040 — PR [#13](https://github.com/dsefremov/karkas-cms/pull/13) → `develop` (not merged).
+_Pending final green run — head/run updated in closing doc commit._

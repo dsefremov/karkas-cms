@@ -17,6 +17,7 @@ final class PlatformSchemaBootstrap
         private readonly array $schemaSqlPaths,
         private readonly PlatformStage5SchemaUpgrade $stage5Upgrade,
         private readonly PlatformStage6SchemaUpgrade $stage6Upgrade,
+        private readonly PlatformStage6PageTreeSchemaUpgrade $stage6PageTreeUpgrade,
     ) {
     }
 
@@ -41,6 +42,7 @@ final class PlatformSchemaBootstrap
         );
         $this->stage5Upgrade->apply($connection);
         $this->stage6Upgrade->apply($connection);
+        $this->stage6PageTreeUpgrade->apply($connection);
     }
 
     /**

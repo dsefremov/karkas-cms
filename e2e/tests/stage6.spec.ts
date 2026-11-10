@@ -18,6 +18,39 @@ test.describe('Karkas Stage 6', () => {
     expect(Number(await select.inputValue())).toBeGreaterThan(0);
   });
 
+  test('page tree seed and move preview', async ({ page }) => {
+    await bootstrapBlogAdmin(page);
+    await page.getByTestId('page-tree-seed').click();
+    await expect(page.getByTestId('admin-message')).toContainText('Демо-дерево', { timeout: 15_000 });
+    await page.getByTestId('page-tree-node-team').click();
+    await page.getByTestId('move-parent').fill('00000000-0000-0000-0000-000000000001');
+    await page.getByTestId('page-move-preview').click();
+    await expect(page.getByTestId('page-move-impact')).toContainText('адресов', { timeout: 10_000 });
+  });
+
+  test('page tree screenshots at 1440 and 390', async ({ page }, testInfo) => {
+    await bootstrapBlogAdmin(page);
+    await page.getByTestId('page-tree-seed').click();
+    await expect(page.getByTestId('page-tree-list')).toBeVisible({ timeout: 15_000 });
+    const viewport = testInfo.project.name.includes('mobile') ? '390' : '1440';
+    const name = viewport === '1440' ? `tree-${viewport}` : `tree-${viewport}`;
+    await page.screenshot({ path: testInfo.outputPath(`${name}.png`), fullPage: true });
+    if (!testInfo.project.name.includes('mobile')) {
+      const results = await new AxeBuilder({ page }).include('[data-testid="page-tree-panel"]').analyze();
+      expect(results.violations).toEqual([]);
+    }
+  });
+
+  test('page move preview screenshot desktop', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name.includes('mobile'), 'Move dialog layout checked on desktop');
+    await bootstrapBlogAdmin(page);
+    await page.getByTestId('page-tree-seed').click();
+    await page.getByTestId('page-tree-node-team').click();
+    await page.getByTestId('page-move-preview').click();
+    await expect(page.getByTestId('page-move-impact')).toContainText('адресов');
+    await page.screenshot({ path: testInfo.outputPath('tree-move-1440.png'), fullPage: true });
+  });
+
   test('admin screenshots at 1440 and 390 with site selector', async ({ page }, testInfo) => {
     await bootstrapBlogAdmin(page);
     await expect(page.getByTestId('enable-blog-site')).toBeVisible();

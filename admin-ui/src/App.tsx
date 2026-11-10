@@ -27,6 +27,19 @@ type SiteRow = {
   canonical_host: string | null;
 };
 
+const PAGE_TREE_ROOT = '00000000-0000-0000-0000-000000000001';
+
+type PageTreeNode = {
+  id: string;
+  parent_id: string;
+  slug: string;
+  sort_order: number;
+  title: string;
+  activity: string;
+  full_path: string;
+  children: PageTreeNode[];
+};
+
 type CorePlanPayload = {
   compatible: boolean;
   errors: string[];
@@ -53,6 +66,15 @@ export function App(): React.JSX.Element {
   const [newSiteLabel, setNewSiteLabel] = useState('Партнёрский сайт');
   const [newSiteHost, setNewSiteHost] = useState('partner.example.test');
   const [corePlan, setCorePlan] = useState<CorePlanPayload | null>(null);
+  const [pageTreeSiteId, setPageTreeSiteId] = useState(1);
+  const [pageTree, setPageTree] = useState<PageTreeNode[]>([]);
+  const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
+  const [pageTitle, setPageTitle] = useState('');
+  const [pageSlug, setPageSlug] = useState('');
+  const [pageBody, setPageBody] = useState('');
+  const [pageActivity, setPageActivity] = useState<'active' | 'inactive'>('inactive');
+  const [moveParentId, setMoveParentId] = useState(PAGE_TREE_ROOT);
+  const [moveImpact, setMoveImpact] = useState<number | null>(null);
 
   const loadVersions = useCallback(async () => {
     const response = await fetch('/api/v1/platform/versions');
@@ -277,6 +299,167 @@ export function App(): React.JSX.Element {
     await loadVersions();
   }
 
+  async function loadPageTree(): Promise<void> {
+    const response = await fetch(`/api/v1/sites/${pageTreeSiteId}/pages/tree`);
+    if (!response.ok) {
+      return;
+    }
+    const body = (await response.json()) as { tree: PageTreeNode[] };
+    setPageTree(body.tree);
+  }
+
+  function flattenTree(nodes: PageTreeNode[], acc: PageTreeNode[] = []): PageTreeNode[] {
+    for (const node of nodes) {
+      acc.push(node);
+      flattenTree(node.children, acc);
+    }
+    return acc;
+  }
+
+  function selectPageNode(node: PageTreeNode): void {
+    setSelectedPageId(node.id);
+    setPageTitle(node.title);
+    setPageSlug(node.slug);
+    setPageBody('');
+    setPageActivity(node.activity === 'active' ? 'active' : 'inactive');
+    setMoveParentId(node.parent_id);
+    setMoveImpact(null);
+  }
+
+  async function seedDemoPages(): Promise<void> {
+    setError(null);
+    setMessage(null);
+    const aboutRes = await fetch(`/api/v1/sites/${pageTreeSiteId}/pages`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: 'О компании', slug: 'about', activity: 'active', body_text: 'О нас' }),
+    });
+    if (!aboutRes.ok) {
+      setError('Не удалось создать корневую страницу');
+      return;
+    }
+    const about = (await aboutRes.json()) as PageTreeNode;
+    await fetch(`/api/v1/sites/${pageTreeSiteId}/pages`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: 'Команда',
+        slug: 'team',
+        parent_id: about.id,
+        activity: 'active',
+        body_text: 'Команда',
+      }),
+    });
+    setMessage('Демо-дерево страниц создано.');
+    await loadPageTree();
+  }
+
+  async function saveSelectedPage(): Promise<void> {
+    if (selectedPageId === null) {
+      setError('Выберите страницу в дереве');
+      return;
+    }
+    const response = await fetch(`/api/v1/pages/${selectedPageId}/save`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: pageTitle,
+        slug: pageSlug,
+        body_text: pageBody,
+        activity: pageActivity,
+      }),
+    });
+    if (!response.ok) {
+      setError('Сохранение страницы отклонено');
+      return;
+    }
+    setMessage('Страница сохранена.');
+    await loadPageTree();
+  }
+
+  async function previewPageMove(): Promise<void> {
+    if (selectedPageId === null) {
+      setError('Выберите страницу для переноса');
+      return;
+    }
+    const response = await fetch(`/api/v1/pages/${selectedPageId}/move-preview`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ parent_id: moveParentId, slug: pageSlug }),
+    });
+    const body = (await response.json()) as { affected_paths?: number; message?: string };
+    if (!response.ok) {
+      setError(body.message ?? 'Перенос недоступен');
+      setMoveImpact(null);
+      return;
+    }
+    setMoveImpact(body.affected_paths ?? 0);
+    setMessage(`Изменится адресов: ${body.affected_paths ?? 0}`);
+  }
+
+  async function confirmPageMove(): Promise<void> {
+    if (selectedPageId === null) {
+      return;
+    }
+    const response = await fetch(`/api/v1/pages/${selectedPageId}/move`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ parent_id: moveParentId, sort_order: 0, slug: pageSlug }),
+    });
+  if (!response.ok) {
+      setError('Перенос отклонён');
+      return;
+    }
+    setMessage('Страница перенесена.');
+    setMoveImpact(null);
+    await loadPageTree();
+  }
+
+  async function moveSelectedSibling(direction: -1 | 1): Promise<void> {
+    if (selectedPageId === null) {
+      return;
+    }
+    const flat = flattenTree(pageTree);
+    const current = flat.find((n) => n.id === selectedPageId);
+    if (current === undefined) {
+      return;
+    }
+    const siblings = flat
+      .filter((n) => n.parent_id === current.parent_id)
+      .sort((a, b) => a.sort_order - b.sort_order);
+    const index = siblings.findIndex((n) => n.id === selectedPageId);
+    const target = siblings[index + direction];
+    if (target === undefined) {
+      return;
+    }
+    await fetch(`/api/v1/pages/${selectedPageId}/move`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        parent_id: current.parent_id,
+        sort_order: target.sort_order,
+        slug: current.slug,
+      }),
+    });
+    await loadPageTree();
+  }
+
+  function renderTreeNodes(nodes: PageTreeNode[], depth = 0): React.ReactNode {
+    return nodes.map((node) => (
+      <li key={node.id} className="page-tree-item" style={{ marginLeft: `${depth * 1.25}rem` }}>
+        <button
+          type="button"
+          className={selectedPageId === node.id ? 'page-tree-node selected' : 'page-tree-node'}
+          data-testid={`page-tree-node-${node.slug}`}
+          onClick={() => selectPageNode(node)}
+        >
+          {node.title} <span className="muted">/{node.full_path}</span>
+        </button>
+        {node.children.length > 0 && <ul className="page-tree-children">{renderTreeNodes(node.children, depth + 1)}</ul>}
+      </li>
+    ));
+  }
+
   async function loadBlogHistory(): Promise<void> {
     setMessage(null);
     setError(null);
@@ -304,13 +487,16 @@ export function App(): React.JSX.Element {
         <div className="brand">Каркас</div>
         <nav>
           <span className="nav-item active">Пакеты</span>
+          <span className="nav-item muted" data-testid="nav-pages">
+            Страницы
+          </span>
           <span className="nav-item muted">Установщик</span>
         </nav>
       </aside>
       <main className="content">
         <header className="topbar">
           <h1>Админка — этап 6</h1>
-          <p className="subtitle">G6: noop Save без updated_at, единственный default site, выбор сайта для enable blog.</p>
+          <p className="subtitle">G6: default site, блог, дерево страниц с вложенными URL и переносом.</p>
         </header>
 
         {maintenance && (
@@ -478,6 +664,87 @@ export function App(): React.JSX.Element {
             </button>
           </div>
           <p className="muted installer-footnote">ZIP upload: {zipEnabled ? 'включён (файл-флаг на сервере)' : 'выключен по умолчанию'}</p>
+        </section>
+
+        <section className="card page-tree-card" data-testid="page-tree-panel">
+          <h2>Дерево страниц</h2>
+          <div className="form-row">
+            <label htmlFor="page-tree-site">Сайт</label>
+            <select
+              id="page-tree-site"
+              data-testid="page-tree-site"
+              value={pageTreeSiteId}
+              onChange={(e) => setPageTreeSiteId(Number(e.target.value))}
+              disabled={!authenticated}
+            >
+              {sites.map((site) => (
+                <option key={site.id} value={site.id}>
+                  {site.site_key}
+                </option>
+              ))}
+            </select>
+            <button type="button" data-testid="page-tree-refresh" onClick={() => void loadPageTree()} disabled={!authenticated}>
+              Обновить дерево
+            </button>
+            <button type="button" data-testid="page-tree-seed" onClick={() => void seedDemoPages()} disabled={!authenticated}>
+              Демо-страницы
+            </button>
+          </div>
+          <div className="page-tree-layout">
+            <ul className="page-tree-list" data-testid="page-tree-list">
+              {renderTreeNodes(pageTree)}
+            </ul>
+            <div className="page-tree-detail" data-testid="page-tree-detail">
+              <h3>Перенос и редактирование</h3>
+              <label htmlFor="page-edit-title">Заголовок</label>
+              <input
+                id="page-edit-title"
+                data-testid="page-edit-title"
+                value={pageTitle}
+                onChange={(e) => setPageTitle(e.target.value)}
+                disabled={selectedPageId === null}
+              />
+              <label htmlFor="page-edit-slug">Slug</label>
+              <input
+                id="page-edit-slug"
+                data-testid="page-edit-slug"
+                value={pageSlug}
+                onChange={(e) => setPageSlug(e.target.value)}
+                disabled={selectedPageId === null}
+              />
+              <label htmlFor="move-parent">Новый родитель (UUID)</label>
+              <input
+                id="move-parent"
+                data-testid="move-parent"
+                value={moveParentId}
+                onChange={(e) => setMoveParentId(e.target.value)}
+                disabled={selectedPageId === null}
+              />
+              <p className="muted">
+                Корень: <code>{PAGE_TREE_ROOT}</code>
+              </p>
+              <p className="move-impact" data-testid="page-move-impact" aria-live="polite">
+                {moveImpact !== null ? `Будет изменено адресов: ${moveImpact}` : 'Предпросмотр переноса покажет число затронутых URL.'}
+              </p>
+              <div className="actions actions-stack">
+                <button type="button" data-testid="page-tree-key-up" onClick={() => void moveSelectedSibling(-1)} disabled={!authenticated}>
+                  ↑ Выше (клавиатура)
+                </button>
+                <button type="button" data-testid="page-tree-key-down" onClick={() => void moveSelectedSibling(1)} disabled={!authenticated}>
+                  ↓ Ниже (клавиатура)
+                </button>
+                <button type="button" data-testid="page-move-preview" onClick={() => void previewPageMove()} disabled={!authenticated}>
+                  Предпросмотр переноса
+                </button>
+                <button type="button" data-testid="page-move-confirm" onClick={() => void confirmPageMove()} disabled={!authenticated}>
+                  Подтвердить перенос
+                </button>
+                <button type="button" data-testid="page-save" onClick={() => void saveSelectedPage()} disabled={!authenticated}>
+                  Сохранить страницу
+                </button>
+              </div>
+            </div>
+          </div>
         </section>
 
         <section className="card" data-testid="site-blog-panel">
