@@ -12,7 +12,7 @@
         {% else %}
             <ul>
                 {% for article in articles %}
-                    <li><strong>{{ article.title }}</strong> ({{ article.slug }})</li>
+                    <li><a href="/blog/{{ article.slug }}"><strong>{{ article.title }}</strong></a></li>
                 {% endfor %}
             </ul>
         {% endif %}

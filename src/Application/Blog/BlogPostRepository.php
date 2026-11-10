@@ -121,4 +121,91 @@ final class BlogPostRepository
 
         return ((int) $max) + 1;
     }
+
+    /**
+     * @return list<array{version_seq: int, saved_at: string, snapshot_json: string}>
+     */
+    public function listVersions(string $postId, int $limit = 10): array
+    {
+        $connection = $this->connections->create();
+        $rows = $connection->fetchAllAssociative(
+            'SELECT version_seq, saved_at, snapshot_json FROM blog_post_version
+             WHERE post_id = :id ORDER BY version_seq DESC LIMIT :limit',
+            ['id' => $postId, 'limit' => $limit],
+            ['limit' => Types::INTEGER],
+        );
+
+        /** @var list<array{version_seq: int, saved_at: string, snapshot_json: string}> $normalized */
+        $normalized = [];
+        foreach ($rows as $row) {
+            $normalized[] = [
+                'version_seq' => (int) $row['version_seq'],
+                'saved_at' => (string) $row['saved_at'],
+                'snapshot_json' => (string) $row['snapshot_json'],
+            ];
+        }
+
+        return $normalized;
+    }
+
+    public function countVersions(string $postId): int
+    {
+        $connection = $this->connections->create();
+
+        return (int) $connection->fetchOne(
+            'SELECT COUNT(*) FROM blog_post_version WHERE post_id = :id',
+            ['id' => $postId],
+        );
+    }
+
+    public function pruneVersionsKeepingLast(string $postId, int $keep): int
+    {
+        if ($keep < 1) {
+            return 0;
+        }
+        $connection = $this->connections->create();
+        $total = $this->countVersions($postId);
+        if ($total <= $keep) {
+            return 0;
+        }
+
+        return (int) $connection->executeStatement(
+            'DELETE FROM blog_post_version WHERE post_id = :id AND version_seq NOT IN (
+                SELECT version_seq FROM (
+                    SELECT version_seq FROM blog_post_version
+                    WHERE post_id = :id2
+                    ORDER BY version_seq DESC
+                    LIMIT :keep
+                ) AS kept
+            )',
+            ['id' => $postId, 'id2' => $postId, 'keep' => $keep],
+            ['keep' => Types::INTEGER],
+        );
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function findActiveBySlug(int $siteId, string $instanceId, string $slug): ?array
+    {
+        $connection = $this->connections->create();
+        $row = $connection->fetchAssociative(
+            'SELECT * FROM blog_post WHERE site_id = :site AND module_instance_id = :instance
+             AND slug = :slug AND activity = :active',
+            ['site' => $siteId, 'instance' => $instanceId, 'slug' => $slug, 'active' => 'active'],
+        );
+
+        return false === $row ? null : $row;
+    }
+
+    public function resolvePublishedSlug(int $siteId, string $fromSlug): ?string
+    {
+        $connection = $this->connections->create();
+        $to = $connection->fetchOne(
+            'SELECT to_slug FROM blog_slug_redirect WHERE from_slug = :from_slug ORDER BY created_at DESC LIMIT 1',
+            ['from_slug' => $fromSlug],
+        );
+
+        return false === $to ? null : (string) $to;
+    }
 }
