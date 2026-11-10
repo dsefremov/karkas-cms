@@ -46,9 +46,9 @@ Close Den-approved answers to stage 5 open questions 1–4: noop Save without to
 
 | Suite | Count | Notes |
 |-------|------:|-------|
-| PHPUnit | 48 | +3 stage-6 tests; stage=6 in `VersionTest` |
-| Playwright | 10 | stage6 + smoke + stage4/5 retained |
+| PHPUnit | 47 | 132 assertions, 1 skipped; +3 stage-6 tests |
+| Playwright | 20 | stage6 + smoke + stage4/5 (+ desktop/mobile) |
 
 ## CI
 
-_To be filled in the final commit with green run URL and head SHA._
+Green on final head `e7527dd`: https://github.com/dsefremov/karkas-cms/actions/runs/42902040040 — PR [#13](https://github.com/dsefremov/karkas-cms/pull/13) → `develop` (not merged).
