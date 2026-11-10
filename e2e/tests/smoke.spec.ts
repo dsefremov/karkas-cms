@@ -13,8 +13,7 @@ test.describe('Karkas Stage 4 smoke', () => {
     });
   });
 
-  test('admin blog enable flow with accessibility scan', async ({ page }, testInfo) => {
-    test.setTimeout(120_000);
+  test('admin blog save flow with accessibility scan', async ({ page }, testInfo) => {
     await bootstrapBlogAdmin(page);
     await page.getByTestId('blog-save-demo').click();
     await expect(page.getByTestId('admin-message')).toContainText('Статья сохранена', { timeout: 60_000 });

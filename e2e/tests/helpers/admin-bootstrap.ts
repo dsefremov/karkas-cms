@@ -2,6 +2,13 @@ import { expect, type Page } from '@playwright/test';
 
 const ADMIN_PASSWORD = process.env.KARKAS_ADMIN_PASSWORD ?? 'test-admin-password-stage2';
 
+function authHeaders(): Record<string, string> {
+  return {
+    'Content-Type': 'application/json',
+    'X-Karkas-Reauth': ADMIN_PASSWORD,
+  };
+}
+
 export async function bootstrapBlogAdmin(page: Page): Promise<void> {
   await page.goto('/admin/');
   await expect(page.getByTestId('admin-shell')).toBeVisible();
@@ -11,27 +18,38 @@ export async function bootstrapBlogAdmin(page: Page): Promise<void> {
     await expect(page.getByTestId('admin-authenticated')).toBeVisible();
   }
 
-  const coreCurrent = await page.getByTestId('version-row-karkas-core').locator('td').nth(1).textContent();
+  let coreCurrent = await page.getByTestId('version-row-karkas-core').locator('td').nth(1).textContent();
   if (!(coreCurrent ?? '').match(/\d+\.\d+\.\d+/)) {
-    await page.getByTestId('installer-run').click();
-    await expect(page.getByTestId('version-row-karkas-core').locator('td').nth(1)).toContainText(/\d+\.\d+\.\d+/, {
-      timeout: 60_000,
-    });
+    const bootstrap = await page.request.post('/api/v1/installer/bootstrap', { headers: authHeaders(), data: '{}' });
+    const complete = await page.request.post('/api/v1/installer/complete', { headers: authHeaders(), data: '{}' });
+    expect(bootstrap.ok()).toBeTruthy();
+    expect(complete.ok()).toBeTruthy();
+    await page.reload();
+    coreCurrent = await page.getByTestId('version-row-karkas-core').locator('td').nth(1).textContent();
+    expect(coreCurrent ?? '').toMatch(/\d+\.\d+\.\d+/);
   }
 
-  const blogCurrent = await page.getByTestId('version-row-karkas-blog').locator('td').nth(1).textContent();
+  let blogCurrent = await page.getByTestId('version-row-karkas-blog').locator('td').nth(1).textContent();
   if (!(blogCurrent ?? '').includes('1.0.0')) {
-    await page.getByTestId('install-blog').click();
-    await expect(page.getByTestId('version-row-karkas-blog').locator('td').nth(1)).toContainText('1.0.0', {
-      timeout: 60_000,
+    const install = await page.request.post('/api/v1/platform/install', {
+      headers: authHeaders(),
+      data: { modules: ['karkas/blog'] },
     });
+    expect(install.ok()).toBeTruthy();
+    await page.reload();
+    blogCurrent = await page.getByTestId('version-row-karkas-blog').locator('td').nth(1).textContent();
+    expect(blogCurrent ?? '').toContain('1.0.0');
   }
 
   const blogProbe = await page.request.get('/blog');
   const blogHtml = await blogProbe.text();
   const blogReady = blogProbe.ok() && !blogHtml.includes('not enabled');
   if (!blogReady) {
-    await page.getByTestId('enable-blog').click();
+    const enable = await page.request.post('/api/v1/sites/default/modules/karkas/blog/enable', {
+      headers: authHeaders(),
+      data: { site_label: 'Каркас — демо' },
+    });
+    expect(enable.ok()).toBeTruthy();
     await expect
       .poll(async () => {
         const response = await page.request.get('/blog');
@@ -42,5 +60,6 @@ export async function bootstrapBlogAdmin(page: Page): Promise<void> {
         return !html.includes('not enabled');
       })
       .toBe(true);
+    await page.reload();
   }
 }
