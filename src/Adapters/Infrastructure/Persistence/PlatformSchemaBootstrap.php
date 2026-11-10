@@ -15,6 +15,7 @@ final class PlatformSchemaBootstrap
      */
     public function __construct(
         private readonly array $schemaSqlPaths,
+        private readonly PlatformStage5SchemaUpgrade $stage5Upgrade,
     ) {
     }
 
@@ -37,6 +38,7 @@ final class PlatformSchemaBootstrap
             'INSERT IGNORE INTO platform_maintenance (singleton_id, enabled, reason, updated_at) VALUES (1, 0, NULL, :now)',
             ['now' => new DateTimeImmutable()->format('Y-m-d H:i:s.u')],
         );
+        $this->stage5Upgrade->apply($connection);
     }
 
     /**

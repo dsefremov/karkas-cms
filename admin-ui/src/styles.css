@@ -230,3 +230,14 @@ button:disabled {
     width: 100%;
   }
 }
+
+.plan-preview {
+  margin: 0.75rem 0 0;
+  padding: 0.75rem;
+  background: var(--surface-muted, #f4f6f8);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  overflow-x: auto;
+  max-height: 12rem;
+}

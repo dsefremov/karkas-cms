@@ -19,6 +19,23 @@ type BlogVersionRow = {
   activity: string;
 };
 
+type SiteRow = {
+  id: number;
+  site_key: string;
+  label: string;
+  is_default: boolean;
+  canonical_host: string | null;
+};
+
+type CorePlanPayload = {
+  compatible: boolean;
+  errors: string[];
+  plan: {
+    core_version?: string;
+    targets?: Array<{ package_id: string; version: string }>;
+  };
+};
+
 export function App(): React.JSX.Element {
   const [password, setPassword] = useState('');
   const [authenticated, setAuthenticated] = useState(false);
@@ -30,6 +47,11 @@ export function App(): React.JSX.Element {
   const [coreUpgradeConfirm, setCoreUpgradeConfirm] = useState(false);
   const [lastPostId, setLastPostId] = useState<string | null>(null);
   const [blogHistory, setBlogHistory] = useState<BlogVersionRow[]>([]);
+  const [sites, setSites] = useState<SiteRow[]>([]);
+  const [newSiteKey, setNewSiteKey] = useState('partner');
+  const [newSiteLabel, setNewSiteLabel] = useState('Партнёрский сайт');
+  const [newSiteHost, setNewSiteHost] = useState('partner.example.test');
+  const [corePlan, setCorePlan] = useState<CorePlanPayload | null>(null);
 
   const loadVersions = useCallback(async () => {
     const response = await fetch('/api/v1/platform/versions');
@@ -57,6 +79,11 @@ export function App(): React.JSX.Element {
       setMaintenance(body.enabled);
     }
     await loadVersions();
+    const sitesResponse = await fetch('/api/v1/sites');
+    if (sitesResponse.ok) {
+      const body = (await sitesResponse.json()) as { sites: SiteRow[] };
+      setSites(body.sites);
+    }
   }, [loadVersions]);
 
   useEffect(() => {
@@ -186,6 +213,47 @@ export function App(): React.JSX.Element {
     setBlogHistory([]);
   }
 
+  async function loadCorePlan(): Promise<void> {
+    setMessage(null);
+    setError(null);
+    const response = await fetch('/api/v1/platform/plan?include_core=1');
+    if (!response.ok) {
+      setError('Не удалось построить план обновления Core');
+      setCorePlan(null);
+      return;
+    }
+    setCorePlan((await response.json()) as CorePlanPayload);
+    setMessage('План обновления Core загружен (include_core).');
+  }
+
+  async function loadSites(): Promise<void> {
+    const response = await fetch('/api/v1/sites');
+    if (response.ok) {
+      const body = (await response.json()) as { sites: SiteRow[] };
+      setSites(body.sites);
+    }
+  }
+
+  async function createSite(): Promise<void> {
+    setMessage(null);
+    setError(null);
+    const response = await fetch('/api/v1/sites', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Karkas-Reauth': password },
+      body: JSON.stringify({
+        site_key: newSiteKey,
+        label: newSiteLabel,
+        canonical_host: newSiteHost || null,
+      }),
+    });
+    if (!response.ok) {
+      setError('Не удалось создать сайт');
+      return;
+    }
+    setMessage(`Сайт «${newSiteLabel}» создан.`);
+    await loadSites();
+  }
+
   async function upgradeCore(): Promise<void> {
     setMessage(null);
     setError(null);
@@ -235,8 +303,8 @@ export function App(): React.JSX.Element {
       </aside>
       <main className="content">
         <header className="topbar">
-          <h1>Админка — этап 4</h1>
-          <p className="subtitle">G4: обновление Core через план, история версий поста (последние 10), публичный slug.</p>
+          <h1>Админка — этап 5</h1>
+          <p className="subtitle">G5: превью плана Core, мультисайт (CRUD), slug redirect по site_id, noop Save.</p>
         </header>
 
         {maintenance && (
@@ -313,6 +381,16 @@ export function App(): React.JSX.Element {
           )}
           {coreUpgradeAvailable ? (
             <>
+              <div className="actions actions-stack">
+                <button type="button" data-testid="load-core-plan" onClick={() => void loadCorePlan()} disabled={!authenticated}>
+                  Показать план обновления Core
+                </button>
+              </div>
+              {corePlan !== null && (
+                <pre className="plan-preview" data-testid="core-plan-preview">
+                  {JSON.stringify(corePlan.plan?.targets ?? [], null, 2)}
+                </pre>
+              )}
               <div className="form-row">
                 <label htmlFor="core-upgrade-confirm">
                   <input
@@ -339,6 +417,43 @@ export function App(): React.JSX.Element {
           ) : (
             <p className="muted">Обновление не требуется (текущая совпадает с локально доступной).</p>
           )}
+        </section>
+
+        <section className="card" data-testid="sites-panel">
+          <h2>Сайты (multisite)</h2>
+          <div className="table-scroll">
+            <table className="versions-table">
+              <thead>
+                <tr>
+                  <th scope="col">ID</th>
+                  <th scope="col">Ключ</th>
+                  <th scope="col">Название</th>
+                  <th scope="col">Host</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sites.map((site) => (
+                  <tr key={site.id} data-testid={`site-row-${site.site_key}`}>
+                    <td>{site.id}</td>
+                    <td>{site.site_key}</td>
+                    <td>{site.label}</td>
+                    <td>{site.canonical_host ?? '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="form-row">
+            <label htmlFor="new-site-key">Ключ</label>
+            <input id="new-site-key" data-testid="new-site-key" value={newSiteKey} onChange={(e) => setNewSiteKey(e.target.value)} />
+            <label htmlFor="new-site-label">Название</label>
+            <input id="new-site-label" data-testid="new-site-label" value={newSiteLabel} onChange={(e) => setNewSiteLabel(e.target.value)} />
+            <label htmlFor="new-site-host">Canonical host</label>
+            <input id="new-site-host" data-testid="new-site-host" value={newSiteHost} onChange={(e) => setNewSiteHost(e.target.value)} />
+            <button type="button" data-testid="create-site" onClick={() => void createSite()} disabled={!authenticated}>
+              Создать сайт
+            </button>
+          </div>
         </section>
 
         <section className="card" data-testid="installer-panel">

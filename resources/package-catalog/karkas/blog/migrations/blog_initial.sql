@@ -25,8 +25,9 @@ CREATE TABLE IF NOT EXISTS blog_post_version (
 CREATE TABLE IF NOT EXISTS blog_slug_redirect (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     post_id CHAR(36) NOT NULL,
+    site_id TINYINT UNSIGNED NOT NULL,
     from_slug VARCHAR(120) NOT NULL,
     to_slug VARCHAR(120) NOT NULL,
     created_at DATETIME(6) NOT NULL,
-    KEY idx_blog_redirect_from (from_slug)
+    KEY idx_blog_redirect_site_from (site_id, from_slug)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
