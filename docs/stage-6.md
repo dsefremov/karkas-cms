@@ -56,15 +56,21 @@ Spec v0.8 §12 mockups still describe **flat** `/p/{slug}` URLs unchanged on mov
 
 ## Screenshots
 
-Playwright artifacts: `tree-1440`, `tree-390`, `tree-move-1440`, `admin-1440`, `admin-390` — copied to `docs/stage-6/screenshots/` after green CI.
+| File | Viewport |
+|------|----------|
+| `docs/stage-6/screenshots/tree-1440.png` | Desktop tree |
+| `docs/stage-6/screenshots/tree-390.png` | Mobile tree |
+| `docs/stage-6/screenshots/tree-move-1440.png` | Move preview + impact count |
+| `docs/stage-6/screenshots/admin-1440.png` | Full admin 1440 |
+| `docs/stage-6/screenshots/admin-390.png` | Full admin 390 |
 
 ## Tests
 
-| Suite | Notes |
-|-------|--------|
-| PHPUnit | Page path build, cycle, mount/reserved conflict, descendant 301, rollback on failed move; + stage 6 prior tests |
-| Playwright | Tree seed, move preview, axe on tree panel (1440) |
+| Suite | Count | Notes |
+|-------|------:|-------|
+| PHPUnit | 53 | 149 assertions, 1 skipped; matrices MySQL 8.0 + 8.4 in CI |
+| Playwright | 29 | stage6 tree/move + smoke/stage4/5; axe 0 on tree panel (desktop) |
 
 ## CI
 
-_Pending final green run — head/run updated in closing doc commit._
+Green on head `f219a8a`: https://github.com/dsefremov/karkas-cms/actions/runs/42911673614 — PR [#13](https://github.com/dsefremov/karkas-cms/pull/13) → `develop` (**не мержить**).
