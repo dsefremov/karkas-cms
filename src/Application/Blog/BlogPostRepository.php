@@ -140,9 +140,6 @@ final class BlogPostRepository
     }
 
     /**
-     * @return list<array{version_seq: int, saved_at: string, snapshot_json: string}>
-     */
-    /**
      * @return array{version_seq: int, saved_at: string, snapshot_json: string}|null
      */
     public function findVersion(string $postId, int $versionSeq): ?array
@@ -164,6 +161,9 @@ final class BlogPostRepository
         ];
     }
 
+    /**
+     * @return list<array{version_seq: int, saved_at: string, snapshot_json: string}>
+     */
     public function listVersions(string $postId, int $limit = 10): array
     {
         $connection = $this->connections->create();
