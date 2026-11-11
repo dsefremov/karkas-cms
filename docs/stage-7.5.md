@@ -2,8 +2,8 @@
 
 Ветка **`grok_bot` → `develop`**, PR **#17**, **не мержить** до ревью Den.
 
-**code-head:** `073557c`  
-**docs-head:** `8e0c83d`
+**code-head:** `be8281a`  
+**docs-head:** `722f581`
 
 ---
 
@@ -149,25 +149,27 @@
 | `/admin/operations` | Журнал операций или empty | `GET /api/v1/admin/platform/operations` (cron/DLQ **нет**) |
 | `/admin/users`, `/admin/roles` | Заглушка этап 8 | **нет API** |
 
-На `/posts` сохранён блок демо save/history (этап 3–4) для регрессии blog.
+Регрессия blog: e2e через **Новая запись → редактор → сохранение → история** (без блока «Быстрые действия»).
 
 ---
 
 ## Расхождения с макетом v16
 
-Колонка **тип**: **нет API** — ограничение платформы; **не сделано** — API есть, UI/UX не доведён до макета.
+Колонка **тип**: **сделано** — приведено к макету в рамках API; **нет API** — ограничение платформы; **отложено** — осознанно не в 7.5; **не сделано** — API есть, UI ещё не доведён.
 
 | Экран | Расхождение | Тип | Почему |
 |-------|-------------|-----|--------|
+| Shell (сайдбар + шапка) | — | **сделано** | Иконки, счётчики из API, пользователь/«Открыть сайт», breadcrumbs `>`, RU/колокольчик/аватар |
 | Обзор | Нет ленты статей, графиков, счётчиков | **нет API** | Нет эндпоинта сводки; empty state вместо демо-цифр |
-| Записи | Нет WYSIWYG, фильтров, «36» в сайдбаре | **не сделано** / **нет API** | Список из API есть; rich editor и метаданные — не в scope |
-| Редактор | Текстовое поле, не article-editor.html | **не сделано** | API save plain text |
-| Категории | Пустой экран | **нет API** | Категории блога не exposed |
-| Сайты | Без «шаблонов» | **нет API** | Site templates — этап 8+ |
-| Модули | Нет полного ZIP/conflict UI | **не сделано** | scan-incoming + install есть; макет module-upload шире |
-| Страницы | Список + кнопки, не DnD-дерево | **не сделано** | move/preview API есть; DnD UI не делали |
-| Вход | Без арт-панели staff-login | **не сделано** | Функциональный вход |
-| Операции | Нет cron/DLQ таблиц | **нет API** | Только platform operations log |
+| Записи | Таблица, пустое состояние, без e2e-блока | **сделано** (список) | Нет WYSIWYG, фильтров, колонки категорий из API — **отложено** |
+| Редактор | Текстовое поле, не article-editor.html | **отложено** | API save plain text |
+| Категории | Пустой экран, без table-card | **нет API** | Категории блога не exposed |
+| Сайты | Заголовок и таблица; без вкладок «шаблоны» | **сделано** (multisite) / **нет API** (шаблоны) | Site templates — этап 8+ |
+| Модули | Таблица Core/blog/enable, кнопки сверху, ZIP-notice | **сделано** (installer) | Полный ZIP upload/conflict UI — **отложено**; binding v16 — ссылка на `/pages`, не отдельный wizard |
+| Страницы | API-дерево, не DnD mock tree.html | **отложено** | move/preview есть; DnD и карточка детали — не делали |
+| Вход | Без арт-панели staff-login | **отложено** | Функциональный пароль; без демо-email/2FA notice |
+| Настройки | Две platform-настройки, не settings-layout | **нет API** | Макет — site settings, secrets, доставка |
+| Операции | Журнал из API; нет cron/DLQ | **нет API** | Только `platform/operations` |
 | Пользователи / Роли | «появится на этапе 8» | **нет API** | По ТЗ |
 | Операции (макет) | Отдельного png нет | — | Плейсхолдер `mock-1440-operations.png` |
 
@@ -190,21 +192,22 @@
 4. **DnD дерева страниц** — приоритет при наличии move API?
 5. **API обзора (dashboard)** — какие агрегаты нужны в первой версии?
 6. **Макеты 390** — прислать png для паритета с 1440?
-7. **Список записей** — убрать демо-блок с `/posts`, оставить только CRUD UI?
-
 ---
 
-## Локальный Playwright (как CI, `c8d45a2` + `073557c`)
+## Локальный Playwright + axe
 
-`docker compose down -v && up`, `.env`: `KARKAS_ADMIN_PASSWORD=test-admin-password-stage2`, `admin-ui` build, `e2e`: `npm test` с `BASE_URL=http://127.0.0.1:8080`.
+`docker compose up`, `.env`: `KARKAS_ADMIN_PASSWORD=test-admin-password-stage2`, `admin-ui` `npm run build`, `e2e`: `npm test` с `BASE_URL=http://127.0.0.1:8080`.
 
-Итог (полный набор 92 теста): **91 passed, 1 skipped, 0 failed** (~37s). Единственный skip: mobile `page move preview screenshot desktop`.
+Итог (полный набор 92 теста, финальный прогон mockup-прохода): **91 passed, 1 skipped, 0 failed** (~39s). Skip: mobile-only `page move preview screenshot desktop`. Axe: `stage4` (history), `stage6` (modules), `smoke` — 0 violations после правок таблиц/`aria-label`.
 
 ```
+  ✓  92 passed scenarios (91 + 1 spec skip)
   1 skipped
-  91 passed (36.7s)
+  91 passed (39.2s)
 ```
+
+Скриншоты docs: `npx playwright test tests/stage75-screenshots.spec.ts` → `docs/stage-7.5/screenshots/result-*`.
 
 ## CI
 
-GitHub PR run [43043145213](https://github.com/dsefremov/karkas-cms/actions/runs/43043145213) (`967a9c7`): php-static, frontend, phpunit-matrix×4, release-artifact — **success**; **playwright — failure** (DNS/apt на `playwright install chromium --with-deps`, не тесты). Перезапуск failed jobs — по расписанию агента (~1ч после 15:09 UTC).
+После push смотреть последний run на `grok_bot` в PR #17. Ранее: php-static, frontend, phpunit×4, release-artifact — **success**; **playwright** — **failure** на `playwright install --with-deps` (`azure.archive.ubuntu.com`, apt/DNS), не на тестах. Перезапуск failed jobs — Den.
