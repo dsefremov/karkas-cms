@@ -2,40 +2,115 @@
 
 Ветка **`grok_bot` → `develop`**, PR **#17**, **не мержить** до ревью Den.
 
-**HEAD:** `fc4a078`
+**code-head:** `0752e03`  
+**docs-head:** `60e7a84`
 
 ---
 
 ## Цель
 
-Светлая админка на `tokens.css`, роутинг `/admin/...`, сайдбар как в макете v16, отдельные экраны поверх существующего API, сохранение фиксов blog (п. 4).
+Светлая админка на `tokens.css`, роутинг `/admin/...`, сайдбар как в макете v16, экраны на существующем API (этапы 3–7), сохранение фиксов blog (п. 4).
 
 ## Артефакты
 
 | Артефакт | Путь |
 |----------|------|
-| HTML + `tokens.css` + `png/` | `docs/mockups/` (из архивов uploads, без build-скриптов) |
-| Стили admin-ui | **только** `admin-ui/src/tokens.css` + `admin-ui/src/admin-ui.css` |
+| HTML + `tokens.css` + `png/` | `docs/mockups/` |
+| Стили admin-ui | `admin-ui/src/tokens.css`, `admin-ui/src/admin-ui.css` |
 | SPA fallback | `AdminSpaController` + `public/admin/.htaccess` |
-| Скриншоты пары макет/результат | `docs/stage-7.5/screenshots/` (`mock-1440-*`, `result-1440-*`, `result-390-*` из Playwright) |
+| Скриншоты | `docs/stage-7.5/screenshots/` (в репозитории, Docker Apache :8080 как в CI) |
 
-### Скриншоты (1440 / 390)
+---
 
-| Экран | Макет (1440) | Результат |
-|-------|----------------|-----------|
-| Вход | `mock-1440-login.png` | `result-{1440\|390}-login.png` |
-| Обзор | `mock-1440-dashboard.png` | `result-*-dashboard.png` |
-| Записи | `mock-1440-posts.png` | `result-*-posts.png` |
-| Категории | `mock-1440-categories.png` | `result-*-categories.png` |
-| Страницы | `mock-1440-pages.png` | `result-*-pages.png` |
-| Модули | `mock-1440-modules.png` | `result-*-modules.png` |
-| Сайты | `mock-1440-sites.png` | `result-*-sites.png` |
-| Настройки | `mock-1440-settings.png` | `result-*-settings.png` |
-| Операции | — (фрагмент в dashboard) | `result-*-operations.png` |
-| Core update | `mock-1440-core-update.png` | `result-*-core-update.png` |
-| Пользователи / Роли | `mock-1440-users.png`, `mock-1440-roles.png` | `result-*-users.png`, `result-*-roles.png` |
+## Скриншоты: макет / результат
 
-Макеты **390** в png-наборе нет — для mobile только `result-390-*` (реализация).
+Макет **390** у Дизайнера в png-наборе **нет** — в колонке «Макет 390» помечено **—**.
+
+### Вход
+
+| | 1440 | 390 |
+|---|------|-----|
+| **Макет** | ![mock login 1440](screenshots/mock-1440-login.png) | — |
+| **Результат** | ![result login 1440](screenshots/result-1440-login.png) | ![result login 390](screenshots/result-390-login.png) |
+
+### Обзор
+
+| | 1440 | 390 |
+|---|------|-----|
+| **Макет** | ![mock dashboard 1440](screenshots/mock-1440-dashboard.png) | — |
+| **Результат** | ![result dashboard 1440](screenshots/result-1440-dashboard.png) | ![result dashboard 390](screenshots/result-390-dashboard.png) |
+
+### Записи
+
+| | 1440 | 390 |
+|---|------|-----|
+| **Макет** | ![mock posts 1440](screenshots/mock-1440-posts.png) | — |
+| **Результат** | ![result posts 1440](screenshots/result-1440-posts.png) | ![result posts 390](screenshots/result-390-posts.png) |
+
+### Категории
+
+| | 1440 | 390 |
+|---|------|-----|
+| **Макет** | ![mock categories 1440](screenshots/mock-1440-categories.png) | — |
+| **Результат** | ![result categories 1440](screenshots/result-1440-categories.png) | ![result categories 390](screenshots/result-390-categories.png) |
+
+### Страницы
+
+| | 1440 | 390 |
+|---|------|-----|
+| **Макет** | ![mock pages 1440](screenshots/mock-1440-pages.png) | — |
+| **Результат** | ![result pages 1440](screenshots/result-1440-pages.png) | ![result pages 390](screenshots/result-390-pages.png) |
+
+### Модули
+
+| | 1440 | 390 |
+|---|------|-----|
+| **Макет** | ![mock modules 1440](screenshots/mock-1440-modules.png) | — |
+| **Результат** | ![result modules 1440](screenshots/result-1440-modules.png) | ![result modules 390](screenshots/result-390-modules.png) |
+
+### Сайты
+
+| | 1440 | 390 |
+|---|------|-----|
+| **Макет** | ![mock sites 1440](screenshots/mock-1440-sites.png) | — |
+| **Результат** | ![result sites 1440](screenshots/result-1440-sites.png) | ![result sites 390](screenshots/result-390-sites.png) |
+
+### Настройки
+
+| | 1440 | 390 |
+|---|------|-----|
+| **Макет** | ![mock settings 1440](screenshots/mock-1440-settings.png) | — |
+| **Результат** | ![result settings 1440](screenshots/result-1440-settings.png) | ![result settings 390](screenshots/result-390-settings.png) |
+
+### Операции
+
+| | 1440 | 390 |
+|---|------|-----|
+| **Макет** | `mock-1440-operations.png` — плейсхолдер (отдельного макета у Дизайнера нет; фрагмент в dashboard) | — |
+| **Результат** | ![result operations 1440](screenshots/result-1440-operations.png) | ![result operations 390](screenshots/result-390-operations.png) |
+
+### Core update
+
+| | 1440 | 390 |
+|---|------|-----|
+| **Макет** | ![mock core 1440](screenshots/mock-1440-core-update.png) | — |
+| **Результат** | ![result core 1440](screenshots/result-1440-core-update.png) | ![result core 390](screenshots/result-390-core-update.png) |
+
+### Пользователи
+
+| | 1440 | 390 |
+|---|------|-----|
+| **Макет** | ![mock users 1440](screenshots/mock-1440-users.png) | — |
+| **Результат** | ![result users 1440](screenshots/result-1440-users.png) | ![result users 390](screenshots/result-390-users.png) |
+
+### Роли и доступ
+
+| | 1440 | 390 |
+|---|------|-----|
+| **Макет** | ![mock roles 1440](screenshots/mock-1440-roles.png) | — |
+| **Результат** | ![result roles 1440](screenshots/result-1440-roles.png) | ![result roles 390](screenshots/result-390-roles.png) |
+
+Снято: `e2e/tests/stage75-screenshots.spec.ts` (desktop 1440×900, mobile 390×844), локально `docker compose` → `http://127.0.0.1:8080`.
 
 ---
 
@@ -50,65 +125,75 @@
 | 5 | duplicate mount | idempotent enable | double enable HTTP |
 | 6 | `site_label` хардкод | label из сайта | e2e multisite |
 
-**Причина исходного бага blog:** живая сессия при пустом поле пароля → заголовок reauth пустой → 401, в UI generic «отклонено».
+**Причина исходного бага blog:** живая PHP-сессия после reload при пустом поле пароля в React → пустой `X-Karkas-Reauth` → 401; в UI — общее «отклонено» без диалога reauth.
+
+**Доп. фикс deep-link:** до ответа `GET /api/v1/admin/session` редирект на `/login` сбрасывал URL на `/dashboard` после reload — `sessionReady` в `AdminContext`, return-path на login.
 
 ---
 
 ## Роуты admin-ui
 
-| Путь | Экран |
-|------|--------|
-| `/admin/login` | Вход |
-| `/admin/dashboard` | Обзор |
-| `/admin/posts` | Записи + демо save/history |
-| `/admin/categories` | Категории (заглушка данных) |
-| `/admin/pages` | Дерево страниц, bind/unbind blog |
-| `/admin/modules` | Установка / enable blog, версии |
-| `/admin/sites` | Multisite |
-| `/admin/settings` | ZIP upload, maintenance |
-| `/admin/core-update` | Обновление Core |
-| `/admin/operations` | Фоновые операции (демо) |
-| `/admin/users`, `/admin/roles` | «появится на этапе 8» |
+| Путь | Экран | API |
+|------|--------|-----|
+| `/admin/login` | Вход | session |
+| `/admin/dashboard` | Обзор (empty state) | **нет API агрегатов** |
+| `/admin/posts` | Список записей | `GET /api/v1/blog/posts` |
+| `/admin/posts/new`, `/admin/posts/:id` | Редактор (plain text) | create/save |
+| `/admin/posts/:id/history` | История + restore | versions + restore |
+| `/admin/categories` | Empty state | **нет API категорий** |
+| `/admin/pages` | Дерево, move, blog bind | sites/pages API |
+| `/admin/modules` | Установка / enable blog | platform/install |
+| `/admin/sites` | Multisite | `/api/v1/sites` |
+| `/admin/settings` | ZIP, maintenance | admin packages |
+| `/admin/core-update` | Core plan/upgrade | platform/plan |
+| `/admin/operations` | Журнал операций или empty | `GET /api/v1/admin/platform/operations` (cron/DLQ **нет**) |
+| `/admin/users`, `/admin/roles` | Заглушка этап 8 | **нет API** |
+
+На `/posts` сохранён блок демо save/history (этап 3–4) для регрессии blog.
 
 ---
 
-## Что не совпало с макетом v16 и почему
+## Расхождения с макетом v16
 
-| Макет | Расхождение | Почему |
-|-------|-------------|--------|
-| Dashboard | Нет живых статей, ленты авторов, графиков | API этапа 8+ / демо-данные в макете |
-| Записи / editor | Нет WYSIWYG-редактора, списка 36 статей | Реализован minimal demo save + history API |
-| Категории | Пустой empty-state | Нет API категорий на этапе 7.5 |
-| Сайты | «Сайты и шаблоны» без шаблонов | Templates — этап 8+ |
-| Модули | Нет полного lifecycle (upload ZIP UI, conflict, rollback UI) | API есть частично; UI — wizard Core/blog + versions |
-| Страницы | Дерево list, не drag-and-drop как tree.html | API move есть; DnD UI не в scope |
-| Вход | Упрощённый staff-login без арт-панели | Функциональный вход; арт-блок опционален |
-| Sidebar | Нет счётчика «36» у Записей, нет MFA-блока профиля | Нет данных / этап 8 |
-| Операции | Статические «—» вместо cron/DLQ | Нет публичного API очередей |
-| Пользователи / Роли | Заглушка этап 8 | По ТЗ |
+Колонка **тип**: **нет API** — ограничение платформы; **не сделано** — API есть, UI/UX не доведён до макета.
 
-Disabled-кнопки: контраст через `admin-ui.css` (не `opacity: 0.3`), ориентир WCAG AA на светлом фоне.
+| Экран | Расхождение | Тип | Почему |
+|-------|-------------|-----|--------|
+| Обзор | Нет ленты статей, графиков, счётчиков | **нет API** | Нет эндпоинта сводки; empty state вместо демо-цифр |
+| Записи | Нет WYSIWYG, фильтров, «36» в сайдбаре | **не сделано** / **нет API** | Список из API есть; rich editor и метаданные — не в scope |
+| Редактор | Текстовое поле, не article-editor.html | **не сделано** | API save plain text |
+| Категории | Пустой экран | **нет API** | Категории блога не exposed |
+| Сайты | Без «шаблонов» | **нет API** | Site templates — этап 8+ |
+| Модули | Нет полного ZIP/conflict UI | **не сделано** | scan-incoming + install есть; макет module-upload шире |
+| Страницы | Список + кнопки, не DnD-дерево | **не сделано** | move/preview API есть; DnD UI не делали |
+| Вход | Без арт-панели staff-login | **не сделано** | Функциональный вход |
+| Операции | Нет cron/DLQ таблиц | **нет API** | Только platform operations log |
+| Пользователи / Роли | «появится на этапе 8» | **нет API** | По ТЗ |
+| Операции (макет) | Отдельного png нет | — | Плейсхолдер `mock-1440-operations.png` |
+
+Контраст disabled-кнопок: правки в `admin-ui.css` (не `opacity: 0.3`).
 
 ---
 
 ## Тесты
 
-- PHPUnit: `Stage75BlogAdminHttpTest`, `Stage75AdminSpaHttpTest`
-- Playwright: `stage75-admin-navigation.spec.ts`, `stage75-blog-from-scratch.spec.ts`, `stage75-blog-admin.spec.ts`, `stage75-screenshots.spec.ts`; обновлены `stage6`, `stage7`, `stage7-blog-facade`
+- PHPUnit: `Stage75BlogAdminHttpTest`, `Stage75BlogPostsHttpTest`, `Stage75AdminSpaHttpTest`
+- Playwright: `stage75-admin-navigation`, `stage75-blog-*`, `stage75-screenshots`
 
 ---
 
 ## Вопросы к Den (с предложениями)
 
-1. **Категории и полноценный список статей** — ждать этап 8 или дать минимальный read-only список из blog API уже в 7.5.1?
-2. **Шаблоны сайтов** (`site-templates.html`) — входят в «Сайты» этапа 8 или отдельный подэтап?
-3. **Модули: ZIP upload UI** — достаточно scan-incoming + install, или обязателен экран `module-upload` из макета?
-4. **Drag-and-drop дерева страниц** — приоритет относительно API move + preview?
-5. **Демо-данные на обзоре** — подставлять реальные агрегаты из API (поиск, posts count) или оставить «—» до этапа 8?
-6. **390 макеты** — прислать png/jpg 390 в репозиторий для паритета «макет/результат»?
+1. **Категории** — ждать этап 8 или минимальный read-only API в 7.5.1?
+2. **Шаблоны сайтов** — часть «Сайты» этапа 8 или отдельный подэтап?
+3. **Модули: ZIP upload UI** — достаточно scan-incoming + install?
+4. **DnD дерева страниц** — приоритет при наличии move API?
+5. **API обзора (dashboard)** — какие агрегаты нужны в первой версии?
+6. **Макеты 390** — прислать png для паритета с 1440?
+7. **Список записей** — убрать демо-блок с `/posts`, оставить только CRUD UI?
 
 ---
 
 ## CI
 
-Все джобы workflow `CI` на `grok_bot` (см. отчёт агента: php-static, phpunit-matrix, frontend, playwright при PR).
+См. отчёт агента на tip `grok_bot` после push (workflow `CI`, jobs: php-static, phpunit-matrix, frontend, playwright).
