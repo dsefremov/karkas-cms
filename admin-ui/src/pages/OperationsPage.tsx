@@ -7,7 +7,7 @@ export function OperationsPage(): React.JSX.Element {
           <p>Фоновые задачи и очереди.</p>
         </div>
       </div>
-      <section className="card" id="operations">
+      <section className="card" id="operations" data-testid="operations-panel">
         <h2>Фоновые операции</h2>
         <div className="kv">
           <span>Последний запуск cron</span>

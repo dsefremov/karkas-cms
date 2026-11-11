@@ -12,7 +12,7 @@ export function SettingsPage(): React.JSX.Element {
           <p>Загрузка пакетов и режим обслуживания.</p>
         </div>
       </div>
-      <section className="card">
+      <section className="card" data-testid="settings-panel">
         <h2>Платформа</h2>
         <div className="kv">
           <span>ZIP upload</span>

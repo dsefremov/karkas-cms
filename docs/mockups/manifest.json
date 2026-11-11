@@ -1,0 +1,674 @@
+[
+  {
+    "section": "public",
+    "name": "home",
+    "title": "Главная / лента",
+    "html": "public/home.html",
+    "phase": "v1"
+  },
+  {
+    "section": "public",
+    "name": "post",
+    "title": "Страница записи",
+    "html": "public/post.html",
+    "phase": "v1"
+  },
+  {
+    "section": "public",
+    "name": "category",
+    "title": "Категория",
+    "html": "public/category.html",
+    "phase": "v1"
+  },
+  {
+    "section": "public",
+    "name": "search",
+    "title": "Поиск",
+    "html": "public/search.html",
+    "phase": "v1"
+  },
+  {
+    "section": "public",
+    "name": "page",
+    "title": "Вложенная страница",
+    "html": "public/page.html",
+    "phase": "v1"
+  },
+  {
+    "section": "public",
+    "name": "login",
+    "title": "Вход",
+    "html": "public/login.html",
+    "phase": "v1"
+  },
+  {
+    "section": "public",
+    "name": "register",
+    "title": "Регистрация",
+    "html": "public/register.html",
+    "phase": "v1"
+  },
+  {
+    "section": "public",
+    "name": "account",
+    "title": "Личный кабинет",
+    "html": "public/account.html",
+    "phase": "v1"
+  },
+  {
+    "section": "public",
+    "name": "reset",
+    "title": "Восстановление доступа",
+    "html": "public/reset.html",
+    "phase": "v1"
+  },
+  {
+    "section": "public",
+    "name": "verify",
+    "title": "Ожидание подтверждения",
+    "html": "public/verify.html",
+    "phase": "v1"
+  },
+  {
+    "section": "public",
+    "name": "author-workspace",
+    "title": "Кабинет автора",
+    "html": "public/author-workspace.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "posts",
+    "title": "Записи",
+    "html": "admin/posts.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "dashboard",
+    "title": "Обзор",
+    "html": "admin/dashboard.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "editor",
+    "title": "Редактор записи",
+    "html": "admin/editor.html",
+    "phase": "v1"
+  },
+  {
+    "section": "public",
+    "name": "author-editor",
+    "title": "Автор: редактор статьи",
+    "html": "public/author-editor.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "post-history",
+    "title": "История статьи",
+    "html": "admin/post-history.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "post-history-restore",
+    "title": "Подтверждение восстановления",
+    "html": "admin/post-history-restore.html",
+    "phase": "v1"
+  },
+  {
+    "section": "public",
+    "name": "author-history",
+    "title": "Автор: история статьи",
+    "html": "public/author-history.html",
+    "phase": "v1"
+  },
+  {
+    "section": "public",
+    "name": "author-history-restore",
+    "title": "Автор: подтверждение восстановления",
+    "html": "public/author-history-restore.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "editor-new",
+    "title": "Новая неактивная статья",
+    "html": "admin/editor-new.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "post-history-restore-error",
+    "title": "Восстановление невозможно",
+    "html": "admin/post-history-restore-error.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "post-history-restore-conflict",
+    "title": "Статью изменили, пока вы смотрели",
+    "html": "admin/post-history-restore-conflict.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "editor-unchanged",
+    "title": "Сохранение без изменений",
+    "html": "admin/editor-unchanged.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "editor-leave",
+    "title": "Уход без сохранения",
+    "html": "admin/editor-leave.html",
+    "phase": "v1"
+  },
+  {
+    "section": "public",
+    "name": "author-editor-new",
+    "title": "Автор: новая неактивная статья",
+    "html": "public/author-editor-new.html",
+    "phase": "v1"
+  },
+  {
+    "section": "public",
+    "name": "author-history-restore-error",
+    "title": "Автор: Восстановление невозможно",
+    "html": "public/author-history-restore-error.html",
+    "phase": "v1"
+  },
+  {
+    "section": "public",
+    "name": "author-history-restore-conflict",
+    "title": "Автор: Статью изменили, пока вы смотрели",
+    "html": "public/author-history-restore-conflict.html",
+    "phase": "v1"
+  },
+  {
+    "section": "public",
+    "name": "author-editor-unchanged",
+    "title": "Автор: Сохранение без изменений",
+    "html": "public/author-editor-unchanged.html",
+    "phase": "v1"
+  },
+  {
+    "section": "public",
+    "name": "author-editor-leave",
+    "title": "Автор: Уход без сохранения",
+    "html": "public/author-editor-leave.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "categories",
+    "title": "Категории",
+    "html": "admin/categories.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "tree",
+    "title": "Дерево страниц",
+    "html": "admin/tree.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "tree-move",
+    "title": "Перемещение страницы",
+    "html": "admin/tree-move.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "users",
+    "title": "Пользователи",
+    "html": "admin/users.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "roles",
+    "title": "Роли и права",
+    "html": "admin/roles.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "settings",
+    "title": "Настройки",
+    "html": "admin/settings.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "module-delete",
+    "title": "Глобальный uninstall",
+    "html": "admin/module-delete.html",
+    "phase": "Вторая очередь"
+  },
+  {
+    "section": "admin",
+    "name": "module-delete-data",
+    "title": "Отдельная очистка данных",
+    "html": "admin/module-delete-data.html",
+    "phase": "Вторая очередь"
+  },
+  {
+    "section": "admin",
+    "name": "module-site-remove",
+    "title": "Убрать модуль с сайта",
+    "html": "admin/module-site-remove.html",
+    "phase": "Вторая очередь"
+  },
+  {
+    "section": "admin",
+    "name": "module-operation",
+    "title": "Lifecycle-операция",
+    "html": "admin/module-operation.html",
+    "phase": "Вторая очередь"
+  },
+  {
+    "section": "admin",
+    "name": "module-settings",
+    "title": "Настройки модуля Блог",
+    "html": "admin/module-settings.html",
+    "phase": "Вторая очередь"
+  },
+  {
+    "section": "admin",
+    "name": "module-binding",
+    "title": "Привязка к странице",
+    "html": "admin/module-binding.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "module-conflict",
+    "title": "Конфликт адреса",
+    "html": "admin/module-conflict.html",
+    "phase": "Вторая очередь"
+  },
+  {
+    "section": "admin",
+    "name": "module-address-change",
+    "title": "Смена адреса и редиректы",
+    "html": "admin/module-address-change.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "module-unbind",
+    "title": "Отвязка: исход не выбран",
+    "html": "admin/module-unbind.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "module-unbind-ready",
+    "title": "Отвязка: исход выбран",
+    "html": "admin/module-unbind-ready.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "sites",
+    "title": "Сайты и шаблоны",
+    "html": "admin/sites.html",
+    "phase": "Вторая очередь"
+  },
+  {
+    "section": "admin",
+    "name": "site-add",
+    "title": "Сайт на домене",
+    "html": "admin/site-add.html",
+    "phase": "Вторая очередь"
+  },
+  {
+    "section": "admin",
+    "name": "site-add-path",
+    "title": "Сайт в базовом пути",
+    "html": "admin/site-add-path.html",
+    "phase": "Вторая очередь"
+  },
+  {
+    "section": "admin",
+    "name": "site-templates",
+    "title": "Правила шаблонов",
+    "html": "admin/site-templates.html",
+    "phase": "Вторая очередь"
+  },
+  {
+    "section": "admin",
+    "name": "templates",
+    "title": "Шаблоны",
+    "html": "admin/templates.html",
+    "phase": "Вторая очередь"
+  },
+  {
+    "section": "install",
+    "name": "bootstrap",
+    "title": "Защищённый старт установки",
+    "html": "install/bootstrap.html",
+    "phase": "v1"
+  },
+  {
+    "section": "install",
+    "name": "requirements",
+    "title": "Проверка окружения",
+    "html": "install/requirements.html",
+    "phase": "v1"
+  },
+  {
+    "section": "install",
+    "name": "requirements-error",
+    "title": "Окружение не готово",
+    "html": "install/requirements-error.html",
+    "phase": "v1"
+  },
+  {
+    "section": "install",
+    "name": "database",
+    "title": "Подключение к базе",
+    "html": "install/database.html",
+    "phase": "v1"
+  },
+  {
+    "section": "install",
+    "name": "database-error",
+    "title": "База данных: ошибки проверки",
+    "html": "install/database-error.html",
+    "phase": "v1"
+  },
+  {
+    "section": "install",
+    "name": "site-admin",
+    "title": "Сайт и первый Админ",
+    "html": "install/site-admin.html",
+    "phase": "v1"
+  },
+  {
+    "section": "install",
+    "name": "site-admin-error",
+    "title": "Проверьте данные сайта",
+    "html": "install/site-admin-error.html",
+    "phase": "v1"
+  },
+  {
+    "section": "install",
+    "name": "smtp",
+    "title": "Почта · необязательный шаг",
+    "html": "install/smtp.html",
+    "phase": "v1"
+  },
+  {
+    "section": "install",
+    "name": "smtp-error",
+    "title": "Тест SMTP не выполнен",
+    "html": "install/smtp-error.html",
+    "phase": "v1"
+  },
+  {
+    "section": "install",
+    "name": "cron",
+    "title": "Фоновые задачи",
+    "html": "install/cron.html",
+    "phase": "v1"
+  },
+  {
+    "section": "install",
+    "name": "cron-error",
+    "title": "Cron пока не обнаружен",
+    "html": "install/cron-error.html",
+    "phase": "v1"
+  },
+  {
+    "section": "install",
+    "name": "migrations",
+    "title": "Подготовка базы · 65%",
+    "html": "install/migrations.html",
+    "phase": "v1"
+  },
+  {
+    "section": "install",
+    "name": "migrations-error",
+    "title": "Миграции остановлены",
+    "html": "install/migrations-error.html",
+    "phase": "v1"
+  },
+  {
+    "section": "install",
+    "name": "done",
+    "title": "Каркас установлен",
+    "html": "install/done.html",
+    "phase": "v1"
+  },
+  {
+    "section": "install",
+    "name": "locked",
+    "title": "Установщик закрыт",
+    "html": "install/locked.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "modules",
+    "title": "Модули",
+    "html": "admin/modules.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "modules-available",
+    "title": "Доступные пакеты",
+    "html": "admin/modules-available.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "module-upload",
+    "title": "Загрузить модуль",
+    "html": "admin/module-upload.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "module-upload-reauth",
+    "title": "Подтвердите установку",
+    "html": "admin/module-upload-reauth.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "module-upload-verify",
+    "title": "Проверка ZIP-пакета",
+    "html": "admin/module-upload-verify.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "module-upload-confirm",
+    "title": "Установить «Галерея»?",
+    "html": "admin/module-upload-confirm.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "module-install-progress",
+    "title": "Установка Галереи · 65%",
+    "html": "admin/module-install-progress.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "module-install-done",
+    "title": "Галерея установлена",
+    "html": "admin/module-install-done.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "module-upload-error",
+    "title": "Пакет отклонён",
+    "html": "admin/module-upload-error.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "module-upload-disabled",
+    "title": "Загрузка ZIP выключена на сервере",
+    "html": "admin/module-upload-disabled.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "module-update-confirm",
+    "title": "Обновление Блога · 1.4.2 → 1.5.0",
+    "html": "admin/module-update-confirm.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "module-update-progress",
+    "title": "Обновление · сайт на обслуживании",
+    "html": "admin/module-update-progress.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "module-update-rollback",
+    "title": "Откат к одной сохранённой версии завершён",
+    "html": "admin/module-update-rollback.html",
+    "phase": "v1"
+  },
+  {
+    "section": "public",
+    "name": "maintenance",
+    "title": "Обслуживание",
+    "html": "public/maintenance.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "staff-login",
+    "title": "Вход в админку",
+    "html": "admin/staff-login.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "staff-2fa",
+    "title": "Введите код 2FA",
+    "html": "admin/staff-2fa.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "staff-2fa-setup",
+    "title": "Настройка двухфакторного входа",
+    "html": "admin/staff-2fa-setup.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "staff-auth-error",
+    "title": "Не удалось войти",
+    "html": "admin/staff-auth-error.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "staff-locked",
+    "title": "Вход ограничен",
+    "html": "admin/staff-locked.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "staff-reauth",
+    "title": "Повторное подтверждение",
+    "html": "admin/staff-reauth.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "module-update-incompatible",
+    "title": "Обновление модуля заблокировано",
+    "html": "admin/module-update-incompatible.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "core-update",
+    "title": "Обновление ядра",
+    "html": "admin/core-update.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "core-update-ready",
+    "title": "Ядро готово к обновлению",
+    "html": "admin/core-update-ready.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "core-update-progress",
+    "title": "Обновление ядра · 60%",
+    "html": "admin/core-update-progress.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "core-update-done",
+    "title": "Ядро обновлено",
+    "html": "admin/core-update-done.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "core-update-rollback",
+    "title": "Откат Core к одной сохранённой версии завершён",
+    "html": "admin/core-update-rollback.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "module-update-restore-required",
+    "title": "Модуль Блог · восстановление из копии",
+    "html": "admin/module-update-restore-required.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "module-update-resume",
+    "title": "Модуль Блог · продолжение обновления",
+    "html": "admin/module-update-resume.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "core-update-restore-required",
+    "title": "Ядро · восстановление из копии",
+    "html": "admin/core-update-restore-required.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "core-update-resume",
+    "title": "Ядро · продолжение обновления",
+    "html": "admin/core-update-resume.html",
+    "phase": "v1"
+  },
+  {
+    "section": "admin",
+    "name": "module-downgrade-blocked",
+    "title": "Старый пакет отклонён",
+    "html": "admin/module-downgrade-blocked.html",
+    "phase": "v1"
+  }
+]

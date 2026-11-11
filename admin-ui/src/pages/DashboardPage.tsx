@@ -9,7 +9,7 @@ export function DashboardPage(): React.JSX.Element {
           <p>Статьи, последние изменения и состояние сайта.</p>
         </div>
       </div>
-      <div className="stats">
+      <div className="stats" data-testid="dashboard-panel">
         <div className="stat">
           <span className="label">Активные статьи</span>
           <div className="value">—</div>
