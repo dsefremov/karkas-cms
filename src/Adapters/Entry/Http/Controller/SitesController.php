@@ -58,8 +58,9 @@ final class SitesController extends AbstractController
         if ('' === $siteKey || '' === $label) {
             return new JsonResponse(['error' => 'invalid_request'], 400);
         }
+        $isDefault = isset($body['is_default']) && filter_var($body['is_default'], FILTER_VALIDATE_BOOLEAN);
         try {
-            $site = $this->sites->create($siteKey, $label, $host);
+            $site = $this->sites->create($siteKey, $label, $host, $isDefault);
         } catch (RuntimeException $e) {
             return new JsonResponse(['error' => $e->getMessage()], 409);
         }

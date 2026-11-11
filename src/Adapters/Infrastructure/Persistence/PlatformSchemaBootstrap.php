@@ -16,6 +16,8 @@ final class PlatformSchemaBootstrap
     public function __construct(
         private readonly array $schemaSqlPaths,
         private readonly PlatformStage5SchemaUpgrade $stage5Upgrade,
+        private readonly PlatformStage6SchemaUpgrade $stage6Upgrade,
+        private readonly PlatformStage6PageTreeSchemaUpgrade $stage6PageTreeUpgrade,
     ) {
     }
 
@@ -39,6 +41,8 @@ final class PlatformSchemaBootstrap
             ['now' => new DateTimeImmutable()->format('Y-m-d H:i:s.u')],
         );
         $this->stage5Upgrade->apply($connection);
+        $this->stage6Upgrade->apply($connection);
+        $this->stage6PageTreeUpgrade->apply($connection);
     }
 
     /**

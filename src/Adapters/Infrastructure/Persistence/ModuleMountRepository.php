@@ -35,6 +35,24 @@ final class ModuleMountRepository
     }
 
     /**
+     * @return list<string> normalized paths without leading slash, e.g. blog
+     */
+    public function listPathPrefixesForSite(int $siteId): array
+    {
+        $connection = $this->connections->create();
+        $rows = $connection->fetchFirstColumn(
+            'SELECT path_prefix FROM module_mount WHERE site_id = :site',
+            ['site' => $siteId],
+        );
+        $normalized = [];
+        foreach ($rows as $prefix) {
+            $normalized[] = trim((string) $prefix, '/');
+        }
+
+        return $normalized;
+    }
+
+    /**
      * @return array{path_prefix: string, module_instance_id: string}|null
      */
     public function resolveByPrefix(int $siteId, string $pathPrefix): ?array

@@ -139,7 +139,7 @@ jobs:
       - name: Archive screenshots for docs
         if: success()
         env:
-          KARKAS_SCREENSHOT_STAGE: '5'
+          KARKAS_SCREENSHOT_STAGE: '6'
         run: bash scripts/copy-e2e-screenshots.sh
       - uses: actions/upload-artifact@v4
         if: always()
@@ -148,7 +148,7 @@ jobs:
           path: |
             e2e/playwright-report
             e2e/test-results
-            docs/stage-5/screenshots
+            docs/stage-6/screenshots
       - name: Stop Docker stack
         if: always()
         run: docker compose down -v
