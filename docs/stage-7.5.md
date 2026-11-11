@@ -3,7 +3,7 @@
 Ветка **`grok_bot` → `develop`**, PR **#17**, **не мержить** до ревью Den.
 
 **code-head:** `c8d45a2`  
-**docs-head:** `c8d45a2`
+**docs-head:** `3c4fd69`
 
 ---
 
