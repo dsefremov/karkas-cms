@@ -3,7 +3,7 @@
 Ветка **`grok_bot` → `develop`**, PR **#17**, **не мержить** до ревью Den.
 
 **code-head:** `1a4fd3e`  
-**docs-head:** `pending` (последний docs-коммит = tip)
+**docs-head:** `cfe33e4`
 
 ---
 
