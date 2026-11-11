@@ -80,4 +80,4 @@
 
 ## CI
 
-_Обновляется финальным коммитом (head + run URL)._
+Green on head `d99c300`: https://github.com/dsefremov/karkas-cms/actions/runs/42978495785 — PR [#15](https://github.com/dsefremov/karkas-cms/pull/15) → `develop` (**не мержить**).
