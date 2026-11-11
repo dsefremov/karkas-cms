@@ -59,9 +59,6 @@ final class PlatformSiteRepository
         return $this->mapRow($row);
     }
 
-    /**
-     * @return array{id: int, site_key: string, label: string, is_default: bool, canonical_host: string|null}|null
-     */
     public function updateLabel(int $id, string $label): void
     {
         $connection = $this->connections->create();
@@ -73,6 +70,9 @@ final class PlatformSiteRepository
         );
     }
 
+    /**
+     * @return array{id: int, site_key: string, label: string, is_default: bool, canonical_host: string|null}|null
+     */
     public function findById(int $id): ?array
     {
         $connection = $this->connections->create();

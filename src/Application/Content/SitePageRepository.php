@@ -59,6 +59,9 @@ final class SitePageRepository
         return false === $row ? null : $row;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function findBySlugOnSite(int $siteId, string $slug): ?array
     {
         $row = $this->connection()->fetchAssociative(

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Karkas\Application\Admin;
 
 use Karkas\Adapters\Infrastructure\Persistence\PlatformSiteRepository;
-use Karkas\Application\Blog\BlogPostRepository;
 use Karkas\Application\Blog\BlogPostSaveService;
 use Karkas\Application\Content\SitePageRepository;
 use Karkas\Application\Content\SitePageService;
@@ -22,7 +21,6 @@ final class AdminDemoSeedService
         private readonly SitePageService $pages,
         private readonly SitePageRepository $pageRepo,
         private readonly BlogPostSaveService $blogPosts,
-        private readonly BlogPostRepository $postRepo,
     ) {
     }
 

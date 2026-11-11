@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { AdminIcon, NAV_ICONS } from '../AdminIcons';
-import { findPageNode, parentSelectOptions, siblingPositionOptions } from '../../lib/pageTree';
+import { parentSelectOptions, siblingPositionOptions } from '../../lib/pageTree';
 import type { PageTreeNode } from '../../types/admin';
 import { PAGE_TREE_ROOT } from '../../types/admin';
 
@@ -38,11 +38,6 @@ export function TreeMoveModal({
     () => siblingPositionOptions(pageTree, moveParentId, selectedPageId),
     [pageTree, moveParentId, selectedPageId],
   );
-  const parentNode =
-    moveParentId === PAGE_TREE_ROOT ? null : findPageNode(pageTree, moveParentId);
-  const positionLabel =
-    positionOptions.find((o) => o.sortOrder === moveSortOrder)?.label ?? 'Первой внутри раздела';
-
   if (!open || selectedPageId === null) {
     return null;
   }
@@ -90,12 +85,6 @@ export function TreeMoveModal({
             </select>
           </label>
         </div>
-        <MotionHiddenPreview
-          movePathPreview={movePathPreview}
-          pageTitle={pageTitle}
-          parentTitle={parentNode?.title ?? 'Корень сайта'}
-          positionLabel={positionLabel}
-        />
         <div className="notice">
           <AdminIcon>{NAV_ICONS.shield}</AdminIcon>
           <div>
@@ -122,15 +111,6 @@ export function TreeMoveModal({
       </section>
     </div>
   );
-}
-
-function MotionHiddenPreview(_props: {
-  movePathPreview: { from: string; to: string } | null;
-  pageTitle: string;
-  parentTitle: string;
-  positionLabel: string;
-}): null {
-  return null;
 }
 
 function MotionPreviewConfirm({
