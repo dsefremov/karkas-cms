@@ -18,6 +18,7 @@ final class PlatformSchemaBootstrap
         private readonly PlatformStage5SchemaUpgrade $stage5Upgrade,
         private readonly PlatformStage6SchemaUpgrade $stage6Upgrade,
         private readonly PlatformStage6PageTreeSchemaUpgrade $stage6PageTreeUpgrade,
+        private readonly PlatformStage7SchemaUpgrade $stage7Upgrade,
     ) {
     }
 
@@ -43,6 +44,7 @@ final class PlatformSchemaBootstrap
         $this->stage5Upgrade->apply($connection);
         $this->stage6Upgrade->apply($connection);
         $this->stage6PageTreeUpgrade->apply($connection);
+        $this->stage7Upgrade->apply($connection);
     }
 
     /**

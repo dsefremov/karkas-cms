@@ -7,6 +7,7 @@ namespace Karkas\Adapters\Infrastructure\Persistence;
 use DateTime;
 use Doctrine\DBAL\Types\Types;
 use RuntimeException;
+use Throwable;
 
 final class PlatformSiteRepository
 {
@@ -28,6 +29,13 @@ final class PlatformSiteRepository
             ['key' => 'default', 'label' => $label, 'now' => $now],
             ['now' => Types::DATETIME_MUTABLE],
         );
+        if (!$this->hasDefaultSite()) {
+            $connection->executeStatement(
+                'UPDATE platform_site SET is_default = 1, updated_at = :now WHERE id = 1',
+                ['now' => $now],
+                ['now' => Types::DATETIME_MUTABLE],
+            );
+        }
     }
 
     /**
@@ -155,6 +163,43 @@ final class PlatformSiteRepository
         $count = $connection->fetchOne('SELECT COUNT(*) FROM platform_site WHERE is_default = 1');
 
         return (int) $count > 0;
+    }
+
+    public function transferDefault(int $siteId): void
+    {
+        if (null === $this->findById($siteId)) {
+            throw new RuntimeException('site_not_found');
+        }
+        $connection = $this->connections->create();
+        $connection->beginTransaction();
+        try {
+            $connection->executeStatement('UPDATE platform_site SET is_default = 0 WHERE is_default = 1');
+            $updated = $connection->executeStatement(
+                'UPDATE platform_site SET is_default = 1, updated_at = :now WHERE id = :id',
+                ['id' => $siteId, 'now' => new DateTime()],
+                ['now' => Types::DATETIME_MUTABLE],
+            );
+            if (0 === $updated) {
+                throw new RuntimeException('site_not_found');
+            }
+            $connection->commit();
+        } catch (Throwable $e) {
+            $connection->rollBack();
+            throw $e instanceof RuntimeException ? $e : new RuntimeException($e->getMessage(), 0, $e);
+        }
+    }
+
+    public function delete(int $siteId): void
+    {
+        $site = $this->findById($siteId);
+        if (null === $site) {
+            throw new RuntimeException('site_not_found');
+        }
+        if ($site['is_default']) {
+            throw new RuntimeException('default_site_delete_forbidden');
+        }
+        $connection = $this->connections->create();
+        $connection->delete('platform_site', ['id' => $siteId]);
     }
 
     /**

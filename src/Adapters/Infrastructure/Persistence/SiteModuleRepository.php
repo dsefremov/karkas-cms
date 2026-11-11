@@ -36,6 +36,23 @@ final class SiteModuleRepository
         ];
     }
 
+    /**
+     * @return array<int, bool> site id => blog enabled
+     */
+    public function blogEnabledBySiteIds(): array
+    {
+        $connection = $this->connections->create();
+        $rows = $connection->fetchAllAssociative(
+            "SELECT site_id FROM site_module WHERE package_id = 'karkas/blog' AND state = 'enabled'",
+        );
+        $map = [];
+        foreach ($rows as $row) {
+            $map[(int) $row['site_id']] = true;
+        }
+
+        return $map;
+    }
+
     public function upsert(int $siteId, string $packageId, string $state, string $displayName): void
     {
         $connection = $this->connections->create();

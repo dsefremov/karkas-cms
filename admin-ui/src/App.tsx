@@ -25,6 +25,7 @@ type SiteRow = {
   label: string;
   is_default: boolean;
   canonical_host: string | null;
+  blog_enabled: boolean;
 };
 
 const PAGE_TREE_ROOT = '00000000-0000-0000-0000-000000000001';
@@ -283,6 +284,39 @@ export function App(): React.JSX.Element {
     await loadSites();
   }
 
+  async function makeDefaultSite(siteId: number): Promise<void> {
+    setMessage(null);
+    setError(null);
+    const response = await fetch(`/api/v1/sites/${siteId}/make-default`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Karkas-Reauth': password },
+      body: '{}',
+    });
+    const body = (await response.json()) as { message?: string };
+    if (!response.ok) {
+      setError(body.message ?? 'Не удалось назначить сайт по умолчанию');
+      return;
+    }
+    setMessage('Сайт по умолчанию обновлён.');
+    await refreshAdmin();
+  }
+
+  async function deleteSite(siteId: number, siteKey: string): Promise<void> {
+    setMessage(null);
+    setError(null);
+    const response = await fetch(`/api/v1/sites/${siteId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json', 'X-Karkas-Reauth': password },
+    });
+    const body = (await response.json()) as { message?: string };
+    if (!response.ok) {
+      setError(body.message ?? 'Не удалось удалить сайт');
+      return;
+    }
+    setMessage(`Сайт «${siteKey}» удалён.`);
+    await refreshAdmin();
+  }
+
   async function upgradeCore(): Promise<void> {
     setMessage(null);
     setError(null);
@@ -504,8 +538,8 @@ export function App(): React.JSX.Element {
       </aside>
       <main className="content">
         <header className="topbar">
-          <h1>Админка — этап 6</h1>
-          <p className="subtitle">G6: default site, блог, дерево страниц с вложенными URL и переносом.</p>
+          <h1>Админка — этап 7</h1>
+          <p className="subtitle">G7: FULLTEXT-поиск, legacy /p/→полный путь, управление default site и блогом.</p>
         </header>
 
         {maintenance && (
@@ -631,6 +665,8 @@ export function App(): React.JSX.Element {
                   <th scope="col">Название</th>
                   <th scope="col">Host</th>
                   <th scope="col">Default</th>
+                  <th scope="col">Блог включён</th>
+                  <th scope="col">Действия</th>
                 </tr>
               </thead>
               <tbody>
@@ -641,6 +677,29 @@ export function App(): React.JSX.Element {
                     <td>{site.label}</td>
                     <td>{site.canonical_host ?? '—'}</td>
                     <td data-testid={`site-default-${site.site_key}`}>{site.is_default ? 'да' : '—'}</td>
+                    <td data-testid={`site-blog-${site.site_key}`}>{site.blog_enabled ? 'да' : '—'}</td>
+                    <td className="site-actions">
+                      {!site.is_default && (
+                        <button
+                          type="button"
+                          data-testid={`make-default-${site.site_key}`}
+                          onClick={() => void makeDefaultSite(site.id)}
+                          disabled={!authenticated}
+                        >
+                          Сделать сайтом по умолчанию
+                        </button>
+                      )}
+                      {!site.is_default && (
+                        <button
+                          type="button"
+                          data-testid={`delete-site-${site.site_key}`}
+                          onClick={() => void deleteSite(site.id, site.site_key)}
+                          disabled={!authenticated}
+                        >
+                          Удалить
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
