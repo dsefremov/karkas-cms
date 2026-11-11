@@ -4,6 +4,7 @@ import { bootstrapBlogAdmin } from './helpers/admin-bootstrap';
 test.describe('Karkas Stage 7 blog facade', () => {
   test('bind and unbind blog to page tree entry', async ({ page }) => {
     await bootstrapBlogAdmin(page);
+    await page.goto('/admin/pages');
     await expect(page.getByTestId('page-tree-site')).toBeVisible();
     const siteId = await page.getByTestId('page-tree-site').inputValue();
     expect(Number(siteId)).toBeGreaterThan(0);

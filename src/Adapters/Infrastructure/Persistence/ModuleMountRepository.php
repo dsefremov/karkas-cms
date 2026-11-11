@@ -18,19 +18,36 @@ final class ModuleMountRepository
     {
         $connection = $this->connections->create();
         $now = new DateTime();
-        $connection->executeStatement(
-            'INSERT INTO module_mount (id, site_id, module_instance_id, mount_kind, path_prefix, bound_page_id, updated_at)
-             VALUES (:id, :site, :instance, :kind, :prefix, NULL, :now)
-             ON DUPLICATE KEY UPDATE module_instance_id = VALUES(module_instance_id), updated_at = VALUES(updated_at)',
+        $existingId = $connection->fetchOne(
+            'SELECT id FROM module_mount WHERE site_id = :site AND path_prefix = :prefix',
+            ['site' => $siteId, 'prefix' => $pathPrefix],
+        );
+        if (false !== $existingId && null !== $existingId) {
+            $connection->update(
+                'module_mount',
+                [
+                    'module_instance_id' => $instanceId,
+                    'mount_kind' => 'direct',
+                    'updated_at' => $now,
+                ],
+                ['id' => (string) $existingId],
+                ['updated_at' => Types::DATETIME_MUTABLE],
+            );
+
+            return;
+        }
+        $connection->insert(
+            'module_mount',
             [
                 'id' => $id,
-                'site' => $siteId,
-                'instance' => $instanceId,
-                'kind' => 'direct',
-                'prefix' => $pathPrefix,
-                'now' => $now,
+                'site_id' => $siteId,
+                'module_instance_id' => $instanceId,
+                'mount_kind' => 'direct',
+                'path_prefix' => $pathPrefix,
+                'bound_page_id' => null,
+                'updated_at' => $now,
             ],
-            ['now' => Types::DATETIME_MUTABLE],
+            ['updated_at' => Types::DATETIME_MUTABLE],
         );
     }
 

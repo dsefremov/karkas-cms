@@ -26,7 +26,11 @@ final class SitesController extends AbstractController
     #[Route('/api/v1/sites', name: 'api_sites_list', methods: ['GET'])]
     public function list(): JsonResponse
     {
-        $this->adminAuth->assertAuthenticated();
+        try {
+            $this->adminAuth->assertAuthenticated();
+        } catch (AdminAuthException $e) {
+            return new JsonResponse(['error' => $e->getMessage()], 401);
+        }
         $rows = $this->sites->listAll();
         $blogEnabled = $this->siteModules->blogEnabledBySiteIds();
 
