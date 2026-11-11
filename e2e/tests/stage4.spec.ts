@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { bootstrapBlogAdmin } from './helpers/admin-bootstrap';
+import { createAndPublishPostViaEditor } from './helpers/blog-editor';
 
 test.describe('Karkas Stage 4', () => {
   test('core upgrade button updates Core version', async ({ page }) => {
@@ -18,14 +19,12 @@ test.describe('Karkas Stage 4', () => {
 
   test('blog version history shows at most ten rows', async ({ page }) => {
     await bootstrapBlogAdmin(page);
-    await page.goto('/admin/posts');
-    await page.getByTestId('blog-save-demo').click();
-    await expect(page.getByTestId('admin-message')).toContainText('Статья сохранена', { timeout: 60_000 });
-    const postId = await page.getByTestId('blog-last-post-id').textContent();
-    expect(postId).toContain('Последний пост:');
-    const id = postId!.replace('Последний пост: ', '').trim();
     const slug = `hist-${Date.now()}`;
-
+    const id = await createAndPublishPostViaEditor(page, {
+      title: 'Демо-статья',
+      slug,
+      body: 'Контент stage4.',
+    });
     for (let i = 1; i <= 11; ++i) {
       const save = await page.request.post(`/api/v1/blog/posts/${id}/save`, {
         headers: { 'Content-Type': 'application/json' },
@@ -39,18 +38,20 @@ test.describe('Karkas Stage 4', () => {
       expect(save.ok(), await save.text()).toBeTruthy();
     }
 
-    await page.getByTestId('blog-load-history').click();
-    await expect(page.getByTestId('admin-message')).toContainText('10 записей', { timeout: 60_000 });
-    await expect(page.getByTestId('blog-history-panel').getByRole('row')).toHaveCount(11);
+    await page.goto(`/admin/posts/${id}/history`);
+    await expect(page.getByTestId('post-history-panel')).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByTestId('post-history-panel').getByRole('row')).toHaveCount(11);
   });
 
   test('admin screenshots at 1440 and 390 with axe on desktop', async ({ page }, testInfo) => {
     await bootstrapBlogAdmin(page);
-    await page.goto('/admin/posts');
-    await page.getByTestId('blog-save-demo').click();
-    await expect(page.getByTestId('admin-message')).toContainText('Статья сохранена', { timeout: 60_000 });
-    await page.getByTestId('blog-load-history').click();
-    await expect(page.getByTestId('blog-history-panel')).toBeVisible({ timeout: 30_000 });
+    const postId = await createAndPublishPostViaEditor(page, {
+      title: 'Axe демо',
+      slug: `axe-${Date.now()}`,
+      body: 'Текст',
+    });
+    await page.goto(`/admin/posts/${postId}/history`);
+    await expect(page.getByTestId('post-history-panel')).toBeVisible({ timeout: 30_000 });
 
     const viewport = testInfo.project.name.includes('mobile') ? '390' : '1440';
     await page.screenshot({ path: testInfo.outputPath(`admin-${viewport}.png`), fullPage: true });

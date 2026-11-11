@@ -1,5 +1,81 @@
 /* Admin UI overrides on top of tokens.css — legacy stage panels + a11y */
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.admin-top {
+  justify-content: space-between;
+}
+
+.admin-top-crumb .icon {
+  color: var(--muted);
+}
+
+.admin-top-tools {
+  gap: 16px;
+}
+
+.admin-icon-btn {
+  min-height: 36px;
+  padding: 6px;
+}
+
+.sidebar .nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sidebar .nav-item .icon {
+  flex-shrink: 0;
+}
+
+.sidebar .nav-item .badge {
+  margin-left: auto;
+}
+
+.sidebar .nav-item .count {
+  margin-left: auto;
+}
+
+.sidebar-user {
+  padding: 16px 12px;
+  border-top: 1px solid var(--line);
+  gap: 12px;
+  align-items: center;
+}
+
+.sidebar .brand {
+  display: block;
+  padding: 0 12px;
+  margin-bottom: 32px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.mt24 {
+  margin-top: 24px;
+}
+
+.mb0 {
+  margin-bottom: 0;
+}
+
+.btn.small {
+  font-size: 12px;
+  min-height: 32px;
+  padding: 4px 10px;
+}
+
 button:disabled,
 .btn:disabled {
   opacity: 1;

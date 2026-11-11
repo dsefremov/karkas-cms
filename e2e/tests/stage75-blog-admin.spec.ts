@@ -7,11 +7,11 @@ test.describe('Stage 7.5 blog admin fixes', () => {
     await page.goto('/admin/login');
     await page.getByTestId('admin-password').fill(ADMIN_PASSWORD);
     await page.getByTestId('admin-login').click();
-    await expect(page.getByTestId('admin-authenticated')).toBeVisible();
+    await expect(page.getByTestId('admin-authenticated')).toBeAttached();
 
     await page.evaluate(() => sessionStorage.removeItem('karkas.admin.reauth'));
     await page.goto('/admin/modules');
-    await expect(page.getByTestId('admin-authenticated')).toBeVisible();
+    await expect(page.getByTestId('admin-authenticated')).toBeAttached();
 
     const enable = page.getByTestId('enable-blog');
     if (await enable.isEnabled()) {
@@ -36,10 +36,9 @@ test.describe('Stage 7.5 blog admin fixes', () => {
     await expect(page.getByTestId('install-blog-step-hint')).toBeVisible();
     const hint = await page.getByTestId('install-blog-step-hint').innerText();
     expect(hint.length).toBeGreaterThan(10);
-    const installBtn = page.getByTestId('install-blog');
-    const disabled = await installBtn.isDisabled();
-    if (disabled) {
-      expect(hint).toMatch(/Core|войдите|уже выполнен/i);
+    const installed = await page.getByTestId('module-row-karkas-blog').getByText('Установлен').isVisible().catch(() => false);
+    if (!installed) {
+      expect(hint).toMatch(/Core|войдите|уже выполнен|установ/i);
     }
   });
 });

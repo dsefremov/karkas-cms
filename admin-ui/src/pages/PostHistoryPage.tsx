@@ -57,7 +57,7 @@ export function PostHistoryPage(): React.JSX.Element {
               <th scope="col">Заголовок</th>
               <th scope="col">Activity</th>
               <th scope="col">Сохранено</th>
-              <th scope="col" />
+              <th scope="col">Действия</th>
             </tr>
           </thead>
           <tbody>

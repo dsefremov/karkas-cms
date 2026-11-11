@@ -59,7 +59,7 @@ export async function ensureAdminLogin(page: Page): Promise<void> {
   if (await page.getByTestId('admin-login').isVisible()) {
     await page.getByTestId('admin-login').click();
   }
-  await expect(page.getByTestId('admin-authenticated')).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId('admin-authenticated')).toBeAttached({ timeout: 20_000 });
 }
 
 export async function bootstrapBlogAdmin(page: Page): Promise<void> {

@@ -4,8 +4,8 @@ import { useAdmin } from '../context/AdminContext';
 import { useBlogPosts } from '../hooks/useBlogPosts';
 
 export function PostEditorPage(): React.JSX.Element {
-  const { postId } = useParams<{ postId: string }>();
-  const isNew = postId === 'new';
+  const { postId } = useParams<{ postId?: string }>();
+  const isNew = postId === undefined || postId === 'new';
   const navigate = useNavigate();
   const { authenticated, setMessage, setError } = useAdmin();
   const { loadPost, createPost, savePost } = useBlogPosts();

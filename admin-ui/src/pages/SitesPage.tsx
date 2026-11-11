@@ -19,7 +19,7 @@ export function SitesPage(): React.JSX.Element {
     <>
       <div className="page-head">
         <div>
-          <h1>Сайты</h1>
+          <h1>Сайты и шаблоны</h1>
           <p>Multisite: ключи, хосты и сайт по умолчанию.</p>
         </div>
       </div>

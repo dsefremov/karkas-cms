@@ -49,7 +49,7 @@ export function LoginPage(): React.JSX.Element {
                 </button>
               </div>
             ) : (
-              <p data-testid="admin-authenticated">Сессия активна (повторная аутентификация для установки через заголовок).</p>
+              <p className="small muted">Сессия активна. Перенаправление…</p>
             )}
             {error !== null && authenticated === false && (
               <p className="small muted" role="alert">

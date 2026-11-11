@@ -10,13 +10,13 @@ test.describe('Stage 7.5 blog wizard UI', () => {
     await gotoAdminPath(page, 'modules');
 
     const installer = page.getByTestId('installer-run');
-    if (await installer.isEnabled()) {
+    if (await installer.count()) {
       await installer.click();
       await expect(page.getByTestId('admin-message')).toContainText(/Core|установщик/i, { timeout: 90_000 });
     }
 
     const installBlog = page.getByTestId('install-blog');
-    if (await installBlog.isEnabled()) {
+    if (await installBlog.count()) {
       await installBlog.click();
       await expect(page.getByTestId('admin-message')).toContainText(/blog/i, { timeout: 90_000 });
     }
@@ -24,7 +24,7 @@ test.describe('Stage 7.5 blog wizard UI', () => {
     await expect(page.getByTestId('version-row-karkas-blog')).toBeVisible({ timeout: 30_000 });
 
     const enable = page.getByTestId('enable-blog');
-    if (await enable.isEnabled()) {
+    if (await enable.count()) {
       await enable.click();
       if (await page.getByTestId('reauth-modal-backdrop').isVisible()) {
         await page.getByTestId('reauth-password').fill(ADMIN_PASSWORD);

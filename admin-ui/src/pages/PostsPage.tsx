@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { AdminIcon, NAV_ICONS } from '../components/AdminIcons';
 import { useAdmin } from '../context/AdminContext';
 import { useBlogPosts } from '../hooks/useBlogPosts';
 
@@ -18,101 +19,129 @@ export function PostsPage(): React.JSX.Element {
       <div className="page-head">
         <div>
           <h1>Записи</h1>
-          <p>Список статей блога на сайте по умолчанию.</p>
+          <p>Активность статьи определяет её видимость на сайте.</p>
         </div>
-        <Link className="btn primary" to="/posts/new" data-testid="posts-new-link">
-          Новая запись
-        </Link>
+        <div className="row gap8">
+          <Link className="btn primary" to="/posts/new" data-testid="posts-new-link">
+            <AdminIcon>{NAV_ICONS.plus}</AdminIcon>
+            Новая статья
+          </Link>
+        </div>
       </div>
+
       {error !== null && (
         <div className="notice warning" data-testid="posts-list-error">
           {error}
         </div>
       )}
-      <section className="card table-card article-list" data-testid="posts-list-panel">
+
+      <PostsToolbar />
+
+      <section className="article-list" data-testid="posts-list-panel">
         {loading ? (
-          <p className="small muted">Загрузка…</p>
+          <div className="table-card">
+            <p className="small muted" style={{ padding: 24 }}>
+              Загрузка…
+            </p>
+          </div>
         ) : posts.length === 0 ? (
-          <div className="empty-state">
-            <p>Нет записей. Создайте первую или включите blog на сайте.</p>
+          <div className="table-card">
+            <div className="empty-state">
+              <h2 className="mb16">Пока нет записей</h2>
+              <p className="small muted mb24">Создайте статью или включите blog на сайте в разделе «Модули».</p>
+              <Link className="btn primary" to="/posts/new">
+                Новая статья
+              </Link>
+            </div>
           </div>
         ) : (
-          <table className="data">
-            <thead>
-              <tr>
-                <th scope="col">Заголовок</th>
-                <th scope="col">Slug</th>
-                <th scope="col">Activity</th>
-                <th scope="col">Обновлено</th>
-              </tr>
-            </thead>
-            <tbody>
-              {posts.map((post) => (
-                <tr key={post.id} data-testid={`post-row-${post.slug}`}>
-                  <td>
-                    <Link className="title" to={`/posts/${post.id}`}>
-                      {post.title}
-                    </Link>
-                  </td>
-                  <td>{post.slug}</td>
-                  <td>
-                    <span className={`badge ${post.activity === 'active' ? 'green' : ''}`}>{post.activity}</span>
-                  </td>
-                  <td className="date-cell">{post.updated_at}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <PostsTable posts={posts} />
         )}
       </section>
-      <section className="card" data-testid="site-blog-panel">
-        <h2>Быстрые действия (e2e)</h2>
-        <DemoPostActions />
-      </section>
+
+      <div className="notice mt24">
+        <AdminIcon>{NAV_ICONS.shield}</AdminIcon>
+        <div>Редактирование и история версий — в карточке записи и разделе «История».</div>
+      </div>
     </>
   );
 }
 
-function DemoPostActions(): React.JSX.Element {
-  const { authenticated, lastPostId, blogHistory, saveDemoPost, loadBlogHistory } = useAdmin();
-
+function PostsToolbar(): React.JSX.Element {
   return (
-    <>
-      <div className="actions actions-stack">
-        <button type="button" className="btn" data-testid="blog-save-demo" onClick={() => void saveDemoPost()} disabled={!authenticated}>
-          Сохранить демо-статью
-        </button>
-        <button type="button" className="btn" data-testid="blog-load-history" onClick={() => void loadBlogHistory()} disabled={!authenticated}>
-          Показать историю версий
-        </button>
+    <div className="toolbar mb16">
+      <input className="input" aria-label="Поиск статей" placeholder="Поиск по заголовку…" disabled />
+      <button type="button" className="btn" disabled>
+        Все категории
+      </button>
+      <button type="button" className="btn" disabled>
+        Все авторы
+      </button>
+    </div>
+  );
+}
+
+type PostRow = {
+  id: string;
+  title: string;
+  slug: string;
+  activity: string;
+  updated_at: string;
+};
+
+function PostsTable({ posts }: { posts: PostRow[] }): React.JSX.Element {
+  return (
+    <div className="table-card">
+      <table className="data">
+        <thead>
+          <tr>
+            <th scope="col" className="sr-only">
+              Выбор
+            </th>
+            <th scope="col">Заголовок</th>
+            <th scope="col">Активность</th>
+            <th scope="col">Категории</th>
+            <th scope="col">Автор</th>
+            <th scope="col">Изменена</th>
+            <th scope="col">Действия</th>
+          </tr>
+        </thead>
+        <tbody>
+          {posts.map((post) => (
+            <tr key={post.id} data-testid={`post-row-${post.slug}`}>
+              <td>
+                <span className="box" />
+              </td>
+              <td>
+                <Link className="title" to={`/posts/${post.id}`}>
+                  {post.title}
+                </Link>
+                <span className="sub">/{post.slug}</span>
+              </td>
+              <td>
+                <span className={`badge ${post.activity === 'active' ? 'green' : ''}`}>
+                  {post.activity === 'active' ? 'Активна' : 'Неактивна'}
+                </span>
+              </td>
+              <td className="muted">—</td>
+              <td className="muted">—</td>
+              <td className="date-cell">
+                <strong>{post.updated_at}</strong>
+              </td>
+              <td>
+                <Link className="btn quiet small" to={`/posts/${post.id}/history`} data-testid={`post-history-link-${post.slug}`}>
+                  История
+                </Link>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div className="table-footer">
+        <span>
+          {posts.length} {posts.length === 1 ? 'запись' : 'записей'}
+        </span>
       </div>
-      {lastPostId !== null && (
-        <p className="muted" data-testid="blog-last-post-id">
-          Последний пост: {lastPostId}
-        </p>
-      )}
-      {blogHistory.length > 0 && (
-        <div className="table-scroll" data-testid="blog-history-panel">
-          <table className="versions-table">
-            <thead>
-              <tr>
-                <th scope="col">#</th>
-                <th scope="col">Заголовок</th>
-                <th scope="col">Activity</th>
-              </tr>
-            </thead>
-            <tbody>
-              {blogHistory.map((row) => (
-                <tr key={row.version_seq} data-testid={`blog-version-row-${row.version_seq}`}>
-                  <td>{row.version_seq}</td>
-                  <td>{row.title}</td>
-                  <td>{row.activity}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </>
+    </div>
   );
 }
