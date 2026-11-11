@@ -17,6 +17,7 @@ final class BlogPostSaveService
         private readonly BlogPostRepository $posts,
         private readonly ModuleInstanceRepository $instances,
         private readonly ModuleMountRepository $mounts,
+        private readonly PlatformSiteRepository $sites,
     ) {
     }
 
@@ -33,7 +34,7 @@ final class BlogPostSaveService
         $etag = $this->buildEtag($payload);
         $this->posts->insert(
             $id,
-            PlatformSiteRepository::DEFAULT_SITE_ID,
+            (int) $instance['site_id'],
             $instance['id'],
             $payload['slug'],
             $payload['title'],
@@ -110,11 +111,16 @@ final class BlogPostSaveService
      */
     private function requireBlogInstance(): array
     {
-        $instance = $this->instances->findBySiteModule(PlatformSiteRepository::DEFAULT_SITE_ID, 'karkas/blog');
+        $default = $this->sites->getDefault();
+        if (null === $default) {
+            throw new RuntimeException('Default site is not configured.');
+        }
+        $siteId = $default['id'];
+        $instance = $this->instances->findBySiteModule($siteId, 'karkas/blog');
         if (null === $instance) {
             throw new RuntimeException('Blog module is not enabled on the default site.');
         }
-        $mount = $this->mounts->resolveByPrefix(PlatformSiteRepository::DEFAULT_SITE_ID, '/blog');
+        $mount = $this->mounts->resolveByPrefix($siteId, '/blog');
         if (null === $mount) {
             throw new RuntimeException('Blog mount is not configured.');
         }
