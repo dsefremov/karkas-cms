@@ -1,18 +1,42 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AdminIcon, NAV_ICONS } from '../components/AdminIcons';
 import { useAdmin } from '../context/AdminContext';
+import { AdminFooter } from '../components/AdminFooter';
 import { useBlogPosts } from '../hooks/useBlogPosts';
+
+type ActivityFilter = 'all' | 'active' | 'inactive';
 
 export function PostsPage(): React.JSX.Element {
   const { authenticated } = useAdmin();
   const { posts, loading, error, refresh } = useBlogPosts();
+  const [query, setQuery] = useState('');
+  const [filter, setFilter] = useState<ActivityFilter>('all');
 
   useEffect(() => {
     if (authenticated) {
       void refresh();
     }
   }, [authenticated, refresh]);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return posts.filter((post) => {
+      if (filter === 'active' && post.activity !== 'active') {
+        return false;
+      }
+      if (filter === 'inactive' && post.activity === 'active') {
+        return false;
+      }
+      if (q === '') {
+        return true;
+      }
+      return post.title.toLowerCase().includes(q) || post.slug.toLowerCase().includes(q);
+    });
+  }, [posts, query, filter]);
+
+  const activeCount = posts.filter((p) => p.activity === 'active').length;
+  const inactiveCount = posts.length - activeCount;
 
   return (
     <>
@@ -35,7 +59,34 @@ export function PostsPage(): React.JSX.Element {
         </div>
       )}
 
-      <PostsToolbar />
+      <div className="tabs">
+        <button type="button" className={`tab ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>
+          Все статьи <span className="badge">{posts.length}</span>
+        </button>
+        <button
+          type="button"
+          className={`tab ${filter === 'active' ? 'active' : ''}`}
+          onClick={() => setFilter('active')}
+        >
+          Активна {activeCount}
+        </button>
+        <button
+          type="button"
+          className={`tab ${filter === 'inactive' ? 'active' : ''}`}
+          onClick={() => setFilter('inactive')}
+        >
+          Неактивна {inactiveCount}
+        </button>
+      </div>
+      <div className="toolbar">
+        <input
+          className="input"
+          aria-label="Поиск статей"
+          placeholder="Поиск по заголовку…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+      </div>
 
       <section className="article-list" data-testid="posts-list-panel">
         {loading ? (
@@ -44,7 +95,7 @@ export function PostsPage(): React.JSX.Element {
               Загрузка…
             </p>
           </div>
-        ) : posts.length === 0 ? (
+        ) : filtered.length === 0 ? (
           <div className="table-card">
             <div className="empty-state">
               <h2 className="mb16">Пока нет записей</h2>
@@ -55,7 +106,7 @@ export function PostsPage(): React.JSX.Element {
             </div>
           </div>
         ) : (
-          <PostsTable posts={posts} />
+          <PostsTable posts={filtered} total={posts.length} />
         )}
       </section>
 
@@ -63,21 +114,8 @@ export function PostsPage(): React.JSX.Element {
         <AdminIcon>{NAV_ICONS.shield}</AdminIcon>
         <div>Редактирование и история версий — в карточке записи и разделе «История».</div>
       </div>
+      <AdminFooter />
     </>
-  );
-}
-
-function PostsToolbar(): React.JSX.Element {
-  return (
-    <div className="toolbar mb16">
-      <input className="input" aria-label="Поиск статей" placeholder="Поиск по заголовку…" disabled />
-      <button type="button" className="btn" disabled>
-        Все категории
-      </button>
-      <button type="button" className="btn" disabled>
-        Все авторы
-      </button>
-    </div>
   );
 }
 
@@ -89,7 +127,7 @@ type PostRow = {
   updated_at: string;
 };
 
-function PostsTable({ posts }: { posts: PostRow[] }): React.JSX.Element {
+function PostsTable({ posts, total }: { posts: PostRow[]; total: number }): React.JSX.Element {
   return (
     <div className="table-card">
       <table className="data">
@@ -139,7 +177,7 @@ function PostsTable({ posts }: { posts: PostRow[] }): React.JSX.Element {
       </table>
       <div className="table-footer">
         <span>
-          {posts.length} {posts.length === 1 ? 'запись' : 'записей'}
+          {posts.length} из {total} · даты из API
         </span>
       </div>
     </div>

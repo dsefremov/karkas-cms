@@ -9,23 +9,31 @@ test.describe('Stage 7.5 blog admin fixes', () => {
     await page.getByTestId('admin-login').click();
     await expect(page.getByTestId('admin-authenticated')).toBeAttached();
 
+    const siteKey = `reauth-${Date.now()}`;
+    const create = await page.request.post('/api/v1/sites', {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Karkas-Reauth': ADMIN_PASSWORD,
+      },
+      data: {
+        site_key: siteKey,
+        label: 'Reauth E2E',
+        canonical_host: `${siteKey}.example.test`,
+      },
+    });
+    expect(create.ok(), await create.text()).toBeTruthy();
+
     await page.evaluate(() => sessionStorage.removeItem('karkas.admin.reauth'));
-    await page.goto('/admin/modules');
+    await page.reload();
     await expect(page.getByTestId('admin-authenticated')).toBeAttached();
 
-    const enable = page.getByTestId('enable-blog');
-    if (await enable.isEnabled()) {
-      await enable.click();
-      await expect(page.getByTestId('reauth-modal-backdrop')).toBeVisible();
-      await page.getByTestId('reauth-password').fill(ADMIN_PASSWORD);
-      await page.getByTestId('reauth-confirm').click();
-      await expect(page.getByTestId('reauth-modal-backdrop')).toBeHidden({ timeout: 15_000 });
-    } else {
-      await page.getByTestId('install-blog').click({ trial: true }).catch(() => undefined);
-      await page.getByTestId('installer-run').click({ trial: true }).catch(() => undefined);
-      await page.getByTestId('scan-incoming').click();
-      await expect(page.getByTestId('reauth-modal-backdrop')).toBeVisible();
-    }
+    await page.goto('/admin/modules');
+    await page.getByTestId('enable-blog-site').selectOption({ label: `${siteKey} (Reauth E2E)` });
+    await page.getByTestId('enable-blog').click();
+    await expect(page.getByTestId('reauth-modal-backdrop')).toBeVisible();
+    await page.getByTestId('reauth-password').fill(ADMIN_PASSWORD);
+    await page.getByTestId('reauth-confirm').click();
+    await expect(page.getByTestId('reauth-modal-backdrop')).toBeHidden({ timeout: 15_000 });
   });
 
   test('wizard hints explain blocked install blog step', async ({ page }) => {

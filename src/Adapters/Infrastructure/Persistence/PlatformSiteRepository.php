@@ -62,6 +62,17 @@ final class PlatformSiteRepository
     /**
      * @return array{id: int, site_key: string, label: string, is_default: bool, canonical_host: string|null}|null
      */
+    public function updateLabel(int $id, string $label): void
+    {
+        $connection = $this->connections->create();
+        $connection->update(
+            'platform_site',
+            ['label' => $label, 'updated_at' => new DateTime()],
+            ['id' => $id],
+            ['updated_at' => Types::DATETIME_MUTABLE],
+        );
+    }
+
     public function findById(int $id): ?array
     {
         $connection = $this->connections->create();

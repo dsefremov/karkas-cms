@@ -215,8 +215,11 @@ export function ModulesPage(): React.JSX.Element {
           Публичный вход <code>/blog</code> и привязка к узлу дерева — на экране «Страницы» (preview move / bind).
         </p>
         <div className="row gap8 wrap">
-          <Link className="btn" to="/pages">
-            Дерево и привязка
+          <Link className="btn" to="/modules/blog/binding">
+            Привязка к странице (макет v16)
+          </Link>
+          <Link className="btn quiet" to="/pages">
+            Дерево страниц
           </Link>
         </div>
       </section>
