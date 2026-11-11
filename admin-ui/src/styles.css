@@ -265,6 +265,16 @@ button:disabled {
   padding: 0;
 }
 
+.site-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.site-actions button {
+  font-size: 0.85rem;
+}
+
 .move-impact {
   font-size: 0.95rem;
   color: var(--accent);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Karkas\Adapters\Entry\Http\Controller;
 
+use Karkas\Application\Blog\BlogFacadeService;
 use Karkas\Application\Content\SitePageRepository;
 use Karkas\Application\Site\SiteRequestResolver;
 use Karkas\Domain\Content\SitePageTree;
@@ -18,6 +19,7 @@ final class PublicPageController extends AbstractController
     public function __construct(
         private readonly SitePageRepository $pages,
         private readonly SiteRequestResolver $siteResolver,
+        private readonly BlogFacadeService $blogFacade,
     ) {
     }
 
@@ -47,10 +49,15 @@ final class PublicPageController extends AbstractController
         if (null === $page) {
             return new Response('Page not found', Response::HTTP_NOT_FOUND);
         }
+        $pageId = (string) $page['id'];
+        if ($this->blogFacade->isBoundFacadePage($siteId, $pageId)) {
+            return $this->redirect(BlogFacadeService::BLOG_PUBLIC_PREFIX, Response::HTTP_MOVED_PERMANENTLY);
+        }
 
         return $this->render('page/show.html.twig', [
             'site_label' => $site['label'],
             'page' => $page,
+            'canonical_url' => '/'.$normalized,
         ]);
     }
 }

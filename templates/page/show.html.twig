@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <title>{{ page.title }} — {{ site_label }}</title>
+    <link rel="canonical" href="{{ canonical_url|default('/' ~ page.full_path) }}">
 </head>
 <body>
     <header>

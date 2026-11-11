@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <title>Поиск{% if payload.query %} — {{ payload.query }}{% endif %} · {{ site_label }}</title>
+    <link rel="canonical" href="/search{% if payload.query %}?q={{ payload.query|url_encode }}&page={{ payload.page }}{% endif %}">
+</head>
+<body data-testid="search-page">
+    <header>
+        <p><a href="/">{{ site_label }}</a></p>
+        <h1>Поиск по сайту</h1>
+    </header>
+    <main data-testid="search-main">
+    <form method="get" action="/search" data-testid="search-form">
+        <label for="search-q">Запрос</label>
+        <input id="search-q" name="q" type="search" value="{{ payload.query }}" data-testid="search-input" />
+        <button type="submit" data-testid="search-submit">Найти</button>
+    </form>
+    {% if payload.status == 'empty_query' %}
+        <p class="notice" data-testid="search-notice">Введите запрос не короче {{ constant('Karkas\\Application\\Search\\SiteSearchService::MIN_TOKEN_LENGTH') }} символов.</p>
+    {% elseif payload.status == 'query_too_short' %}
+        <p class="notice" data-testid="search-notice">Слишком короткий запрос: минимум {{ constant('Karkas\\Application\\Search\\SiteSearchService::MIN_TOKEN_LENGTH') }} символа.</p>
+    {% else %}
+        <p data-testid="search-summary">Найдено: {{ payload.total }}</p>
+        <ul data-testid="search-results">
+            {% for item in payload.items %}
+                <li data-testid="search-hit">
+                    <a href="{{ item.url }}">{{ item.title }}</a>
+                    <span class="kind">{{ item.kind == 'blog' ? 'Блог' : 'Страница' }}</span>
+                    <p class="snippet">{{ item.snippet }}</p>
+                </li>
+            {% else %}
+                <li data-testid="search-empty">Ничего не найдено.</li>
+            {% endfor %}
+        </ul>
+        {% if total_pages > 1 %}
+            <nav class="pagination" data-testid="search-pagination">
+                {% if payload.page > 1 %}
+                    <a href="/search?q={{ payload.query|url_encode }}&page={{ payload.page - 1 }}">← Назад</a>
+                {% endif %}
+                <span>Страница {{ payload.page }} из {{ total_pages }}</span>
+                {% if payload.page < total_pages %}
+                    <a href="/search?q={{ payload.query|url_encode }}&page={{ payload.page + 1 }}">Вперёд →</a>
+                {% endif %}
+            </nav>
+        {% endif %}
+    {% endif %}
+    </main>
+</body>
+</html>
