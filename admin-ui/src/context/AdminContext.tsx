@@ -31,11 +31,14 @@ export type AdminContextValue = {
   password: string;
   setPassword: (value: string) => void;
   authenticated: boolean;
+  sessionReady: boolean;
   versions: VersionsPayload | null;
   zipEnabled: boolean;
   maintenance: boolean;
   message: string | null;
   error: string | null;
+  setMessage: (value: string | null) => void;
+  setError: (value: string | null) => void;
   coreUpgradeConfirm: boolean;
   setCoreUpgradeConfirm: (value: boolean) => void;
   lastPostId: string | null;
@@ -116,6 +119,7 @@ export function useAdmin(): AdminContextValue {
 export function AdminProvider({ children }: { children: ReactNode }): React.JSX.Element {
   const [password, setPassword] = useState('');
   const [authenticated, setAuthenticated] = useState(false);
+  const [sessionReady, setSessionReady] = useState(false);
   const [versions, setVersions] = useState<VersionsPayload | null>(null);
   const [zipEnabled, setZipEnabled] = useState(false);
   const [maintenance, setMaintenance] = useState(false);
@@ -183,6 +187,7 @@ export function AdminProvider({ children }: { children: ReactNode }): React.JSX.
         setPageTreeSiteId(defaultSite.id);
       }
     }
+    setSessionReady(true);
   }, [loadVersions]);
 
   useEffect(() => {
@@ -767,11 +772,14 @@ export function AdminProvider({ children }: { children: ReactNode }): React.JSX.
       password,
       setPassword,
       authenticated,
+      sessionReady,
       versions,
       zipEnabled,
       maintenance,
       message,
       error,
+      setMessage,
+      setError,
       coreUpgradeConfirm,
       setCoreUpgradeConfirm,
       lastPostId,
@@ -841,6 +849,7 @@ export function AdminProvider({ children }: { children: ReactNode }): React.JSX.
     [
       password,
       authenticated,
+      sessionReady,
       versions,
       zipEnabled,
       maintenance,

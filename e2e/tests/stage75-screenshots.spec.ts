@@ -44,7 +44,7 @@ test.describe('Stage 7.5 screenshot capture for docs', () => {
 
 test.describe('Stage 7.5 mockup baselines present', () => {
   test('mock png files exist for key screens', () => {
-    const required = ['mock-1440-dashboard.png', 'mock-1440-modules.png', 'mock-1440-staff-login.png'];
+    const required = ['mock-1440-dashboard.png', 'mock-1440-modules.png', 'mock-1440-login.png'];
     for (const name of required) {
       expect(fs.existsSync(path.join(SHOTS, name))).toBeTruthy();
     }

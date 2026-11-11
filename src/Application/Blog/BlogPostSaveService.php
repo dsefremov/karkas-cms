@@ -107,6 +107,69 @@ final class BlogPostSaveService
     }
 
     /**
+     * @return list<array{id: string, slug: string, title: string, activity: string, updated_at: string}>
+     */
+    public function listPostsForAdmin(): array
+    {
+        $instance = $this->requireBlogInstance();
+        $rows = $this->posts->listForAdmin((int) $instance['site_id'], (string) $instance['id']);
+        /** @var list<array{id: string, slug: string, title: string, activity: string, updated_at: string}> $normalized */
+        $normalized = [];
+        foreach ($rows as $row) {
+            $normalized[] = [
+                'id' => (string) $row['id'],
+                'slug' => (string) $row['slug'],
+                'title' => (string) $row['title'],
+                'activity' => (string) $row['activity'],
+                'updated_at' => (string) $row['updated_at'],
+            ];
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function getPostForAdmin(string $postId): array
+    {
+        $row = $this->posts->find($postId);
+        if (null === $row) {
+            throw new RuntimeException('Post not found.');
+        }
+
+        return [
+            'id' => (string) $row['id'],
+            'slug' => (string) $row['slug'],
+            'title' => (string) $row['title'],
+            'body_text' => (string) $row['body_text'],
+            'activity' => (string) $row['activity'],
+            'content_etag' => (string) $row['content_etag'],
+            'updated_at' => (string) $row['updated_at'],
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function restoreVersion(string $postId, int $versionSeq): array
+    {
+        $version = $this->posts->findVersion($postId, $versionSeq);
+        if (null === $version) {
+            throw new RuntimeException('Version not found.');
+        }
+        /** @var array{title?: string, slug?: string, body_text?: string, activity?: string} $snapshot */
+        $snapshot = json_decode($version['snapshot_json'], true, 512, JSON_THROW_ON_ERROR);
+
+        return $this->save($postId, [
+            'title' => (string) ($snapshot['title'] ?? ''),
+            'slug' => (string) ($snapshot['slug'] ?? ''),
+            'body_text' => (string) ($snapshot['body_text'] ?? ''),
+            'activity' => (string) ($snapshot['activity'] ?? 'inactive'),
+        ]);
+    }
+
+    /**
      * @return array{id: string, site_id: int, package_id: string}
      */
     private function requireBlogInstance(): array

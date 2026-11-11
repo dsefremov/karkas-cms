@@ -1,17 +1,21 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { AdminBanners } from '../components/AdminBanners';
 import { useAdmin } from '../context/AdminContext';
 
 export function LoginPage(): React.JSX.Element {
-  const { password, setPassword, authenticated, login, error } = useAdmin();
+  const { password, setPassword, authenticated, sessionReady, login, error } = useAdmin();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
-    if (authenticated) {
-      navigate('/dashboard', { replace: true });
+    if (!sessionReady || !authenticated) {
+      return;
     }
-  }, [authenticated, navigate]);
+    const from =
+      (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ?? '/dashboard';
+    navigate(from, { replace: true });
+  }, [sessionReady, authenticated, location.state, navigate]);
 
   return (
     <div className="admin" data-testid="admin-shell" role="document">

@@ -9,8 +9,11 @@ export function CategoriesPage(): React.JSX.Element {
       </div>
       <section className="card" data-testid="categories-panel">
         <div className="empty-state">
-          <h2 className="mb16">Категории появятся в следующих этапах</h2>
-          <p className="small muted">Макет: таблица категорий и форма создания.</p>
+          <h2 className="mb16">API категорий в платформе отсутствует</h2>
+          <p className="small muted">
+            Макет v16 предусматривает таблицу категорий, но на этапах 3–7 нет <code>/api/v1/.../categories</code>. Раздел
+            появится после появления API (этап 8+), не заглушка с фиктивными данными.
+          </p>
         </div>
       </section>
     </>

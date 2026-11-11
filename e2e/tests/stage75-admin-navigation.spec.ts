@@ -9,6 +9,7 @@ const DIRECT_PATHS = [
 
 test.describe('Stage 7.5 admin navigation', () => {
   test('login screen direct load and reload', async ({ page }) => {
+    await page.context().clearCookies();
     await page.goto('/admin/login');
     await expect(page.getByTestId('admin-password')).toBeVisible();
     await page.reload();

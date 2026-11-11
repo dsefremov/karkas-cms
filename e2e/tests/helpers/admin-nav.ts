@@ -3,7 +3,7 @@ import { ensureAdminLogin } from './admin-bootstrap';
 
 export const ADMIN_ROUTES = [
   { testId: 'nav-dashboard', path: 'dashboard', marker: 'dashboard-panel' },
-  { testId: 'nav-posts', path: 'posts', marker: 'blog-save-demo' },
+  { testId: 'nav-posts', path: 'posts', marker: 'posts-list-panel' },
   { testId: 'nav-categories', path: 'categories', marker: 'categories-panel' },
   { testId: 'nav-pages', path: 'pages', marker: 'page-tree-panel' },
   { testId: 'nav-users', path: 'users', marker: 'stage8-placeholder' },

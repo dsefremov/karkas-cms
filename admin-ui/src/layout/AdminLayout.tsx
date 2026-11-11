@@ -9,7 +9,7 @@ function navClassName({ isActive }: { isActive: boolean }): string {
 }
 
 export function AdminLayout(): React.JSX.Element {
-  const { authenticated } = useAdmin();
+  const { authenticated, sessionReady } = useAdmin();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -17,12 +17,12 @@ export function AdminLayout(): React.JSX.Element {
   const pageTitle = ROUTE_TITLES[segment] ?? 'Админка';
 
   useEffect(() => {
-    if (!authenticated && location.pathname !== '/login') {
-      navigate('/login', { replace: true });
+    if (sessionReady && !authenticated && location.pathname !== '/login') {
+      navigate('/login', { replace: true, state: { from: location } });
     }
-  }, [authenticated, location.pathname, navigate]);
+  }, [sessionReady, authenticated, location, navigate]);
 
-  if (!authenticated) {
+  if (!sessionReady || !authenticated) {
     return <></>;
   }
 

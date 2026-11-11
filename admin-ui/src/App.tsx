@@ -7,6 +7,8 @@ import { LoginPage } from './pages/LoginPage';
 import { ModulesPage } from './pages/ModulesPage';
 import { OperationsPage } from './pages/OperationsPage';
 import { PagesPage } from './pages/PagesPage';
+import { PostEditorPage } from './pages/PostEditorPage';
+import { PostHistoryPage } from './pages/PostHistoryPage';
 import { PostsPage } from './pages/PostsPage';
 import { RolesPage } from './pages/RolesPage';
 import { SettingsPage } from './pages/SettingsPage';
@@ -21,6 +23,9 @@ export function App(): React.JSX.Element {
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="posts" element={<PostsPage />} />
+        <Route path="posts/new" element={<PostEditorPage />} />
+        <Route path="posts/:postId/history" element={<PostHistoryPage />} />
+        <Route path="posts/:postId" element={<PostEditorPage />} />
         <Route path="categories" element={<CategoriesPage />} />
         <Route path="pages" element={<PagesPage />} />
         <Route path="users" element={<UsersPage />} />
