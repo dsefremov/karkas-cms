@@ -3,7 +3,7 @@
 Ветка **`grok_bot` → `develop`**, PR **#17**, **не мержить** до ревью Den.
 
 **code-head:** `be8281a`  
-**docs-head:** `6da7ea4`
+**docs-head:** `2e582ec`
 
 ---
 
@@ -210,4 +210,4 @@
 
 ## CI
 
-После push смотреть последний run на `grok_bot` в PR #17. Ранее: php-static, frontend, phpunit×4, release-artifact — **success**; **playwright** — **failure** на `playwright install --with-deps` (`azure.archive.ubuntu.com`, apt/DNS), не на тестах. Перезапуск failed jobs — Den.
+PR #17, SHA `3b8b6f4`: run [43057115534](https://github.com/dsefremov/karkas-cms/actions/runs/43057115534) — php-static, frontend, phpunit-matrix×4, release-artifact **success**; **playwright — failure** на шаге `npx playwright install chromium --with-deps` (`Temporary failure resolving 'azure.archive.ubuntu.com'`, apt/DNS), тесты не запускались. Перезапуск failed job — Den.
