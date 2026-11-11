@@ -21,6 +21,40 @@ final class BlogPostController extends AbstractController
     ) {
     }
 
+    #[Route('/api/v1/blog/posts', name: 'api_blog_posts_list', methods: ['GET'])]
+    public function listPosts(): JsonResponse
+    {
+        try {
+            $this->adminAuth->assertAuthenticated();
+        } catch (AdminAuthException $e) {
+            return new JsonResponse(['error' => $e->getMessage()], 401);
+        }
+        try {
+            $posts = $this->posts->listPostsForAdmin();
+        } catch (Throwable $e) {
+            return new JsonResponse(['error' => $e->getMessage()], 409);
+        }
+
+        return new JsonResponse(['posts' => $posts]);
+    }
+
+    #[Route('/api/v1/blog/posts/{postId}', name: 'api_blog_posts_get', methods: ['GET'], requirements: ['postId' => '[a-f0-9]+'])]
+    public function getPost(string $postId): JsonResponse
+    {
+        try {
+            $this->adminAuth->assertAuthenticated();
+        } catch (AdminAuthException $e) {
+            return new JsonResponse(['error' => $e->getMessage()], 401);
+        }
+        try {
+            $post = $this->posts->getPostForAdmin($postId);
+        } catch (Throwable $e) {
+            return new JsonResponse(['error' => $e->getMessage()], 404);
+        }
+
+        return new JsonResponse(['post' => $post]);
+    }
+
     #[Route('/api/v1/blog/posts', name: 'api_blog_posts_create', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
@@ -92,5 +126,22 @@ final class BlogPostController extends AbstractController
             'max_versions' => BlogPostSaveService::MAX_VERSION_HISTORY,
             'versions' => $versions,
         ]);
+    }
+
+    #[Route('/api/v1/blog/posts/{postId}/versions/{versionSeq}/restore', name: 'api_blog_posts_restore_version', methods: ['POST'], requirements: ['postId' => '[a-f0-9]+', 'versionSeq' => '\d+'])]
+    public function restoreVersion(string $postId, int $versionSeq): JsonResponse
+    {
+        try {
+            $this->adminAuth->assertAuthenticated();
+        } catch (AdminAuthException $e) {
+            return new JsonResponse(['error' => $e->getMessage()], 401);
+        }
+        try {
+            $result = $this->posts->restoreVersion($postId, $versionSeq);
+        } catch (Throwable $e) {
+            return new JsonResponse(['error' => $e->getMessage()], 409);
+        }
+
+        return new JsonResponse($result);
     }
 }

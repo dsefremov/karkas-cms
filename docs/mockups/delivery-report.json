@@ -1,0 +1,52 @@
+{
+  "round": "v15",
+  "changed_html": [
+    "admin/core-update-rollback.html",
+    "admin/module-update-rollback.html",
+    "admin/module-upload-confirm.html",
+    "admin/module-upload-disabled.html",
+    "admin/module-upload.html",
+    "admin/modules.html"
+  ],
+  "new_html": [],
+  "changed_png": [
+    "png/admin/core-update-rollback-1440.png",
+    "png/admin/module-update-rollback-1440.png",
+    "png/admin/module-upload-1440.png",
+    "png/admin/module-upload-confirm-1440.png",
+    "png/admin/module-upload-disabled-1440.png",
+    "png/admin/modules-1440.png"
+  ],
+  "previews": [
+    "/workspace/cms_v15_admin_core-update-rollback-1440.jpg",
+    "/workspace/cms_v15_admin_module-update-rollback-1440.jpg",
+    "/workspace/cms_v15_admin_module-upload-1440.jpg",
+    "/workspace/cms_v15_admin_module-upload-confirm-1440.jpg",
+    "/workspace/cms_v15_admin_module-upload-disabled-1440.jpg",
+    "/workspace/cms_v15_admin_modules-1440.jpg"
+  ],
+  "policy_previews": [
+    "/workspace/cms_v15_admin_module-upload_policy.jpg",
+    "/workspace/cms_v15_admin_module-upload-disabled_policy.jpg",
+    "/workspace/cms_v15_admin_module-upload-confirm_policy.jpg",
+    "/workspace/cms_v15_admin_modules_policy.jpg"
+  ],
+  "overview": "/workspace/cms_v15_modules_sheet.jpg",
+  "file_policy": {
+    "env_var": "CMS_UPLOAD_POLICY_FILE",
+    "path_requirements": "absolute private path outside web root",
+    "example_path": "/home/account/private/cms-upload-policy.json",
+    "format": {
+      "module_zip_upload_enabled": true
+    },
+    "failure_policy": "Missing file, read/JSON error or false => ZIP disabled",
+    "enforcement": "Application-level rejection and repeated checks before activation; no guarantee of stopping HTTP body transfer"
+  },
+  "corrected_previous_report": "/workspace/cms_v14_delivery.json",
+  "checks": 2344,
+  "passed": 2344,
+  "render_count": 101,
+  "scope": "Pages/PageTree v1; multisite/Landings/Services/advanced templates phase 2",
+  "rollback_result": "saved version already used, slot consumed",
+  "real_operations": false
+}

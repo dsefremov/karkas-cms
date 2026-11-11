@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Karkas\Adapters\Entry\Http\Controller;
 
 use Karkas\Adapters\Infrastructure\Persistence\OperationJournalRepository;
+use Karkas\Application\Admin\AdminAuthException;
 use Karkas\Application\Admin\AdminAuthService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -21,7 +22,11 @@ final class PlatformOperationsController extends AbstractController
     #[Route('/api/v1/admin/platform/operations', name: 'api_platform_operations', methods: ['GET'])]
     public function listOperations(): JsonResponse
     {
-        $this->adminAuth->assertAuthenticated();
+        try {
+            $this->adminAuth->assertAuthenticated();
+        } catch (AdminAuthException $e) {
+            return new JsonResponse(['error' => $e->getMessage()], 401);
+        }
 
         return new JsonResponse(['operations' => $this->journal->listRecent()]);
     }

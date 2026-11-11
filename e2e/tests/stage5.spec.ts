@@ -5,6 +5,7 @@ import { bootstrapBlogAdmin } from './helpers/admin-bootstrap';
 test.describe('Karkas Stage 5', () => {
   test('core plan preview shows targets before upgrade', async ({ page }) => {
     await bootstrapBlogAdmin(page);
+    await page.goto('/admin/core-update');
     await page.getByTestId('load-core-plan').click();
     await expect(page.getByTestId('core-plan-preview')).toBeVisible();
     await expect(page.getByTestId('admin-message')).toContainText('План обновления Core');
@@ -18,6 +19,7 @@ test.describe('Karkas Stage 5', () => {
 
   test('multisite panel lists default site and can create partner', async ({ page }) => {
     await bootstrapBlogAdmin(page);
+    await page.goto('/admin/sites');
     await expect(page.getByTestId('sites-panel')).toBeVisible();
     const siteKey = `p-${Date.now()}`;
     await page.getByTestId('new-site-key').fill(siteKey);
@@ -32,6 +34,7 @@ test.describe('Karkas Stage 5', () => {
 
   test('admin screenshots at 1440 and 390 with plan panel', async ({ page }, testInfo) => {
     await bootstrapBlogAdmin(page);
+    await page.goto('/admin/core-update');
     await page.getByTestId('load-core-plan').click();
     await expect(page.getByTestId('core-plan-preview')).toBeVisible();
     const viewport = testInfo.project.name.includes('mobile') ? '390' : '1440';

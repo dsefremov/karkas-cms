@@ -32,6 +32,22 @@ final class BlogPostRepository
     }
 
     /**
+     * @return list<array<string, mixed>>
+     */
+    public function listForAdmin(int $siteId, string $instanceId): array
+    {
+        $connection = $this->connections->create();
+        $rows = $connection->fetchAllAssociative(
+            'SELECT id, slug, title, activity, updated_at FROM blog_post
+             WHERE site_id = :site AND module_instance_id = :instance
+             ORDER BY updated_at DESC',
+            ['site' => $siteId, 'instance' => $instanceId],
+        );
+
+        return $rows;
+    }
+
+    /**
      * @return array<string, mixed>|null
      */
     public function find(string $postId): ?array
@@ -121,6 +137,28 @@ final class BlogPostRepository
         $max = $connection->fetchOne('SELECT COALESCE(MAX(version_seq), 0) FROM blog_post_version WHERE post_id = :id', ['id' => $postId]);
 
         return ((int) $max) + 1;
+    }
+
+    /**
+     * @return array{version_seq: int, saved_at: string, snapshot_json: string}|null
+     */
+    public function findVersion(string $postId, int $versionSeq): ?array
+    {
+        $connection = $this->connections->create();
+        $row = $connection->fetchAssociative(
+            'SELECT version_seq, saved_at, snapshot_json FROM blog_post_version
+             WHERE post_id = :id AND version_seq = :seq',
+            ['id' => $postId, 'seq' => $versionSeq],
+        );
+        if (false === $row) {
+            return null;
+        }
+
+        return [
+            'version_seq' => (int) $row['version_seq'],
+            'saved_at' => (string) $row['saved_at'],
+            'snapshot_json' => (string) $row['snapshot_json'],
+        ];
     }
 
     /**

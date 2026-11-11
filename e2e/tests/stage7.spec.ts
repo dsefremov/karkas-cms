@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { bootstrapBlogAdmin } from './helpers/admin-bootstrap';
+import { gotoAdminPath } from './helpers/admin-nav';
 
 test.describe('Karkas Stage 7', () => {
   test('public search page with axe', async ({ page }, testInfo) => {
@@ -17,6 +18,7 @@ test.describe('Karkas Stage 7', () => {
 
   test('admin screenshots 1440 and 390', async ({ page }, testInfo) => {
     await bootstrapBlogAdmin(page);
+    await gotoAdminPath(page, 'sites');
     const viewport = testInfo.project.name.includes('mobile') ? '390' : '1440';
     await page.screenshot({ path: testInfo.outputPath(`admin-${viewport}.png`), fullPage: true });
     if (!testInfo.project.name.includes('mobile')) {
@@ -27,6 +29,7 @@ test.describe('Karkas Stage 7', () => {
 
   test('sites list shows blog enabled column and make default', async ({ page }) => {
     await bootstrapBlogAdmin(page);
+    await gotoAdminPath(page, 'sites');
     const siteKey = `s7-${Date.now()}`;
     await page.getByTestId('new-site-key').fill(siteKey);
     await page.getByTestId('new-site-label').fill('Stage7 site');

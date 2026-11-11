@@ -50,16 +50,22 @@ async function installBlogFromCatalog(page: Page): Promise<void> {
   expect(current ?? '').toContain('1.0.0');
 }
 
-export async function bootstrapBlogAdmin(page: Page): Promise<void> {
-  await page.goto('/admin/');
+export async function ensureAdminLogin(page: Page): Promise<void> {
+  await page.goto('/admin/login');
   await expect(page.getByTestId('admin-shell')).toBeVisible();
   await ensureApiSession(page);
 
   await page.getByTestId('admin-password').fill(ADMIN_PASSWORD);
-  if (await page.getByTestId('admin-authenticated').isHidden()) {
+  if (await page.getByTestId('admin-login').isVisible()) {
     await page.getByTestId('admin-login').click();
-    await expect(page.getByTestId('admin-authenticated')).toBeVisible();
   }
+  await expect(page.getByTestId('admin-authenticated')).toBeAttached({ timeout: 20_000 });
+}
+
+export async function bootstrapBlogAdmin(page: Page): Promise<void> {
+  await ensureAdminLogin(page);
+  await page.goto('/admin/dashboard');
+  await expect(page.getByTestId('admin-shell')).toBeVisible();
 
   let needsInstaller = true;
   const installerStatus = await page.request.get('/api/v1/installer/status');
@@ -79,7 +85,7 @@ export async function bootstrapBlogAdmin(page: Page): Promise<void> {
   const blogCurrent = await blogCurrentVersion(page);
   if (!(blogCurrent ?? '').includes('1.0.0')) {
     await installBlogFromCatalog(page);
-    await page.reload();
+    await page.goto('/admin/modules');
     await expect(page.getByTestId('version-row-karkas-blog').locator('td').nth(1)).toContainText('1.0.0');
   }
 
