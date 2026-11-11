@@ -98,4 +98,4 @@
 
 ## CI
 
-Green on head `d362496`: https://github.com/dsefremov/karkas-cms/actions/runs/42982934183 — PR [#15](https://github.com/dsefremov/karkas-cms/pull/15) → `develop` (**не мержить**).
+Green on head `4fd1faa`: https://github.com/dsefremov/karkas-cms/actions/runs/42983941506 — PR [#15](https://github.com/dsefremov/karkas-cms/pull/15) → `develop` (**не мержить**).
