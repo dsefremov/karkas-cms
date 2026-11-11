@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Karkas\Application\Search;
 
+use Karkas\Application\Blog\BlogFacadeService;
+
 final class SiteSearchService
 {
     public const int MIN_TOKEN_LENGTH = 3;
@@ -14,6 +16,7 @@ final class SiteSearchService
 
     public function __construct(
         private readonly SiteSearchRepository $repository,
+        private readonly BlogFacadeService $blogFacade,
     ) {
     }
 
@@ -67,13 +70,20 @@ final class SiteSearchService
 
         $offset = ($page - 1) * $perPage;
         $result = $this->repository->search($siteId, $sanitized, $perPage, $offset);
+        $facade = $this->blogFacade->describeForSite($siteId);
+        $boundPageId = $facade['bound_page_id'] ?? null;
         $items = [];
         foreach ($result['items'] as $row) {
             $body = (string) $row['body_text'];
+            $kind = (string) $row['kind'];
+            $url = '/'.ltrim((string) $row['url_path'], '/');
+            if ('page' === $kind && null !== $boundPageId && $boundPageId === (string) $row['item_id']) {
+                $url = BlogFacadeService::BLOG_PUBLIC_PREFIX;
+            }
             $items[] = [
-                'kind' => (string) $row['kind'],
+                'kind' => $kind,
                 'title' => (string) $row['title'],
-                'url' => '/'.ltrim((string) $row['url_path'], '/'),
+                'url' => $url,
                 'snippet' => $this->buildSnippet($body, $sanitized),
                 'score' => (float) $row['score'],
             ];

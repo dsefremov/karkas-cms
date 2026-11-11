@@ -43,7 +43,34 @@ final class ModuleInstanceRepository
             'id' => $id,
             'site_id' => $siteId,
             'package_id' => $packageId,
+            'last_facade_page_id' => null,
             'updated_at' => $now,
         ], ['updated_at' => Types::DATETIME_MUTABLE]);
+    }
+
+    public function getLastFacadePageId(string $instanceId): ?string
+    {
+        $connection = $this->connections->create();
+        $value = $connection->fetchOne(
+            'SELECT last_facade_page_id FROM module_instance WHERE id = :id',
+            ['id' => $instanceId],
+        );
+        if (false === $value || null === $value || '' === $value) {
+            return null;
+        }
+
+        return (string) $value;
+    }
+
+    public function setLastFacadePageId(string $instanceId, ?string $pageId): void
+    {
+        $connection = $this->connections->create();
+        $now = new DateTime();
+        $connection->update(
+            'module_instance',
+            ['last_facade_page_id' => $pageId, 'updated_at' => $now],
+            ['id' => $instanceId],
+            ['updated_at' => Types::DATETIME_MUTABLE],
+        );
     }
 }

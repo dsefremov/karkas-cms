@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Karkas\Application\Content;
 
 use Karkas\Adapters\Infrastructure\Persistence\ModuleMountRepository;
+use Karkas\Application\Blog\BlogFacadeService;
 use Karkas\Domain\Content\SitePageException;
 use Karkas\Domain\Content\SitePageTree;
 use Throwable;
@@ -14,6 +15,7 @@ final class SitePageService
     public function __construct(
         private readonly SitePageRepository $pages,
         private readonly ModuleMountRepository $mounts,
+        private readonly BlogFacadeService $blogFacade,
     ) {
     }
 
@@ -176,6 +178,9 @@ final class SitePageService
         if ($this->pages->countChildren($siteId, $pageId) > 0) {
             throw new SitePageException('has_children', 'Удалите или переместите дочерние страницы.');
         }
+        if ($this->blogFacade->isBoundFacadePage($siteId, $pageId)) {
+            throw new SitePageException('blog_facade_bound', 'Отвяжите блог от страницы перед удалением.');
+        }
         $this->pages->delete($pageId);
     }
 
@@ -185,15 +190,22 @@ final class SitePageService
     public function movePreview(string $pageId, string $newParentId, ?string $newSlug): array
     {
         $plan = $this->planMove($pageId, $newParentId, $newSlug);
+        $existing = $this->pages->findById($pageId);
+        $siteId = null !== $existing ? (int) $existing['site_id'] : 0;
 
         $changed = array_filter(
             $plan['path_changes'],
             static fn (array $c): bool => $c['from'] !== $c['to'],
         );
 
+        $blogFacade = 0 < $siteId
+            ? $this->blogFacade->movePreviewContext($siteId, $pageId, $plan['path_changes'])
+            : ['bound_page_id' => null, 'tree_path' => null];
+
         return [
             'affected_paths' => count($changed),
             'path_changes' => $plan['path_changes'],
+            'blog_facade' => $blogFacade,
         ];
     }
 

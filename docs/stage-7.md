@@ -13,13 +13,30 @@
 | Фильтры | Только **active** посты и страницы; UNION без N+1 |
 | Тесты | `Stage7SearchTest`, `Stage7SearchHttpTest` |
 
+## Design note (Den, Designer v16)
+
+Макетов **v16 в репозитории нет** — реализовано по тексту Den для этапа 7.
+
+## Delivered — Blog ↔ PageTree facade
+
+| Area | Outcome |
+|------|---------|
+| Привязка | `POST …/blog/bind-page` — `module_mount.bound_page_id`, `mount_kind=page_facade` |
+| Публично (bound) | `/{full_path}` фасада → **301 `/blog`**; список статей на **`/blog`**; посты **`/blog/{slug}`** |
+| Потомки | Остаются на путях дерева (`/journal/…`), не под `/blog/` |
+| Отвязка | `POST …/blog/unbind-page` — страница снова на дереве; **`/blog` → 301** на `last_facade_page_id` |
+| Повторная привязка | `/blog` снова список; новый фасад → 301 с его `full_path` |
+| Canonical | `blog/list` → `/blog`; `page/show` → `/{full_path}`; поиск не дублирует фасад (`/blog` вместо пути дерева) |
+| Админка | Кнопки `blog-bind-page` / `blog-unbind-page`; статус `blog-facade-status`; move-preview → `blog_facade` |
+| Тесты | `Stage7BlogFacadeTest`, `Stage7BlogFacadeHttpTest`, Playwright `stage7-blog-facade.spec.ts` |
+
 ## Delivered — URL hygiene
 
 | Area | Outcome |
 |------|---------|
 | Канон | Ссылки в шаблонах поиска: `/blog/{slug}`, `/{full_path}` |
 | Legacy | `GET /p/{slug}` → **301** на `full_path` (`LegacyFlatPageController`) |
-| Sitemap / SEO helpers | Ещё нет генератора sitemap — при появлении только `full_path` |
+| Sitemap / SEO helpers | Ещё нет генератора sitemap; для фасада блога — только `/blog`, не путь дерева |
 
 ## Delivered — Den (sites)
 
@@ -60,7 +77,8 @@
 
 1. **Поиск на не-default сайте** — Сейчас только публичный контекст сайта. *Вариант:* глобальный поиск в админке по всем сайтам (этап 9+).
 2. **Подсветка в сниппетах** — Сейчас plain text excerpt. *Вариант:* `<mark>` по термам без XSS (Twig escape).
-3. **Sitemap** — *Вариант:* статический XML при stage 8 SEO slice, URL = `full_path` + `/blog/{slug}`.
+3. **Sitemap** — *Вариант:* статический XML при stage 8 SEO slice; фасад блога = `/blog`, посты = `/blog/{slug}`, прочие страницы = `full_path`.
+4. **Фасад после отвязки** — Сейчас `/blog` 301 на последний путь до явной новой привязки. *Вариант:* очищать `last_facade_page_id` по таймауту или кнопкой «вернуть прямой /blog».
 
 ## Screenshots
 
@@ -75,9 +93,9 @@
 
 | Suite | Count | Notes |
 |-------|------:|-------|
-| PHPUnit | 59 | 175 assertions, 1 skipped |
-| Playwright stage7 | 6 | axe 0 на `search-main` и `sites-panel` (desktop) |
+| PHPUnit | 61 | 195 assertions, 1 skipped |
+| Playwright | stage7 + blog facade | axe на поиске (desktop) |
 
 ## CI
 
-Green on head `d99c300`: https://github.com/dsefremov/karkas-cms/actions/runs/42978495785 — PR [#15](https://github.com/dsefremov/karkas-cms/pull/15) → `develop` (**не мержить**).
+_Обновляется финальным коммитом (head + run URL)._
