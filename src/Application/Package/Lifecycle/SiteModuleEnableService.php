@@ -61,6 +61,18 @@ final class SiteModuleEnableService
             throw new RuntimeException(sprintf('Package "%s" is not installed globally.', $packageId));
         }
 
+        $existingInstance = $this->instances->findBySiteModule($siteId, $packageId);
+        $existingMount = $this->mounts->resolveByPrefix($siteId, $mountPrefix);
+        $siteModule = $this->siteModules->find($siteId, $packageId);
+        if (
+            null !== $existingInstance
+            && null !== $existingMount
+            && null !== $siteModule
+            && 'enabled' === $siteModule['state']
+        ) {
+            return bin2hex(random_bytes(16));
+        }
+
         $operationId = bin2hex(random_bytes(16));
         $this->journal->create($operationId, 'module.site_enable', 'running', 'enable', $actor, null, [
             'package_id' => $packageId,

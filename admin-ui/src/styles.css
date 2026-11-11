@@ -297,3 +297,61 @@ button:disabled {
   overflow-x: auto;
   max-height: 12rem;
 }
+
+.step-hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(8, 12, 18, 0.72);
+}
+
+.modal {
+  width: min(440px, 100%);
+  padding: 1.5rem 1.75rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
+}
+
+.reauth-modal h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.overline.accent {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.mb16 {
+  margin-bottom: 1rem;
+}
+
+.mt24 {
+  margin-top: 1.5rem;
+}
+
+.row.between {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.btn.primary {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}

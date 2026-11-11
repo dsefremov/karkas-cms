@@ -1,4 +1,14 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { ReauthModal } from './components/ReauthModal';
+import { formatApiError } from './lib/apiError';
+import {
+  clearStoredReauth,
+  effectiveReauth,
+  isReauthRequiredMessage,
+  loadStoredReauth,
+  reauthHeaders,
+  storeReauth,
+} from './lib/reauth';
 
 type PackageVersionRow = {
   package_id: string;
@@ -78,6 +88,11 @@ export function App(): React.JSX.Element {
   const [moveImpact, setMoveImpact] = useState<number | null>(null);
   const [blogFacadeBoundPageId, setBlogFacadeBoundPageId] = useState<string | null>(null);
   const [blogFacadeTreePath, setBlogFacadeTreePath] = useState<string | null>(null);
+  const [reauthOpen, setReauthOpen] = useState(false);
+  const [reauthDraft, setReauthDraft] = useState('');
+  const [reauthError, setReauthError] = useState<string | null>(null);
+  const [reauthOperation, setReauthOperation] = useState('');
+  const reauthResumeRef = useRef<(() => Promise<void>) | null>(null);
 
   const loadVersions = useCallback(async () => {
     const response = await fetch('/api/v1/platform/versions');
@@ -121,6 +136,58 @@ export function App(): React.JSX.Element {
     void refreshAdmin();
   }, [refreshAdmin]);
 
+  async function ensureReauth(operation: string, run: () => Promise<void>): Promise<void> {
+    if (effectiveReauth(password) !== '') {
+      await run();
+      return;
+    }
+    setReauthOperation(operation);
+    setReauthDraft(loadStoredReauth() || password);
+    setReauthError(null);
+    reauthResumeRef.current = run;
+    setReauthOpen(true);
+  }
+
+  async function confirmReauth(): Promise<void> {
+    setReauthError(null);
+    const response = await fetch('/api/v1/admin/reauth', {
+      method: 'POST',
+      headers: reauthHeaders(reauthDraft),
+      body: '{}',
+    });
+    if (!response.ok) {
+      setReauthError(await formatApiError(response, 'Неверный пароль администратора'));
+      return;
+    }
+    storeReauth(reauthDraft);
+    setPassword(reauthDraft);
+    setReauthOpen(false);
+    const resume = reauthResumeRef.current;
+    reauthResumeRef.current = null;
+    if (resume !== null) {
+      await resume();
+    }
+  }
+
+  function cancelReauth(): void {
+    setReauthOpen(false);
+    reauthResumeRef.current = null;
+    setReauthError(null);
+  }
+
+  async function handleApiFailure(response: Response, fallback: string): Promise<void> {
+    const detail = await formatApiError(response, fallback);
+    if (response.status === 401 && isReauthRequiredMessage(detail)) {
+      clearStoredReauth();
+      setError(`${detail}. Подтвердите пароль в диалоге и повторите.`);
+      setReauthOperation(fallback);
+      setReauthDraft('');
+      setReauthOpen(true);
+      return;
+    }
+    setError(detail);
+  }
+
   async function login(): Promise<void> {
     setError(null);
     const response = await fetch('/api/v1/admin/session', {
@@ -132,47 +199,59 @@ export function App(): React.JSX.Element {
       setError('Неверный пароль администратора');
       return;
     }
+    storeReauth(password);
     setAuthenticated(true);
     await refreshAdmin();
   }
 
   async function runInstaller(): Promise<void> {
-    setMessage(null);
-    setError(null);
-    setMessage('Установка Core…');
-    await fetch('/api/v1/installer/bootstrap', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Karkas-Reauth': password },
-      body: '{}',
+    await ensureReauth('завершение установки Core', async () => {
+      setMessage(null);
+      setError(null);
+      setMessage('Установка Core…');
+      const secret = effectiveReauth(password);
+      const bootstrap = await fetch('/api/v1/installer/bootstrap', {
+        method: 'POST',
+        headers: reauthHeaders(secret),
+        body: '{}',
+      });
+      if (!bootstrap.ok) {
+        await handleApiFailure(bootstrap, 'Ошибка bootstrap установщика');
+        return;
+      }
+      const complete = await fetch('/api/v1/installer/complete', {
+        method: 'POST',
+        headers: reauthHeaders(secret),
+        body: '{}',
+      });
+      if (!complete.ok) {
+        await handleApiFailure(complete, 'Ошибка завершения установщика');
+        return;
+      }
+      setMessage('Установщик: Core зарегистрирован атомарно.');
+      await loadVersions();
     });
-    const complete = await fetch('/api/v1/installer/complete', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Karkas-Reauth': password },
-      body: '{}',
-    });
-    if (!complete.ok) {
-      setError('Ошибка завершения установщика');
-      return;
-    }
-    setMessage('Установщик: Core зарегистрирован атомарно.');
-    await loadVersions();
   }
 
   async function installBlog(): Promise<void> {
-    setMessage(null);
-    setError(null);
-    setMessage('Установка blog…');
-    const response = await fetch('/api/v1/platform/install', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Karkas-Reauth': password },
-      body: JSON.stringify({ modules: ['karkas/blog'] }),
+    await ensureReauth('установка модуля blog из каталога', async () => {
+      setMessage(null);
+      setError(null);
+      setMessage('Установка blog…');
+      const secret = effectiveReauth(password);
+      const response = await fetch('/api/v1/platform/install', {
+        method: 'POST',
+        headers: reauthHeaders(secret),
+        body: JSON.stringify({ modules: ['karkas/blog'] }),
+      });
+      if (!response.ok) {
+        await handleApiFailure(response, 'Установка модуля отклонена');
+        return;
+      }
+      setMessage('Модуль blog установлен (installed_disabled).');
+      await loadVersions();
+      await refreshAdmin();
     });
-    if (!response.ok) {
-      setError('Установка модуля отклонена');
-      return;
-    }
-    setMessage('Модуль blog установлен (installed_disabled).');
-    await loadVersions();
   }
 
   async function scanIncoming(): Promise<void> {
@@ -180,7 +259,7 @@ export function App(): React.JSX.Element {
     setError(null);
     const response = await fetch('/api/v1/admin/packages/scan-incoming', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Karkas-Reauth': password },
+      headers: reauthHeaders(effectiveReauth(password)),
       body: '{}',
     });
     if (!response.ok) {
@@ -192,19 +271,24 @@ export function App(): React.JSX.Element {
   }
 
   async function enableBlog(): Promise<void> {
-    setMessage(null);
-    setError(null);
-    const response = await fetch(`/api/v1/sites/${enableBlogSiteId}/modules/karkas/blog/enable`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Karkas-Reauth': password },
-      body: JSON.stringify({ site_label: 'Каркас — демо' }),
-    });
-    if (!response.ok) {
-      setError('Включение blog на сайте отклонено');
-      return;
-    }
     const site = sites.find((s) => s.id === enableBlogSiteId);
-    setMessage(`Blog включён на сайте «${site?.site_key ?? enableBlogSiteId}» (миграции + mount /blog).`);
+    const siteLabel = site?.label?.trim() || `Сайт ${enableBlogSiteId}`;
+    await ensureReauth(`включение blog на сайте «${site?.site_key ?? enableBlogSiteId}»`, async () => {
+      setMessage(null);
+      setError(null);
+      const secret = effectiveReauth(password);
+      const response = await fetch(`/api/v1/sites/${enableBlogSiteId}/modules/karkas/blog/enable`, {
+        method: 'POST',
+        headers: reauthHeaders(secret),
+        body: JSON.stringify({ site_label: siteLabel }),
+      });
+      if (!response.ok) {
+        await handleApiFailure(response, 'Включение blog на сайте отклонено');
+        return;
+      }
+      setMessage(`Blog включён на сайте «${site?.site_key ?? enableBlogSiteId}» (миграции + mount /blog).`);
+      await refreshAdmin();
+    });
   }
 
   async function saveDemoPost(): Promise<void> {
@@ -271,7 +355,7 @@ export function App(): React.JSX.Element {
     setError(null);
     const response = await fetch('/api/v1/sites', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Karkas-Reauth': password },
+      headers: reauthHeaders(effectiveReauth(password)),
       body: JSON.stringify({
         site_key: newSiteKey,
         label: newSiteLabel,
@@ -291,7 +375,7 @@ export function App(): React.JSX.Element {
     setError(null);
     const response = await fetch(`/api/v1/sites/${siteId}/make-default`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Karkas-Reauth': password },
+      headers: reauthHeaders(effectiveReauth(password)),
       body: '{}',
     });
     const body = (await response.json()) as { message?: string };
@@ -308,7 +392,7 @@ export function App(): React.JSX.Element {
     setError(null);
     const response = await fetch(`/api/v1/sites/${siteId}`, {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json', 'X-Karkas-Reauth': password },
+      headers: reauthHeaders(effectiveReauth(password)),
     });
     const body = (await response.json()) as { message?: string };
     if (!response.ok) {
@@ -324,7 +408,7 @@ export function App(): React.JSX.Element {
     setError(null);
     const response = await fetch('/api/v1/platform/install', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Karkas-Reauth': password },
+      headers: reauthHeaders(effectiveReauth(password)),
       body: JSON.stringify({ modules: [], include_core: true }),
     });
     if (!response.ok) {
@@ -367,7 +451,7 @@ export function App(): React.JSX.Element {
     }
     const response = await fetch(`/api/v1/sites/${pageTreeSiteId}/modules/karkas/blog/bind-page`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Karkas-Reauth': password },
+      headers: reauthHeaders(effectiveReauth(password)),
       body: JSON.stringify({ page_id: selectedPageId }),
     });
     const body = (await response.json()) as { message?: string };
@@ -382,7 +466,7 @@ export function App(): React.JSX.Element {
   async function unbindBlogFacade(): Promise<void> {
     const response = await fetch(`/api/v1/sites/${pageTreeSiteId}/modules/karkas/blog/unbind-page`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Karkas-Reauth': password },
+      headers: reauthHeaders(effectiveReauth(password)),
       body: JSON.stringify({}),
     });
     const body = (await response.json()) as { message?: string };
@@ -583,8 +667,38 @@ export function App(): React.JSX.Element {
   }
 
   const coreRow = versions?.packages.find((row) => row.package_id === 'karkas/core');
+  const blogRow = versions?.packages.find((row) => row.package_id === 'karkas/blog');
+  const coreInstalled = Boolean(coreRow?.current);
+  const blogInstalled = Boolean(blogRow?.current);
+  const enableTargetSite = sites.find((site) => site.id === enableBlogSiteId);
+  const blogEnabledOnTarget = enableTargetSite?.blog_enabled ?? false;
   const coreUpgradeAvailable =
     coreRow !== undefined && coreRow.current !== null && coreRow.available !== null && coreRow.current !== coreRow.available;
+
+  const installerStepDisabled = !authenticated || coreInstalled;
+  const installerStepHint = !authenticated
+    ? 'Шаг 1: войдите в админку.'
+    : coreInstalled
+      ? 'Шаг 1 (Core): уже выполнен — можно переходить к установке blog.'
+      : 'Шаг 1: завершите установку Core (bootstrap + complete).';
+
+  const installBlogStepDisabled = !authenticated || !coreInstalled || blogInstalled;
+  const installBlogStepHint = !authenticated
+    ? 'Шаг 2: войдите в админку.'
+    : !coreInstalled
+      ? 'Шаг 2: сначала завершите установку Core.'
+      : blogInstalled
+        ? 'Шаг 2 (install blog): уже выполнен — можно включать на сайте.'
+        : 'Шаг 2: установите модуль blog из каталога (installed_disabled).';
+
+  const enableBlogStepDisabled = !authenticated || !blogInstalled || blogEnabledOnTarget;
+  const enableBlogStepHint = !authenticated
+    ? 'Шаг 3: войдите в админку.'
+    : !blogInstalled
+      ? 'Шаг 3: сначала установите blog из каталога.'
+      : blogEnabledOnTarget
+        ? 'Шаг 3: blog уже включён на выбранном сайте.'
+        : 'Шаг 3: включите blog на выбранном сайте (миграции + mount /blog).';
 
   return (
     <div className="shell" data-testid="admin-shell" role="document">
@@ -782,11 +896,29 @@ export function App(): React.JSX.Element {
 
         <section className="card" data-testid="installer-panel">
           <h2>Установщик и модули</h2>
+          <p className="step-hint" data-testid="installer-step-hint">
+            {installerStepHint}
+          </p>
+          <p className="step-hint" data-testid="install-blog-step-hint">
+            {installBlogStepHint}
+          </p>
           <div className="actions">
-            <button type="button" data-testid="installer-run" onClick={() => void runInstaller()} disabled={!authenticated}>
+            <button
+              type="button"
+              data-testid="installer-run"
+              onClick={() => void runInstaller()}
+              disabled={installerStepDisabled}
+              title={installerStepHint}
+            >
               Завершить установку Core
             </button>
-            <button type="button" data-testid="install-blog" onClick={() => void installBlog()} disabled={!authenticated}>
+            <button
+              type="button"
+              data-testid="install-blog"
+              onClick={() => void installBlog()}
+              disabled={installBlogStepDisabled}
+              title={installBlogStepHint}
+            >
               Установить blog из каталога
             </button>
             <button type="button" data-testid="scan-incoming" onClick={() => void scanIncoming()} disabled={!authenticated}>
@@ -902,6 +1034,9 @@ export function App(): React.JSX.Element {
 
         <section className="card" data-testid="site-blog-panel">
           <h2>Blog на сайте</h2>
+          <p className="step-hint" data-testid="enable-blog-step-hint">
+            {enableBlogStepHint}
+          </p>
           <div className="form-row">
             <label htmlFor="enable-blog-site">Сайт для enable blog</label>
             <select
@@ -919,7 +1054,13 @@ export function App(): React.JSX.Element {
             </select>
           </div>
           <div className="actions actions-stack">
-            <button type="button" data-testid="enable-blog" onClick={() => void enableBlog()} disabled={!authenticated}>
+            <button
+              type="button"
+              data-testid="enable-blog"
+              onClick={() => void enableBlog()}
+              disabled={enableBlogStepDisabled}
+              title={enableBlogStepHint}
+            >
               Включить blog на выбранном сайте
             </button>
             <button type="button" data-testid="blog-save-demo" onClick={() => void saveDemoPost()} disabled={!authenticated}>
@@ -958,6 +1099,15 @@ export function App(): React.JSX.Element {
           )}
         </section>
       </main>
+      <ReauthModal
+        open={reauthOpen}
+        operation={reauthOperation}
+        password={reauthDraft}
+        error={reauthError}
+        onPasswordChange={setReauthDraft}
+        onCancel={cancelReauth}
+        onConfirm={() => void confirmReauth()}
+      />
     </div>
   );
 }
