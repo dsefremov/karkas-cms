@@ -2,8 +2,8 @@
 
 Ветка **`grok_bot` → `develop`**, PR **#17**, **не мержить** до ревью Den.
 
-**code-head:** `c8d45a2`  
-**docs-head:** `3c4fd69`
+**code-head:** `073557c`  
+**docs-head:** `ce371fe`
 
 ---
 
@@ -194,6 +194,17 @@
 
 ---
 
+## Локальный Playwright (как CI, `c8d45a2` + `073557c`)
+
+`docker compose down -v && up`, `.env`: `KARKAS_ADMIN_PASSWORD=test-admin-password-stage2`, `admin-ui` build, `e2e`: `npm test` с `BASE_URL=http://127.0.0.1:8080`.
+
+Итог (полный набор 92 теста): **91 passed, 1 skipped, 0 failed** (~37s). Единственный skip: mobile `page move preview screenshot desktop`.
+
+```
+  1 skipped
+  91 passed (36.7s)
+```
+
 ## CI
 
-См. отчёт агента на tip `grok_bot` после push (workflow `CI`, jobs: php-static, phpunit-matrix, frontend, playwright).
+GitHub PR run [43043145213](https://github.com/dsefremov/karkas-cms/actions/runs/43043145213) (`967a9c7`): php-static, frontend, phpunit-matrix×4, release-artifact — **success**; **playwright — failure** (DNS/apt на `playwright install chromium --with-deps`, не тесты). Перезапуск failed jobs — по расписанию агента (~1ч после 15:09 UTC).
