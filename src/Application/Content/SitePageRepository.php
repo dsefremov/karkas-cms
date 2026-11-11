@@ -46,6 +46,22 @@ final class SitePageRepository
     /**
      * @return array<string, mixed>|null
      */
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function findBySlugOnSite(int $siteId, string $slug): ?array
+    {
+        $row = $this->connection()->fetchAssociative(
+            'SELECT * FROM site_page WHERE site_id = :site AND slug = :slug ORDER BY CHAR_LENGTH(full_path) ASC, id ASC LIMIT 1',
+            ['site' => $siteId, 'slug' => $slug],
+        );
+
+        return false === $row ? null : $row;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
     public function findByPath(int $siteId, string $fullPath): ?array
     {
         $row = $this->connection()->fetchAssociative(

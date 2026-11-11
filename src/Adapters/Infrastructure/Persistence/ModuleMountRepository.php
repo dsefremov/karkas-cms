@@ -19,8 +19,8 @@ final class ModuleMountRepository
         $connection = $this->connections->create();
         $now = new DateTime();
         $connection->executeStatement(
-            'INSERT INTO module_mount (id, site_id, module_instance_id, mount_kind, path_prefix, updated_at)
-             VALUES (:id, :site, :instance, :kind, :prefix, :now)
+            'INSERT INTO module_mount (id, site_id, module_instance_id, mount_kind, path_prefix, bound_page_id, updated_at)
+             VALUES (:id, :site, :instance, :kind, :prefix, NULL, :now)
              ON DUPLICATE KEY UPDATE module_instance_id = VALUES(module_instance_id), updated_at = VALUES(updated_at)',
             [
                 'id' => $id,
@@ -70,5 +70,70 @@ final class ModuleMountRepository
             'path_prefix' => (string) $row['path_prefix'],
             'module_instance_id' => (string) $row['module_instance_id'],
         ];
+    }
+
+    /**
+     * @return array{
+     *   id: string,
+     *   site_id: int,
+     *   module_instance_id: string,
+     *   mount_kind: string,
+     *   path_prefix: string,
+     *   bound_page_id: string|null
+     * }|null
+     */
+    public function findBlogMount(int $siteId): ?array
+    {
+        $connection = $this->connections->create();
+        $row = $connection->fetchAssociative(
+            'SELECT id, site_id, module_instance_id, mount_kind, path_prefix, bound_page_id
+             FROM module_mount WHERE site_id = :site AND path_prefix = :prefix LIMIT 1',
+            ['site' => $siteId, 'prefix' => '/blog'],
+        );
+        if (false === $row) {
+            return null;
+        }
+        $bound = $row['bound_page_id'] ?? null;
+
+        return [
+            'id' => (string) $row['id'],
+            'site_id' => (int) $row['site_id'],
+            'module_instance_id' => (string) $row['module_instance_id'],
+            'mount_kind' => (string) $row['mount_kind'],
+            'path_prefix' => (string) $row['path_prefix'],
+            'bound_page_id' => is_string($bound) && '' !== $bound ? $bound : null,
+        ];
+    }
+
+    public function setBoundPage(string $mountId, string $pageId): void
+    {
+        $connection = $this->connections->create();
+        $now = new DateTime();
+        $connection->update(
+            'module_mount',
+            [
+                'bound_page_id' => $pageId,
+                'mount_kind' => 'page_facade',
+                'updated_at' => $now,
+            ],
+            ['id' => $mountId],
+            ['updated_at' => Types::DATETIME_MUTABLE],
+        );
+    }
+
+    public function clearBoundPage(string $mountId): void
+    {
+        $connection = $this->connections->create();
+        $now = new DateTime();
+        $connection->update(
+            'module_mount',
+            [
+                'bound_page_id' => null,
+                'mount_kind' => 'direct',
+                'updated_at' => $now,
+            ],
+            ['id' => $mountId],
+            ['updated_at' => Types::DATETIME_MUTABLE],
+        );
     }
 }

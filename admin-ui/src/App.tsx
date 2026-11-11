@@ -25,6 +25,7 @@ type SiteRow = {
   label: string;
   is_default: boolean;
   canonical_host: string | null;
+  blog_enabled: boolean;
 };
 
 const PAGE_TREE_ROOT = '00000000-0000-0000-0000-000000000001';
@@ -75,6 +76,8 @@ export function App(): React.JSX.Element {
   const [pageActivity, setPageActivity] = useState<'active' | 'inactive'>('inactive');
   const [moveParentId, setMoveParentId] = useState(PAGE_TREE_ROOT);
   const [moveImpact, setMoveImpact] = useState<number | null>(null);
+  const [blogFacadeBoundPageId, setBlogFacadeBoundPageId] = useState<string | null>(null);
+  const [blogFacadeTreePath, setBlogFacadeTreePath] = useState<string | null>(null);
 
   const loadVersions = useCallback(async () => {
     const response = await fetch('/api/v1/platform/versions');
@@ -283,6 +286,39 @@ export function App(): React.JSX.Element {
     await loadSites();
   }
 
+  async function makeDefaultSite(siteId: number): Promise<void> {
+    setMessage(null);
+    setError(null);
+    const response = await fetch(`/api/v1/sites/${siteId}/make-default`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Karkas-Reauth': password },
+      body: '{}',
+    });
+    const body = (await response.json()) as { message?: string };
+    if (!response.ok) {
+      setError(body.message ?? 'Не удалось назначить сайт по умолчанию');
+      return;
+    }
+    setMessage('Сайт по умолчанию обновлён.');
+    await refreshAdmin();
+  }
+
+  async function deleteSite(siteId: number, siteKey: string): Promise<void> {
+    setMessage(null);
+    setError(null);
+    const response = await fetch(`/api/v1/sites/${siteId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json', 'X-Karkas-Reauth': password },
+    });
+    const body = (await response.json()) as { message?: string };
+    if (!response.ok) {
+      setError(body.message ?? 'Не удалось удалить сайт');
+      return;
+    }
+    setMessage(`Сайт «${siteKey}» удалён.`);
+    await refreshAdmin();
+  }
+
   async function upgradeCore(): Promise<void> {
     setMessage(null);
     setError(null);
@@ -307,6 +343,55 @@ export function App(): React.JSX.Element {
     }
     const body = (await response.json()) as { tree: PageTreeNode[] };
     setPageTree(body.tree);
+    await loadBlogFacade();
+  }
+
+  async function loadBlogFacade(): Promise<void> {
+    const response = await fetch(`/api/v1/sites/${pageTreeSiteId}/modules/karkas/blog/facade`);
+    if (!response.ok) {
+      setBlogFacadeBoundPageId(null);
+      setBlogFacadeTreePath(null);
+      return;
+    }
+    const body = (await response.json()) as {
+      facade?: { bound_page_id?: string | null; facade_tree_path?: string | null };
+    };
+    setBlogFacadeBoundPageId(body.facade?.bound_page_id ?? null);
+    setBlogFacadeTreePath(body.facade?.facade_tree_path ?? null);
+  }
+
+  async function bindBlogToSelectedPage(): Promise<void> {
+    if (selectedPageId === null) {
+      setError('Выберите страницу для привязки блога');
+      return;
+    }
+    const response = await fetch(`/api/v1/sites/${pageTreeSiteId}/modules/karkas/blog/bind-page`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Karkas-Reauth': password },
+      body: JSON.stringify({ page_id: selectedPageId }),
+    });
+    const body = (await response.json()) as { message?: string };
+    if (!response.ok) {
+      setError(body.message ?? 'Не удалось привязать блог');
+      return;
+    }
+    setMessage('Блог привязан: публичный вход /blog, путь дерева → редирект.');
+    await loadBlogFacade();
+  }
+
+  async function unbindBlogFacade(): Promise<void> {
+    const response = await fetch(`/api/v1/sites/${pageTreeSiteId}/modules/karkas/blog/unbind-page`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Karkas-Reauth': password },
+      body: JSON.stringify({}),
+    });
+    const body = (await response.json()) as { message?: string };
+    if (!response.ok) {
+      setError(body.message ?? 'Блог не был привязан к странице');
+      return;
+    }
+    setMessage('Блог отвязан: /blog временно ведёт на последний путь дерева.');
+    await loadBlogFacade();
   }
 
   function flattenTree(nodes: PageTreeNode[], acc: PageTreeNode[] = []): PageTreeNode[] {
@@ -396,14 +481,25 @@ export function App(): React.JSX.Element {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ parent_id: moveParentId, slug: pageSlug }),
     });
-    const body = (await response.json()) as { affected_paths?: number; message?: string };
+    const body = (await response.json()) as {
+      affected_paths?: number;
+      message?: string;
+      blog_facade?: { bound_page_id?: string | null; tree_path?: string | null; note?: string };
+    };
     if (!response.ok) {
       setError(body.message ?? 'Перенос недоступен');
       setMoveImpact(null);
       return;
     }
     setMoveImpact(body.affected_paths ?? 0);
-    setMessage(`Изменится адресов: ${body.affected_paths ?? 0}`);
+    const facadeNote =
+      body.blog_facade?.note ??
+      (body.blog_facade?.bound_page_id
+        ? `Фасад блога: /blog, путь дерева ${body.blog_facade.tree_path ?? '—'}.`
+        : '');
+    setMessage(
+      `Изменится адресов: ${body.affected_paths ?? 0}${facadeNote ? `. ${facadeNote}` : ''}`,
+    );
   }
 
   async function confirmPageMove(): Promise<void> {
@@ -504,8 +600,8 @@ export function App(): React.JSX.Element {
       </aside>
       <main className="content">
         <header className="topbar">
-          <h1>Админка — этап 6</h1>
-          <p className="subtitle">G6: default site, блог, дерево страниц с вложенными URL и переносом.</p>
+          <h1>Админка — этап 7</h1>
+          <p className="subtitle">G7: FULLTEXT-поиск, legacy /p/→полный путь, управление default site и блогом.</p>
         </header>
 
         {maintenance && (
@@ -631,6 +727,8 @@ export function App(): React.JSX.Element {
                   <th scope="col">Название</th>
                   <th scope="col">Host</th>
                   <th scope="col">Default</th>
+                  <th scope="col">Блог включён</th>
+                  <th scope="col">Действия</th>
                 </tr>
               </thead>
               <tbody>
@@ -641,6 +739,29 @@ export function App(): React.JSX.Element {
                     <td>{site.label}</td>
                     <td>{site.canonical_host ?? '—'}</td>
                     <td data-testid={`site-default-${site.site_key}`}>{site.is_default ? 'да' : '—'}</td>
+                    <td data-testid={`site-blog-${site.site_key}`}>{site.blog_enabled ? 'да' : '—'}</td>
+                    <td className="site-actions">
+                      {!site.is_default && (
+                        <button
+                          type="button"
+                          data-testid={`make-default-${site.site_key}`}
+                          onClick={() => void makeDefaultSite(site.id)}
+                          disabled={!authenticated}
+                        >
+                          Сделать сайтом по умолчанию
+                        </button>
+                      )}
+                      {!site.is_default && (
+                        <button
+                          type="button"
+                          data-testid={`delete-site-${site.site_key}`}
+                          onClick={() => void deleteSite(site.id, site.site_key)}
+                          disabled={!authenticated}
+                        >
+                          Удалить
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -735,7 +856,30 @@ export function App(): React.JSX.Element {
               <p className="move-impact" data-testid="page-move-impact" aria-live="polite">
                 {moveImpact !== null ? `Будет изменено адресов: ${moveImpact}` : 'Предпросмотр переноса покажет число затронутых URL.'}
               </p>
+              <p className="muted" data-testid="blog-facade-status">
+                {blogFacadeBoundPageId
+                  ? `Блог привязан к странице (${blogFacadeTreePath ?? 'путь'} → /blog).`
+                  : blogFacadeTreePath
+                    ? `Блог отвязан: /blog → /${blogFacadeTreePath}.`
+                    : 'Блог: прямой вход /blog (без фасада страницы).'}
+              </p>
               <div className="actions actions-stack">
+                <button
+                  type="button"
+                  data-testid="blog-bind-page"
+                  onClick={() => void bindBlogToSelectedPage()}
+                  disabled={!authenticated || selectedPageId === null}
+                >
+                  Привязать блог к странице
+                </button>
+                <button
+                  type="button"
+                  data-testid="blog-unbind-page"
+                  onClick={() => void unbindBlogFacade()}
+                  disabled={!authenticated || !blogFacadeBoundPageId}
+                >
+                  Отвязать блог
+                </button>
                 <button type="button" data-testid="page-tree-key-up" onClick={() => void moveSelectedSibling(-1)} disabled={!authenticated}>
                   ↑ Выше (клавиатура)
                 </button>

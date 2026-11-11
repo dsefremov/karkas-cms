@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Karkas\Adapters\Entry\Http\Controller;
 
 use Karkas\Adapters\Infrastructure\Persistence\PlatformSiteRepository;
+use Karkas\Adapters\Infrastructure\Persistence\SiteModuleRepository;
 use Karkas\Application\Admin\AdminAuthException;
 use Karkas\Application\Admin\AdminAuthService;
 use RuntimeException;
@@ -18,6 +19,7 @@ final class SitesController extends AbstractController
     public function __construct(
         private readonly AdminAuthService $adminAuth,
         private readonly PlatformSiteRepository $sites,
+        private readonly SiteModuleRepository $siteModules,
     ) {
     }
 
@@ -26,6 +28,7 @@ final class SitesController extends AbstractController
     {
         $this->adminAuth->assertAuthenticated();
         $rows = $this->sites->listAll();
+        $blogEnabled = $this->siteModules->blogEnabledBySiteIds();
 
         return new JsonResponse([
             'schema' => 'karkas-sites/v1',
@@ -35,6 +38,7 @@ final class SitesController extends AbstractController
                 'label' => $site['label'],
                 'is_default' => $site['is_default'],
                 'canonical_host' => $site['canonical_host'],
+                'blog_enabled' => $blogEnabled[$site['id']] ?? false,
             ], $rows),
         ]);
     }
@@ -66,5 +70,47 @@ final class SitesController extends AbstractController
         }
 
         return new JsonResponse(['site' => $site], 201);
+    }
+
+    #[Route('/api/v1/sites/{siteId}/make-default', name: 'api_sites_make_default', methods: ['POST'])]
+    public function makeDefault(int $siteId, Request $request): JsonResponse
+    {
+        try {
+            $this->adminAuth->assertAuthenticated();
+            $this->adminAuth->resolveReauthFromRequest($request);
+        } catch (AdminAuthException $e) {
+            return new JsonResponse(['error' => $e->getMessage()], 401);
+        }
+        try {
+            $this->sites->transferDefault($siteId);
+        } catch (RuntimeException $e) {
+            return new JsonResponse(['error' => $e->getMessage(), 'message' => 'Не удалось назначить сайт по умолчанию.'], 409);
+        }
+        $site = $this->sites->findById($siteId);
+
+        return new JsonResponse(['site' => $site]);
+    }
+
+    #[Route('/api/v1/sites/{siteId}', name: 'api_sites_delete', methods: ['DELETE'])]
+    public function delete(int $siteId, Request $request): JsonResponse
+    {
+        try {
+            $this->adminAuth->assertAuthenticated();
+            $this->adminAuth->resolveReauthFromRequest($request);
+        } catch (AdminAuthException $e) {
+            return new JsonResponse(['error' => $e->getMessage()], 401);
+        }
+        try {
+            $this->sites->delete($siteId);
+        } catch (RuntimeException $e) {
+            $message = 'default_site_delete_forbidden' === $e->getMessage()
+                ? 'Сайт по умолчанию нельзя удалить. Сначала назначьте другой сайт по умолчанию.'
+                : 'Не удалось удалить сайт.';
+            $status = 'default_site_delete_forbidden' === $e->getMessage() ? 409 : 404;
+
+            return new JsonResponse(['error' => $e->getMessage(), 'message' => $message], $status);
+        }
+
+        return new JsonResponse(['deleted' => true]);
     }
 }

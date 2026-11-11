@@ -6,6 +6,7 @@ namespace Karkas\Adapters\Entry\Http\Controller;
 
 use Karkas\Adapters\Infrastructure\Persistence\ModuleInstanceRepository;
 use Karkas\Adapters\Infrastructure\Persistence\ModuleMountRepository;
+use Karkas\Application\Blog\BlogFacadeService;
 use Karkas\Application\Blog\BlogPostRepository;
 use Karkas\Application\Site\SiteRequestResolver;
 use RuntimeException;
@@ -21,6 +22,7 @@ final class PublicBlogController extends AbstractController
         private readonly ModuleInstanceRepository $instances,
         private readonly ModuleMountRepository $mounts,
         private readonly SiteRequestResolver $siteResolver,
+        private readonly BlogFacadeService $blogFacade,
     ) {
     }
 
@@ -41,11 +43,24 @@ final class PublicBlogController extends AbstractController
         if (null === $mount) {
             return new Response('Blog mount missing', Response::HTTP_NOT_FOUND);
         }
+        $resolution = $this->blogFacade->resolveBlogListRequest($siteId);
+        if ('redirect' === $resolution['action']) {
+            $location = $resolution['location'] ?? '';
+            if ('' === $location) {
+                return new Response('Blog facade redirect misconfigured', Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
+
+            return $this->redirect($location, Response::HTTP_MOVED_PERMANENTLY);
+        }
+        if ('missing' === $resolution['action']) {
+            return new Response('Blog mount missing', Response::HTTP_NOT_FOUND);
+        }
         $articles = $this->posts->listPublic($siteId, $instance['id']);
 
         return $this->render('blog/list.html.twig', [
             'site_label' => $site['label'],
             'articles' => $articles,
+            'canonical_url' => BlogFacadeService::BLOG_PUBLIC_PREFIX,
         ]);
     }
 

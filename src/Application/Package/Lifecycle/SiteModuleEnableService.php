@@ -13,6 +13,7 @@ use Karkas\Adapters\Infrastructure\Persistence\OperationJournalRepository;
 use Karkas\Adapters\Infrastructure\Persistence\PlatformSiteRepository;
 use Karkas\Adapters\Infrastructure\Persistence\SiteModuleRepository;
 use Karkas\Application\Package\Manifest\ManifestJsonParser;
+use Karkas\Application\Search\SearchIndexService;
 use RuntimeException;
 use Throwable;
 
@@ -29,13 +30,23 @@ final class SiteModuleEnableService
         private readonly ManifestJsonParser $parser,
         private readonly OperationJournalRepository $journal,
         private readonly MaintenanceModeRepository $maintenance,
+        private readonly SearchIndexService $searchIndexes,
         private readonly string $packagesRoot,
     ) {
     }
 
     public function enableBlogOnDefaultSite(string $actor, string $siteLabel = 'Каркас — демо'): string
     {
-        return $this->enableBlogOnSite(PlatformSiteRepository::DEFAULT_SITE_ID, $actor, $siteLabel);
+        $default = $this->sites->getDefault();
+        if (null === $default) {
+            $this->sites->ensureDefaultSite($siteLabel);
+            $default = $this->sites->getDefault();
+        }
+        if (null === $default) {
+            throw new RuntimeException('Default site is not configured.');
+        }
+
+        return $this->enableBlogOnSite($default['id'], $actor, $siteLabel);
     }
 
     public function enableBlogOnSite(int $siteId, string $actor, string $siteLabel): string
@@ -73,6 +84,9 @@ final class SiteModuleEnableService
 
             $connection = $this->connections->create();
             $this->migrationRunner->applyPending($connection, $stagingRoot, $manifest);
+            if ('karkas/blog' === $packageId) {
+                $this->searchIndexes->ensureFulltextIndexes($connection);
+            }
             $instanceId = bin2hex(random_bytes(16));
             $existing = $this->instances->findBySiteModule($siteId, $packageId);
             if (null === $existing) {
