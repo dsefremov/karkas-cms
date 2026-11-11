@@ -2,8 +2,6 @@ import { useMemo } from 'react';
 import { AdminIcon, NAV_ICONS } from '../AdminIcons';
 import { parentSelectOptions, siblingPositionOptions } from '../../lib/pageTree';
 import type { PageTreeNode } from '../../types/admin';
-import { PAGE_TREE_ROOT } from '../../types/admin';
-
 type TreeMoveModalProps = {
   open: boolean;
   pageTree: PageTreeNode[];
