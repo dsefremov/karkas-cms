@@ -15,8 +15,10 @@ test.describe('Karkas Stage 6 smoke', () => {
 
   test('admin blog save flow with accessibility scan', async ({ page }, testInfo) => {
     await bootstrapBlogAdmin(page);
+    await page.goto('/admin/posts');
     await page.getByTestId('blog-save-demo').click();
     await expect(page.getByTestId('admin-message')).toContainText('Статья сохранена', { timeout: 60_000 });
+    await page.goto('/admin/modules');
     await expect(page.getByTestId('version-row-karkas-blog')).toContainText('1.0.0');
 
     const blog = await page.goto('/blog');

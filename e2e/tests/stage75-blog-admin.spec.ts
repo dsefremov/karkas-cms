@@ -10,7 +10,7 @@ test.describe('Stage 7.5 blog admin fixes', () => {
     await expect(page.getByTestId('admin-authenticated')).toBeVisible();
 
     await page.evaluate(() => sessionStorage.removeItem('karkas.admin.reauth'));
-    await page.reload();
+    await page.goto('/admin/modules');
     await expect(page.getByTestId('admin-authenticated')).toBeVisible();
 
     const enable = page.getByTestId('enable-blog');
@@ -30,6 +30,9 @@ test.describe('Stage 7.5 blog admin fixes', () => {
 
   test('wizard hints explain blocked install blog step', async ({ page }) => {
     await page.goto('/admin/login');
+    await page.getByTestId('admin-password').fill(ADMIN_PASSWORD);
+    await page.getByTestId('admin-login').click();
+    await page.goto('/admin/modules');
     await expect(page.getByTestId('install-blog-step-hint')).toBeVisible();
     const hint = await page.getByTestId('install-blog-step-hint').innerText();
     expect(hint.length).toBeGreaterThan(10);

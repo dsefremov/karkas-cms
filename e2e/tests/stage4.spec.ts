@@ -5,6 +5,7 @@ import { bootstrapBlogAdmin } from './helpers/admin-bootstrap';
 test.describe('Karkas Stage 4', () => {
   test('core upgrade button updates Core version', async ({ page }) => {
     await bootstrapBlogAdmin(page);
+    await page.goto('/admin/core-update');
     const summary = (await page.getByTestId('core-version-summary').textContent()) ?? '';
     if (summary.includes('1.0.0') && summary.includes('1.1.0')) {
       await page.getByTestId('core-upgrade-confirm').check();
@@ -17,6 +18,7 @@ test.describe('Karkas Stage 4', () => {
 
   test('blog version history shows at most ten rows', async ({ page }) => {
     await bootstrapBlogAdmin(page);
+    await page.goto('/admin/posts');
     await page.getByTestId('blog-save-demo').click();
     await expect(page.getByTestId('admin-message')).toContainText('Статья сохранена', { timeout: 60_000 });
     const postId = await page.getByTestId('blog-last-post-id').textContent();
@@ -44,6 +46,7 @@ test.describe('Karkas Stage 4', () => {
 
   test('admin screenshots at 1440 and 390 with axe on desktop', async ({ page }, testInfo) => {
     await bootstrapBlogAdmin(page);
+    await page.goto('/admin/posts');
     await page.getByTestId('blog-save-demo').click();
     await expect(page.getByTestId('admin-message')).toContainText('Статья сохранена', { timeout: 60_000 });
     await page.getByTestId('blog-load-history').click();
