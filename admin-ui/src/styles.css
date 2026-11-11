@@ -231,6 +231,51 @@ button:disabled {
   }
 }
 
+.page-tree-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+  gap: 1.25rem;
+}
+
+.page-tree-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.page-tree-node {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text);
+  padding: 0.35rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.page-tree-node.selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.page-tree-children {
+  list-style: none;
+  margin: 0.25rem 0 0;
+  padding: 0;
+}
+
+.move-impact {
+  font-size: 0.95rem;
+  color: var(--accent);
+}
+
+@media (max-width: 900px) {
+  .page-tree-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
 .plan-preview {
   margin: 0.75rem 0 0;
   padding: 0.75rem;

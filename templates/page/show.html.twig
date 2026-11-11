@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <title>{{ page.title }} — {{ site_label }}</title>
+</head>
+<body>
+    <header>
+        <p class="muted">{{ site_label }}</p>
+        <h1>{{ page.title }}</h1>
+    </header>
+    <article>
+        {{ page.body_text|nl2br }}
+    </article>
+</body>
+</html>

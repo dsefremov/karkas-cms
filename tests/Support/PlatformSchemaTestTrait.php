@@ -16,6 +16,8 @@ trait PlatformSchemaTestTrait
         }
         $connection = $factory->create();
         foreach ([
+            'site_page_redirect',
+            'site_page',
             'blog_slug_redirect',
             'blog_post_version',
             'blog_post',
