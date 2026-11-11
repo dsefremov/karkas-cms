@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Karkas\Application\Blog;
 
 use DateTime;
+use DateTimeImmutable;
+use DateTimeZone;
 use Doctrine\DBAL\Types\Types;
 use Karkas\Adapters\Infrastructure\Persistence\DatabaseConnectionFactory;
 
@@ -250,9 +252,9 @@ final class BlogPostRepository
     public function countUpdatedOnLocalDay(int $siteId, string $instanceId, string $timezone): int
     {
         $connection = $this->connections->create();
-        $tz = new \DateTimeZone($timezone);
-        $start = (new \DateTimeImmutable('today', $tz))->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s');
-        $end = (new \DateTimeImmutable('tomorrow', $tz))->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s');
+        $tz = new DateTimeZone($timezone);
+        $start = new DateTimeImmutable('today', $tz)->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
+        $end = new DateTimeImmutable('tomorrow', $tz)->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
 
         return (int) $connection->fetchOne(
             'SELECT COUNT(*) FROM blog_post WHERE site_id = :site AND module_instance_id = :instance

@@ -12,6 +12,7 @@ use Karkas\Adapters\Infrastructure\Persistence\PlatformSiteRepository;
 use Karkas\Application\Blog\BlogPostRepository;
 use Karkas\Application\Content\SitePageRepository;
 use RuntimeException;
+use Throwable;
 
 final class AdminDashboardService
 {
@@ -89,23 +90,23 @@ final class AdminDashboardService
             'title' => (string) $row['title'],
             'slug' => (string) $row['slug'],
             'activity' => $activity,
-            'activity_label' => $activity === 'active' ? 'Активна' : 'Неактивна',
+            'activity_label' => 'active' === $activity ? 'Активна' : 'Неактивна',
             'updated_at' => $updated,
         ];
     }
 
     private function formatTimestamp(string $raw): string
     {
-        if ($raw === '') {
+        if ('' === $raw) {
             return '—';
         }
         try {
             $dt = new DateTimeImmutable($raw);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             $stripped = preg_replace('/\.\d+/', '', $raw) ?? $raw;
             try {
                 $dt = new DateTimeImmutable($stripped);
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 return $raw;
             }
         }

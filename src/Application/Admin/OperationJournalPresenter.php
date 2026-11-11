@@ -6,6 +6,7 @@ namespace Karkas\Application\Admin;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use Throwable;
 
 final class OperationJournalPresenter
 {
@@ -37,7 +38,7 @@ final class OperationJournalPresenter
             'site.module.enable' => 'Включение модуля на сайте',
             'site.module.disable' => 'Отключение модуля на сайте',
             'core.upgrade' => 'Обновление ядра',
-            default => $type !== '' ? $type : 'Операция',
+            default => '' !== $type ? $type : 'Операция',
         };
     }
 
@@ -46,7 +47,7 @@ final class OperationJournalPresenter
      */
     private function summaryFor(string $type, string $status, array $row): string
     {
-        $phase = isset($row['phase']) && is_string($row['phase']) && $row['phase'] !== '' ? $row['phase'] : null;
+        $phase = isset($row['phase']) && is_string($row['phase']) && '' !== $row['phase'] ? $row['phase'] : null;
         $label = $this->labelForType($type);
         $statusRu = match ($status) {
             'completed', 'success' => 'завершена',
@@ -56,24 +57,24 @@ final class OperationJournalPresenter
             default => $status,
         };
 
-        return $phase !== null
+        return null !== $phase
             ? sprintf('%s — %s (%s)', $label, $statusRu, $phase)
             : sprintf('%s — %s', $label, $statusRu);
     }
 
     private function formatTimestamp(string $raw): string
     {
-        if ($raw === '') {
+        if ('' === $raw) {
             return '—';
         }
         try {
             $dt = new DateTimeImmutable($raw);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             $stripped = preg_replace('/\.\d+/', '', $raw) ?? $raw;
 
             try {
                 $dt = new DateTimeImmutable($stripped);
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 return $raw;
             }
         }
