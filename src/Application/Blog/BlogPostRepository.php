@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Karkas\Application\Blog;
 
 use DateTime;
+use DateTimeImmutable;
+use DateTimeZone;
 use Doctrine\DBAL\Types\Types;
 use Karkas\Adapters\Infrastructure\Persistence\DatabaseConnectionFactory;
 
@@ -235,6 +237,47 @@ final class BlogPostRepository
         );
 
         return false === $row ? null : $row;
+    }
+
+    public function countByActivity(int $siteId, string $instanceId, string $activity): int
+    {
+        $connection = $this->connections->create();
+
+        return (int) $connection->fetchOne(
+            'SELECT COUNT(*) FROM blog_post WHERE site_id = :site AND module_instance_id = :instance AND activity = :activity',
+            ['site' => $siteId, 'instance' => $instanceId, 'activity' => $activity],
+        );
+    }
+
+    public function countUpdatedOnLocalDay(int $siteId, string $instanceId, string $timezone): int
+    {
+        $connection = $this->connections->create();
+        $tz = new DateTimeZone($timezone);
+        $start = new DateTimeImmutable('today', $tz)->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
+        $end = new DateTimeImmutable('tomorrow', $tz)->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
+
+        return (int) $connection->fetchOne(
+            'SELECT COUNT(*) FROM blog_post WHERE site_id = :site AND module_instance_id = :instance
+             AND updated_at >= :start AND updated_at < :end',
+            ['site' => $siteId, 'instance' => $instanceId, 'start' => $start, 'end' => $end],
+        );
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function listRecentForAdmin(int $siteId, string $instanceId, int $limit): array
+    {
+        $connection = $this->connections->create();
+        $rows = $connection->fetchAllAssociative(
+            'SELECT id, slug, title, activity, updated_at FROM blog_post
+             WHERE site_id = :site AND module_instance_id = :instance
+             ORDER BY updated_at DESC LIMIT :limit',
+            ['site' => $siteId, 'instance' => $instanceId, 'limit' => $limit],
+            ['limit' => Types::INTEGER],
+        );
+
+        return $rows;
     }
 
     public function resolvePublishedSlug(int $siteId, string $fromSlug): ?string

@@ -37,6 +37,7 @@ test.describe('Karkas Stage 7', () => {
     await page.getByTestId('create-site').click();
     await expect(page.getByTestId('admin-message')).toContainText('создан', { timeout: 30_000 });
     await expect(page.getByTestId(`site-blog-default`)).toContainText('да');
+    await expect(page.getByTestId(`make-default-${siteKey}`)).toBeVisible({ timeout: 15_000 });
     await page.getByTestId(`make-default-${siteKey}`).click();
     await expect(page.getByTestId('admin-message')).toContainText('по умолчанию', { timeout: 15_000 });
     await expect(page.getByTestId(`site-default-${siteKey}`)).toContainText('да');

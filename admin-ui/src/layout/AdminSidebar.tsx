@@ -30,9 +30,6 @@ export function AdminSidebar({ postsCount, operationsCount }: AdminSidebarProps)
             <strong style={{ fontSize: 12 }}>{defaultSite.label || defaultSite.site_key}</strong>
             <div className="small muted">Сайт: {defaultSite.site_key}</div>
           </div>
-          <AdminIcon>
-            <path d="m5 8 5 5 5-5" strokeLinecap="round" strokeLinejoin="round" />
-          </AdminIcon>
         </div>
       )}
       <div className="nav-label">Рабочее пространство</div>

@@ -49,6 +49,19 @@ final class SitePageRepository
     /**
      * @return array<string, mixed>|null
      */
+    public function findBySiteSlug(int $siteId, string $parentId, string $slug): ?array
+    {
+        $row = $this->connection()->fetchAssociative(
+            'SELECT * FROM site_page WHERE site_id = :site AND parent_id = :parent AND slug = :slug LIMIT 1',
+            ['site' => $siteId, 'parent' => $parentId, 'slug' => $slug],
+        );
+
+        return false === $row ? null : $row;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
     public function findBySlugOnSite(int $siteId, string $slug): ?array
     {
         $row = $this->connection()->fetchAssociative(
@@ -201,6 +214,14 @@ final class SitePageRepository
         }
 
         return (int) $this->connection()->fetchOne($sql, $params) > 0;
+    }
+
+    public function countBySite(int $siteId): int
+    {
+        return (int) $this->connection()->fetchOne(
+            'SELECT COUNT(*) FROM site_page WHERE site_id = :site',
+            ['site' => $siteId],
+        );
     }
 
     public function nextSortOrder(int $siteId, string $parentId): int

@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { bootstrapBlogAdmin } from './helpers/admin-bootstrap';
 import { gotoAdminPath } from './helpers/admin-nav';
+import { ensurePageTreeSite, seedE2ePageTree } from './helpers/page-tree-seed';
 
 test.describe('Karkas Stage 6', () => {
   test('blog enable site selector lists sites', async ({ page }) => {
@@ -21,23 +22,32 @@ test.describe('Karkas Stage 6', () => {
     expect(Number(await select.inputValue())).toBeGreaterThan(0);
   });
 
-  test('page tree seed and move preview', async ({ page }) => {
+  test('page tree seed and move preview', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name.includes('mobile'), 'Move form verified on desktop');
     await bootstrapBlogAdmin(page);
     await gotoAdminPath(page, 'pages');
-    await page.getByTestId('page-tree-seed').click();
-    await expect(page.getByTestId('admin-message')).toContainText('Демо-дерево', { timeout: 15_000 });
-    await page.getByRole('button', { name: /Команда/ }).last().click();
-    await page.getByTestId('move-parent').fill('00000000-0000-0000-0000-000000000001');
+    const { teamSlug, siteId } = await seedE2ePageTree(page);
+    await gotoAdminPath(page, 'pages');
+    await ensurePageTreeSite(page, siteId);
+    const teamNode = page.getByTestId(`page-tree-node-${teamSlug}`);
+    await expect(teamNode).toBeVisible({ timeout: 15_000 });
+    await teamNode.scrollIntoViewIfNeeded();
+    await teamNode.click();
+    await expect(page.getByRole('button', { name: /Переместить через форму/ })).toBeEnabled({ timeout: 10_000 });
+    await page.getByRole('button', { name: /Переместить через форму/ }).click();
+    await expect(page.getByTestId('page-move-modal')).toBeVisible();
+    await page.getByTestId('move-parent-select').selectOption({ label: 'Корень сайта' });
     await page.getByTestId('page-move-preview').click();
-    await expect(page.getByTestId('page-move-impact')).toContainText('адресов', { timeout: 10_000 });
+    await expect(page.getByTestId('page-move-impact')).toContainText('Затронуто', { timeout: 10_000 });
   });
 
   test('page tree screenshots at 1440 and 390', async ({ page }, testInfo) => {
     await bootstrapBlogAdmin(page);
     await gotoAdminPath(page, 'pages');
-    await page.getByTestId('page-tree-seed').click();
-    await expect(page.getByTestId('admin-message')).toContainText('Демо-дерево', { timeout: 15_000 });
-    await expect(page.getByRole('button', { name: /О компании/ }).last()).toBeVisible({ timeout: 15_000 });
+    const { aboutSlug, siteId } = await seedE2ePageTree(page);
+    await gotoAdminPath(page, 'pages');
+    await ensurePageTreeSite(page, siteId);
+    await expect(page.getByTestId(`page-tree-node-${aboutSlug}`)).toBeVisible({ timeout: 15_000 });
     const viewport = testInfo.project.name.includes('mobile') ? '390' : '1440';
     const name = viewport === '1440' ? `tree-${viewport}` : `tree-${viewport}`;
     await page.screenshot({ path: testInfo.outputPath(`${name}.png`), fullPage: true });
@@ -51,10 +61,17 @@ test.describe('Karkas Stage 6', () => {
     test.skip(testInfo.project.name.includes('mobile'), 'Move dialog layout checked on desktop');
     await bootstrapBlogAdmin(page);
     await gotoAdminPath(page, 'pages');
-    await page.getByTestId('page-tree-seed').click();
-    await page.getByRole('button', { name: /Команда/ }).last().click();
+    const { teamSlug, siteId } = await seedE2ePageTree(page);
+    await gotoAdminPath(page, 'pages');
+    await ensurePageTreeSite(page, siteId);
+    const teamRow = page.getByTestId(`page-tree-node-${teamSlug}`);
+    await expect(teamRow).toBeVisible({ timeout: 15_000 });
+    await teamRow.click();
+    await page.getByRole('button', { name: /Переместить через форму/ }).click();
+    await expect(page.getByTestId('page-move-modal')).toBeVisible();
+    await page.getByTestId('move-parent-select').selectOption({ label: 'Корень сайта' });
     await page.getByTestId('page-move-preview').click();
-    await expect(page.getByTestId('page-move-impact')).toContainText('адресов');
+    await expect(page.getByTestId('page-move-impact')).toContainText('Затронуто');
     await page.screenshot({ path: testInfo.outputPath('tree-move-1440.png'), fullPage: true });
   });
 

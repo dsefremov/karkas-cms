@@ -14,7 +14,7 @@ test.describe('Karkas Stage 4', () => {
       await expect(page.getByTestId('admin-message')).toContainText('Core обновлён', { timeout: 60_000 });
       await expect(page.getByTestId('version-row-karkas-core')).toContainText('1.1.0');
     }
-    await expect(page.getByTestId('core-upgrade-panel')).toContainText('не требуется');
+    await expect(page.getByTestId('core-upgrade-idle')).toContainText('не требуется');
   });
 
   test('blog version history shows at most ten rows', async ({ page }) => {

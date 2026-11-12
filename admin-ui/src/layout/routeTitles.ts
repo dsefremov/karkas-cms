@@ -10,4 +10,8 @@ export const ROUTE_TITLES: Record<string, string> = {
   operations: 'Операции',
   roles: 'Роли и доступ',
   'core-update': 'Обновление Core',
+  blog: 'Блог',
+  binding: 'Привязка к странице',
+  unbind: 'Отвязка модуля',
+  conflict: 'Конфликт адреса',
 };
