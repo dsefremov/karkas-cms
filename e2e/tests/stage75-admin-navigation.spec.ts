@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { ensureAdminLogin } from './helpers/admin-bootstrap';
+import { bootstrapBlogAdmin, ensureAdminLogin } from './helpers/admin-bootstrap';
 import { ADMIN_ROUTES, gotoAdminPath } from './helpers/admin-nav';
 
 const DIRECT_PATHS = [
@@ -17,7 +17,7 @@ test.describe('Stage 7.5 admin navigation', () => {
   });
 
   test.beforeEach(async ({ page }) => {
-    await ensureAdminLogin(page);
+    await bootstrapBlogAdmin(page);
   });
 
   test('sidebar opens each screen', async ({ page }) => {

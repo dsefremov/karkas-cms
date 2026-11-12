@@ -59,6 +59,17 @@ final class PlatformSiteRepository
         return $this->mapRow($row);
     }
 
+    public function updateLabel(int $id, string $label): void
+    {
+        $connection = $this->connections->create();
+        $connection->update(
+            'platform_site',
+            ['label' => $label, 'updated_at' => new DateTime()],
+            ['id' => $id],
+            ['updated_at' => Types::DATETIME_MUTABLE],
+        );
+    }
+
     /**
      * @return array{id: int, site_key: string, label: string, is_default: bool, canonical_host: string|null}|null
      */

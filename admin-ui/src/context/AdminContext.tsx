@@ -68,6 +68,9 @@ export type AdminContextValue = {
   moveParentId: string;
   setMoveParentId: (value: string) => void;
   moveImpact: number | null;
+  moveSortOrder: number;
+  setMoveSortOrder: (value: number) => void;
+  movePathPreview: { from: string; to: string } | null;
   blogFacadeBoundPageId: string | null;
   blogFacadeTreePath: string | null;
   coreRow: VersionsPayload['packages'][number] | undefined;
@@ -101,6 +104,8 @@ export type AdminContextValue = {
   saveSelectedPage: () => Promise<void>;
   previewPageMove: () => Promise<void>;
   confirmPageMove: () => Promise<void>;
+  selectPage: (node: PageTreeNode) => void;
+  createChildPage: (title: string, slug: string, parentId: string) => Promise<void>;
   moveSelectedSibling: (direction: -1 | 1) => Promise<void>;
   loadBlogHistory: () => Promise<void>;
   renderTreeNodes: (nodes: PageTreeNode[], depth?: number) => React.ReactNode;
@@ -143,6 +148,8 @@ export function AdminProvider({ children }: { children: ReactNode }): React.JSX.
   const [pageActivity, setPageActivity] = useState<'active' | 'inactive'>('inactive');
   const [moveParentId, setMoveParentId] = useState(PAGE_TREE_ROOT);
   const [moveImpact, setMoveImpact] = useState<number | null>(null);
+  const [moveSortOrder, setMoveSortOrder] = useState(0);
+  const [movePathPreview, setMovePathPreview] = useState<{ from: string; to: string } | null>(null);
   const [blogFacadeBoundPageId, setBlogFacadeBoundPageId] = useState<string | null>(null);
   const [blogFacadeTreePath, setBlogFacadeTreePath] = useState<string | null>(null);
   const [reauthOpen, setReauthOpen] = useState(false);
@@ -559,6 +566,23 @@ export function AdminProvider({ children }: { children: ReactNode }): React.JSX.
     setPageActivity(node.activity === 'active' ? 'active' : 'inactive');
     setMoveParentId(node.parent_id);
     setMoveImpact(null);
+    setMovePathPreview(null);
+  }
+
+  async function createChildPage(title: string, slug: string, parentId: string): Promise<void> {
+    setError(null);
+    const response = await fetch(`/api/v1/sites/${pageTreeSiteId}/pages`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, slug, parent_id: parentId, activity: 'active', body_text: title }),
+    });
+    if (!response.ok) {
+      const err = (await response.json()) as { message?: string };
+      setError(err.message ?? 'Не удалось создать страницу');
+      return;
+    }
+    setMessage(`Страница «${title}» создана.`);
+    await loadPageTree();
   }
 
   async function seedDemoPages(): Promise<void> {
@@ -633,14 +657,23 @@ export function AdminProvider({ children }: { children: ReactNode }): React.JSX.
     const body = (await response.json()) as {
       affected_paths?: number;
       message?: string;
+      path_changes?: Array<{ from: string; to: string; page_id?: string }>;
       blog_facade?: { bound_page_id?: string | null; tree_path?: string | null; note?: string };
     };
     if (!response.ok) {
       setError(body.message ?? 'Перенос недоступен');
       setMoveImpact(null);
+      setMovePathPreview(null);
       return;
     }
     setMoveImpact(body.affected_paths ?? 0);
+    const change =
+      body.path_changes?.find((c) => c.page_id === selectedPageId) ?? body.path_changes?.[0];
+    if (change !== undefined) {
+      setMovePathPreview({ from: `/${change.from}`, to: `/${change.to}` });
+    } else {
+      setMovePathPreview(null);
+    }
     const facadeNote =
       body.blog_facade?.note ??
       (body.blog_facade?.bound_page_id
@@ -658,7 +691,7 @@ export function AdminProvider({ children }: { children: ReactNode }): React.JSX.
     const response = await fetch(`/api/v1/pages/${selectedPageId}/move`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ parent_id: moveParentId, sort_order: 0, slug: pageSlug }),
+      body: JSON.stringify({ parent_id: moveParentId, sort_order: moveSortOrder, slug: pageSlug }),
     });
     if (!response.ok) {
       setError('Перенос отклонён');
@@ -809,6 +842,9 @@ export function AdminProvider({ children }: { children: ReactNode }): React.JSX.
       moveParentId,
       setMoveParentId,
       moveImpact,
+      moveSortOrder,
+      setMoveSortOrder,
+      movePathPreview,
       blogFacadeBoundPageId,
       blogFacadeTreePath,
       coreRow,
@@ -842,6 +878,8 @@ export function AdminProvider({ children }: { children: ReactNode }): React.JSX.
       saveSelectedPage,
       previewPageMove,
       confirmPageMove,
+      selectPage: selectPageNode,
+      createChildPage,
       moveSelectedSibling,
       loadBlogHistory,
       renderTreeNodes,
@@ -873,6 +911,8 @@ export function AdminProvider({ children }: { children: ReactNode }): React.JSX.
       pageActivity,
       moveParentId,
       moveImpact,
+      moveSortOrder,
+      movePathPreview,
       blogFacadeBoundPageId,
       blogFacadeTreePath,
       coreRow,

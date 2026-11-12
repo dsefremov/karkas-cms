@@ -14,6 +14,7 @@ import { RolesPage } from './pages/RolesPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { SitesPage } from './pages/SitesPage';
 import { UsersPage } from './pages/UsersPage';
+import { BlogBindingPage } from './pages/BlogBindingPage';
 
 export function App(): React.JSX.Element {
   return (
@@ -30,6 +31,12 @@ export function App(): React.JSX.Element {
         <Route path="pages" element={<PagesPage />} />
         <Route path="users" element={<UsersPage />} />
         <Route path="modules" element={<ModulesPage />} />
+        <Route path="modules/blog/binding" element={<BlogBindingPage />} />
+        <Route path="modules/blog/unbind" element={<BlogBindingPage />} />
+        <Route path="modules/blog/unbind-ready" element={<BlogBindingPage />} />
+        <Route path="modules/blog/conflict" element={<BlogBindingPage />} />
+        <Route path="modules/blog/address-change" element={<BlogBindingPage />} />
+        <Route path="modules/blog/settings" element={<BlogBindingPage />} />
         <Route path="sites" element={<SitesPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="core-update" element={<CoreUpdatePage />} />

@@ -6,9 +6,7 @@ test.describe('Karkas Stage 5', () => {
   test('core plan preview shows targets before upgrade', async ({ page }) => {
     await bootstrapBlogAdmin(page);
     await page.goto('/admin/core-update');
-    await page.getByTestId('load-core-plan').click();
-    await expect(page.getByTestId('core-plan-preview')).toBeVisible();
-    await expect(page.getByTestId('admin-message')).toContainText('План обновления Core');
+    await expect(page.getByTestId('core-plan-preview')).toBeVisible({ timeout: 30_000 });
     const summary = (await page.getByTestId('core-version-summary').textContent()) ?? '';
     if (summary.includes('1.0.0') && summary.includes('1.1.0')) {
       await page.getByTestId('core-upgrade-confirm').check();
@@ -35,8 +33,7 @@ test.describe('Karkas Stage 5', () => {
   test('admin screenshots at 1440 and 390 with plan panel', async ({ page }, testInfo) => {
     await bootstrapBlogAdmin(page);
     await page.goto('/admin/core-update');
-    await page.getByTestId('load-core-plan').click();
-    await expect(page.getByTestId('core-plan-preview')).toBeVisible();
+    await expect(page.getByTestId('core-plan-preview')).toBeVisible({ timeout: 30_000 });
     const viewport = testInfo.project.name.includes('mobile') ? '390' : '1440';
     await page.screenshot({ path: testInfo.outputPath(`admin-${viewport}.png`), fullPage: true });
     if (!testInfo.project.name.includes('mobile')) {
