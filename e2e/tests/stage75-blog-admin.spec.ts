@@ -28,7 +28,7 @@ test.describe('Stage 7.5 blog admin fixes', () => {
     await expect(page.getByTestId('admin-authenticated')).toBeAttached();
 
     await page.goto('/admin/modules');
-    await page.getByTestId('enable-blog-site').selectOption({ label: `${siteKey} (Reauth E2E)` });
+    await page.getByTestId('enable-blog-site').selectOption({ label: 'Reauth E2E' });
     await page.getByTestId('enable-blog').click();
     await expect(page.getByTestId('reauth-modal-backdrop')).toBeVisible();
     await page.getByTestId('reauth-password').fill(ADMIN_PASSWORD);
@@ -40,7 +40,10 @@ test.describe('Stage 7.5 blog admin fixes', () => {
     await page.goto('/admin/login');
     await page.getByTestId('admin-password').fill(ADMIN_PASSWORD);
     await page.getByTestId('admin-login').click();
+    await expect(page.getByTestId('admin-authenticated')).toBeAttached();
+    await page.waitForURL(/\/admin\/(dashboard|modules)/);
     await page.goto('/admin/modules');
+    await expect(page.getByTestId('admin-shell')).toBeVisible();
     await expect(page.getByTestId('install-blog-step-hint')).toBeVisible();
     const hint = await page.getByTestId('install-blog-step-hint').innerText();
     expect(hint.length).toBeGreaterThan(10);

@@ -41,6 +41,7 @@ export const NAV_ICONS = {
   plus: <path d="M10 3v14M3 10h14" strokeLinecap="round" strokeLinejoin="round" />,
   pageDoc: <path d="M5 2h8l4 4v12H5zM12 2v5h5M8 11h6M8 14h6" strokeLinecap="round" strokeLinejoin="round" />,
   chevronDown: <path d="m5 8 5 5 5-5" strokeLinecap="round" strokeLinejoin="round" />,
+  menu: <path d="M3 6h14M3 10h14M3 14h14" strokeLinecap="round" strokeLinejoin="round" />,
   shield: (
     <path d="m10 2 7 3v5c0 5-7 8-7 8s-7-3-7-8V5zM6 10l3 3 5-6" strokeLinecap="round" strokeLinejoin="round" />
   ),

@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import { AdminIcon, NAV_ICONS } from '../components/AdminIcons';
+import { AdminSelect } from '../components/AdminSelect';
 import { useAdmin } from '../context/AdminContext';
+import { siteDisplayLabel } from '../lib/siteLabel';
 
 export function ModulesPage(): React.JSX.Element {
   const {
@@ -162,20 +164,18 @@ export function ModulesPage(): React.JSX.Element {
                 <div className="small muted">enable + mount /blog</div>
               </td>
               <td colSpan={2}>
-                <select
+                <AdminSelect
                   id="enable-blog-site"
-                  data-testid="enable-blog-site"
+                  testId="enable-blog-site"
                   aria-label="Сайт для включения blog"
                   value={enableBlogSiteId}
-                  onChange={(e) => setEnableBlogSiteId(Number(e.target.value))}
+                  onChange={(value) => setEnableBlogSiteId(Number(value))}
                   disabled={!authenticated || sites.length === 0}
-                >
-                  {sites.map((site) => (
-                    <option key={site.id} value={site.id}>
-                      {site.site_key} ({site.label}){site.is_default ? ' — default' : ''}
-                    </option>
-                  ))}
-                </select>
+                  options={sites.map((site) => ({
+                    value: site.id,
+                    label: siteDisplayLabel(site),
+                  }))}
+                />
               </td>
               <td>
                 {blogEnabledOnTarget ? (
@@ -216,7 +216,7 @@ export function ModulesPage(): React.JSX.Element {
         </p>
         <div className="row gap8 wrap">
           <Link className="btn" to="/modules/blog/binding">
-            Привязка к странице (макет v16)
+            Привязка к странице
           </Link>
           <Link className="btn quiet" to="/pages">
             Дерево страниц

@@ -3,6 +3,25 @@ import { AdminFooter } from '../components/AdminFooter';
 import { AdminIcon, NAV_ICONS } from '../components/AdminIcons';
 import { useAdmin } from '../context/AdminContext';
 
+function statusLabel(status: string): string {
+  switch (status) {
+    case 'completed':
+    case 'success':
+      return 'Завершена';
+    case 'failed':
+    case 'error':
+      return 'Ошибка';
+    case 'running':
+    case 'in_progress':
+      return 'Выполняется';
+    case 'pending':
+    case 'queued':
+      return 'В очереди';
+    default:
+      return status;
+  }
+}
+
 type OperationRow = {
   id: string;
   operation_type: string;
@@ -65,7 +84,7 @@ export function OperationsPage(): React.JSX.Element {
               </div>
               <div className="stack" style={{ gap: 4, alignItems: 'flex-end' }}>
                 <span className={`badge ${row.status === 'completed' || row.status === 'success' ? 'green' : 'outline'}`}>
-                  {row.status}
+                  {statusLabel(row.status)}
                 </span>
                 <span className="date-cell">{row.created_at}</span>
               </div>

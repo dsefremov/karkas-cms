@@ -1,15 +1,15 @@
 # Stage 7.5 — Admin shell по макетам Дизайнера
 
-Ветка **`grok_bot` → `develop`**, PR **#17**, **не мержить** до ревью Den.
+Ветка **`grok_bot` → `develop`**, PR **#19** (доработка после ревью 12.11), **не мержить** до ревью Den.
 
-**code-head:** `1a4fd3e`  
-**docs-head:** `b249ad5`
+**code-head:** `90c2709`  
+**docs-head:** `90c2709`
 
 ---
 
 ## Цель
 
-Светлая админка на `tokens.css`, роутинг `/admin/...`, сайдбар как в макете v16, экраны на существующем API (этапы 3–7), сохранение фиксов blog (п. 4).
+Светлая админка на `tokens.css`, роутинг `/admin/...`, сайдбар как в макете v16, экраны на существующем API (этапы 3–7), фиксы blog (п. 4) и расхождений ревью 12.11.
 
 ## Артефакты
 
@@ -20,6 +20,16 @@
 | SPA fallback | `AdminSpaController` + `public/admin/.htaccess` |
 | Скриншоты | `docs/stage-7.5/screenshots/` (Docker Apache :8080) |
 | Demo seed (dev/test) | `POST /api/v1/admin/demo/seed` (`kernel.debug` или `KARKAS_ALLOW_DEMO_SEED`) |
+| **Чистая база для скринов** | `POST /api/v1/admin/demo/reset` + `scripts/reset-demo-database.sh` (`api` \| `volume`) |
+
+### Чистая демо-база (скриншоты, не e2e)
+
+Чтобы в «Сайтах» не копились e2e-сайты:
+
+1. `./scripts/reset-demo-database.sh api` — сессия + `demo/reset` (purge не-default сайтов + seed).
+2. `./scripts/reset-demo-database.sh volume` — пересоздать том MySQL, миграции, затем `api`.
+
+`e2e/tests/stage75-screenshots.spec.ts` вызывает **`resetAdminDemoForScreenshots`**, не `seed` alone. Полный Playwright-прогон на reset-базе **не гонять**.
 
 ---
 
@@ -27,7 +37,7 @@
 
 Макет **390** у Дизайнера в png-наборе **нет** — в колонке «Макет 390» помечено **—**.
 
-Снято на **чистой демо-базе**: `bootstrapBlogAdmin` + `POST /api/v1/admin/demo/seed` → `e2e/tests/stage75-screenshots.spec.ts` (1440×900 / 390×844).
+**Обновление пар mock/result (1440 и 390):** после `reset-demo-database.sh` и `stage75-screenshots.spec.ts` — по команде Den «тесты: go». Ниже — структура каталога; актуальные `result-*` заменят старые снимки с «грязной» базой.
 
 ### Вход
 
@@ -75,6 +85,7 @@
 | 5 | duplicate mount | idempotent enable | double enable HTTP |
 | 6 | `site_label` хардкод | label из сайта | e2e multisite |
 | 7 | Привязка blog | экраны `/modules/blog/*` (v16) | `stage7-blog-facade.spec.ts` (desktop) |
+| 8 | Flake после login | `admin-authenticated` + shell до `/modules` | `stage75-blog-admin.spec.ts` |
 
 ---
 
@@ -84,70 +95,58 @@
 |------|--------|-----|
 | `/admin/login` | staff-login карточка | session |
 | `/admin/dashboard` | Обзор (stats, ops, posts) | `GET /api/v1/admin/dashboard` |
-| `/admin/posts` | Таблица + поиск (client) | `GET /api/v1/blog/posts` |
+| `/admin/posts` | Таблица, фильтры, пагинация | `GET /api/v1/blog/posts` |
 | `/admin/posts/new`, `/:id`, `/:id/history` | Редактор / история | blog posts API |
 | `/admin/categories` | Заглушка этап 8 | **нет API** |
 | `/admin/pages` | tree-layout, move modal, preview | sites/pages API |
 | `/admin/modules` | installer + ссылка на binding | platform/install |
-| `/admin/modules/blog/{binding,unbind,unbind-ready,conflict,address-change,settings}` | v16 binding flows | bind/unbind API |
+| `/admin/modules/blog/{binding,unbind,…}` | binding flows | bind/unbind API |
 | `/admin/sites` | multisite + notice шаблонов | `/api/v1/sites` |
 | `/admin/settings` | settings-layout (read-only поля) | ZIP/maintenance + multisite read |
-| `/admin/core-update` | план совместимости | platform/plan |
+| `/admin/core-update` | текущая + доступная, план, confirm | platform/plan + upgrade |
 | `/admin/operations` | log-entry карточки | `GET /api/v1/admin/platform/operations` |
 | `/admin/users`, `/admin/roles` | Заглушка этап 8 | **нет API** |
 
 ---
 
-## Вердикт по экранам (v16)
+## Вердикт по экранам (v16, ревью 12.11)
 
 | Экран | Вердикт | Комментарий |
 |-------|---------|-------------|
-| Shell (sidebar, topbar) | **как в макете** | Без шеврона workspace; футер «Ядро Каркас …» |
-| Вход (`staff-login`) | **как в макете** | Карточка, поля столбцом; 2FA не делали (этап 8) |
-| Обзор | **как в макете** (данные API) | `GET /api/v1/admin/dashboard`; нет графиков из макета |
-| Записи | **как в макете** (список) | Client-поиск/вкладки; WYSIWYG **отложено** |
-| Редактор / история | **частично** | Plain text API, не article-editor.html |
+| Shell (sidebar, topbar) | **как в макете** | Workspace по **названию** сайта; на ≤960px — выезжающий сайдбар + menu, `overflow-x` без горизонтального вылета |
+| Вход (`staff-login`) | **как в макете** | Карточка; 2FA — этап 8 |
+| Обзор | **как в макете** (данные API) | Без графиков из макета |
+| Записи | **как в макете** (список) | Категория / автор / дата **МСК**, вкладки, поиск, сортировка, пагинация (client); WYSIWYG **отложено** |
+| Редактор / история | **частично** | Plain text API; статус через `AdminSelect` |
 | Категории | **нет API** | Заглушка этап 8 |
-| Страницы (`tree.html`) | **как в макете** (без DnD) | Отступы, бейджи, move modal, preview; DnD **этап 8** |
-| Модули | **частично** | Installer + panel binding; полный ZIP UI **отложено** |
-| Blog binding (v16_1…) | **как в макете** (сценарии) | Отдельные routes; конфликт — UI без live conflict API |
-| Сайты и шаблоны | **частично** | Multisite таблица + notice; вкладки шаблонов **нет API** |
-| Настройки | **частично** | Секции макета; SMTP/secrets read-only «этап 8» |
-| Core update | **как в макете** (idle/plan) | Мастер шагов без progress-bar CI |
-| Операции | **как в макете** (журнал) | Человекочитаемые типы, МСК; cron/DLQ **нет API** |
+| Страницы (`tree.html`) | **как в макете** (без DnD) | Строка на всю ширину, **статус в колонке**; move modal; DnD **этап 8** |
+| Модули | **частично** | Installer; сайт в `AdminSelect` по label |
+| Blog binding | **как в макете** (сценарии) | Instance — название сайта, без дубля `site_key` |
+| Сайты | **частично** | Таблица с id/key (админ-данные); скрины — на reset-базе |
+| Настройки | **частично** | Секции макета; SMTP **этап 8** |
+| Core update | **как в макете** (после фикса) | **Текущая + доступная** версии; таблица совместимости, требования, план **без дубля** `karkas/core` в шагах |
+| Операции | **как в макете** (журнал) | Человекочитаемые типы/статусы, МСК |
 | Пользователи / Роли | **нет API** | Заглушка |
+| Mobile 390 | **частично → ок по shell** | Сайдбар collapsible; контентные таблицы на узкой ширине всё ещё плотные |
 
 ---
 
 ## Тесты
 
-- PHPUnit: `Stage75AdminDashboardHttpTest` (2), `Stage75BlogAdminHttpTest`, `Stage75BlogPostsHttpTest`, `Stage75AdminSpaHttpTest`
-- Playwright: navigation, blog, screenshots, stage4–7 regressions
+- PHPUnit: stage75 suite
+- Playwright: `stage4`/`stage5` core upgrade по `upgrade-core` / `core-upgrade-idle`, не по тексту summary; `helpers/core-upgrade-flow.ts`
 
-### Локальный Playwright + axe
+### Прогон (ожидает «тесты: go»)
 
-`docker compose up`, `KARKAS_ADMIN_PASSWORD=test-admin-password-stage2`, `admin-ui` `npm run build`, `e2e`: `BASE_URL=http://127.0.0.1:8080 npm test`.
+Локальный и **PR CI** на push `grok_bot` — зафиксировать зелёный run в этом разделе после прогона.
 
-**Итог (96 specs): 93 passed, 3 skipped, 0 failed** (~49s, SHA `1a4fd3e`).
-
-Skip:
-
-- `stage6` move preview — mobile (форма проверена на desktop)
-- `stage7-blog-facade` — mobile (bind/unbind на desktop)
-- `stage6` move screenshot — mobile (как раньше)
-
-Axe: `stage4`, `stage6` (modules panel), `stage7` search, smoke — **0 violations** (footer contrast `#4a5750`).
-
-```
-  3 skipped
-  93 passed (48.5s)
-```
+PHPUnit / Playwright / axe / screenshot spec — **не запускались** в кодовом проходе (ограничение Den).
 
 ---
 
 ## CI
 
-PR **#17**, после push `1a4fd3e` — смотреть актуальный run в GitHub Actions. На `3b8b6f4` **playwright** падал на `apt/DNS` (`azure.archive.ubuntu.com`), тесты не стартовали; **Re-run** — Den. Workflow не меняли.
+PR **`grok_bot` → `develop`** — смотреть актуальный зелёный **Playwright + PHPUnit** workflow на GitHub Actions после push (не только локальный итог). Workflow файлы не менялись.
 
 ---
 
@@ -155,7 +154,7 @@ PR **#17**, после push `1a4fd3e` — смотреть актуальный 
 
 1. **Категории** — минимальный read-only API в 7.5.1 или ждать этап 8?
 2. **Шаблоны сайтов** — отдельный экран при появлении API или вкладка на `/sites`?
-3. **Binding conflict** — нужен ли live API конфликта или достаточно статического `conflict` route для дизайна?
-4. **Dashboard** — какие ещё агрегаты (графики, «сегодня») кроме текущего JSON?
-5. **Дерево на mobile** — приоритет адаптации move-form под 390 или ждать макеты 390?
-6. **Demo seed в prod** — достаточно ли `kernel.debug` + opt-in env, или нужен отдельный guard?
+3. **Binding conflict** — live API конфликта или статический route?
+4. **Dashboard** — доп. агрегаты (графики)?
+5. **Дерево на mobile** — адаптация move-form под 390?
+6. **Demo reset** — достаточно ли guard как у seed, или отдельный env для prod-like?

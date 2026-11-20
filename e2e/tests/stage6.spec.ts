@@ -17,8 +17,8 @@ test.describe('Karkas Stage 6', () => {
     await gotoAdminPath(page, 'modules');
     const select = page.getByTestId('enable-blog-site');
     await expect(select).toBeVisible();
-    await expect(select.getByRole('option', { name: `${siteKey} (Селектор E2E)` })).toHaveCount(1);
-    await select.selectOption({ label: `${siteKey} (Селектор E2E)` });
+    await expect(select.getByRole('option', { name: 'Селектор E2E' })).toHaveCount(1);
+    await select.selectOption({ label: 'Селектор E2E' });
     expect(Number(await select.inputValue())).toBeGreaterThan(0);
   });
 

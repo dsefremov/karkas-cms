@@ -9,14 +9,21 @@ function navClassName({ isActive }: { isActive: boolean }): string {
 type AdminSidebarProps = {
   postsCount: number | null;
   operationsCount: number | null;
+  mobileOpen?: boolean;
+  onNavClick?: () => void;
 };
 
-export function AdminSidebar({ postsCount, operationsCount }: AdminSidebarProps): React.JSX.Element {
+export function AdminSidebar({
+  postsCount,
+  operationsCount,
+  mobileOpen = false,
+  onNavClick,
+}: AdminSidebarProps): React.JSX.Element {
   const { sites } = useAdmin();
   const defaultSite = sites.find((s) => s.is_default) ?? sites[0];
 
   return (
-    <aside className="sidebar" aria-label="Навигация">
+    <aside className={`sidebar ${mobileOpen ? 'sidebar-mobile-open' : ''}`} aria-label="Навигация">
       <NavLink to="/dashboard" className="brand">
         <span className="brand-mark">/</span>
         Каркас{' '}
@@ -28,12 +35,12 @@ export function AdminSidebar({ postsCount, operationsCount }: AdminSidebarProps)
         <div className="workspace">
           <div>
             <strong style={{ fontSize: 12 }}>{defaultSite.label || defaultSite.site_key}</strong>
-            <div className="small muted">Сайт: {defaultSite.site_key}</div>
+            <div className="small muted">{defaultSite.is_default ? 'Сайт по умолчанию' : 'Рабочее пространство'}</div>
           </div>
         </div>
       )}
       <div className="nav-label">Рабочее пространство</div>
-      <nav>
+      <nav onClick={() => onNavClick?.()}>
         <NavLink to="/dashboard" className={navClassName} data-testid="nav-dashboard">
           <AdminIcon>{NAV_ICONS.dashboard}</AdminIcon>
           Обзор

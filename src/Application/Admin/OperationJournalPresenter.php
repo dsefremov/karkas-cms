@@ -35,10 +35,17 @@ final class OperationJournalPresenter
         return match ($type) {
             'platform.install' => 'Установка модулей',
             'platform.upgrade' => 'Обновление платформы',
+            'installer.bootstrap' => 'Bootstrap установщика',
+            'installer.complete' => 'Завершение установщика',
+            'blog.post.create' => 'Создание записи блога',
+            'blog.post.save' => 'Сохранение записи',
+            'site.create' => 'Создание сайта',
             'site.module.enable' => 'Включение модуля на сайте',
             'site.module.disable' => 'Отключение модуля на сайте',
+            'blog.facade.bind' => 'Привязка блога к странице',
+            'blog.facade.unbind' => 'Отвязка блога',
             'core.upgrade' => 'Обновление ядра',
-            default => '' !== $type ? $type : 'Операция',
+            default => '' !== $type ? str_replace(['.', '_'], ' ', $type) : 'Операция',
         };
     }
 

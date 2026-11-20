@@ -6,6 +6,8 @@ import { PageTreeRows } from '../components/page-tree/PageTreeRows';
 import { TreeMoveModal } from '../components/page-tree/TreeMoveModal';
 import { findPageNode } from '../lib/pageTree';
 import { useAdmin } from '../context/AdminContext';
+import { AdminSelect } from '../components/AdminSelect';
+import { siteDisplayLabel } from '../lib/siteLabel';
 import { PAGE_TREE_ROOT } from '../types/admin';
 
 export function PagesPage(): React.JSX.Element {
@@ -78,18 +80,17 @@ export function PagesPage(): React.JSX.Element {
           <label className="small muted" htmlFor="page-tree-site">
             Сайт
           </label>
-          <select
+          <AdminSelect
             id="page-tree-site"
-            data-testid="page-tree-site"
+            testId="page-tree-site"
+            aria-label="Сайт для дерева страниц"
             value={pageTreeSiteId}
-            onChange={(e) => setPageTreeSiteId(Number(e.target.value))}
-          >
-            {sites.map((site) => (
-              <option key={site.id} value={site.id}>
-                {site.site_key} ({site.label})
-              </option>
-            ))}
-          </select>
+            onChange={(value) => setPageTreeSiteId(Number(value))}
+            options={sites.map((site) => ({
+              value: site.id,
+              label: siteDisplayLabel(site),
+            }))}
+          />
         </div>
       ) : null}
 

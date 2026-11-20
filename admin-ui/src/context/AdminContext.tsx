@@ -490,6 +490,7 @@ export function AdminProvider({ children }: { children: ReactNode }): React.JSX.
     setMessage('Core обновлён по плану (include_core).');
     setCoreUpgradeConfirm(false);
     await loadVersions();
+    await loadCorePlan();
   }
 
   async function loadBlogFacade(): Promise<void> {

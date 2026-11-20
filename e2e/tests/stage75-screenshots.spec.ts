@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { test, expect } from '@playwright/test';
 import { bootstrapBlogAdmin, ensureAdminLogin } from './helpers/admin-bootstrap';
 import { gotoAdminPath } from './helpers/admin-nav';
-import { seedAdminDemo } from './helpers/demo-seed';
+import { resetAdminDemoForScreenshots } from './helpers/demo-seed';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SHOTS = path.resolve(__dirname, '../../docs/stage-7.5/screenshots');
@@ -38,7 +38,7 @@ test.describe('Stage 7.5 screenshot capture for docs', () => {
         await page.goto('/admin/login');
       } else {
         await bootstrapBlogAdmin(page);
-        await seedAdminDemo(page);
+        await resetAdminDemoForScreenshots(page);
         if (screen.historyFromApi === true) {
           const list = await page.request.get('/api/v1/blog/posts');
           const body = (await list.json()) as { posts?: Array<{ id: string }> };

@@ -57,29 +57,31 @@ function TreeRowFragment(props: {
 
   return (
     <>
-      <button
-        type="button"
-        className={`tree-row ${levelClass} ${isSelected ? 'drop-target' : ''}`}
-        data-testid={`page-tree-node-${node.slug}`}
-        onClick={() => onSelect(node)}
-      >
-        <span className="grip" aria-hidden="true">
-          ⠿
-        </span>
-        <AdminIcon>{isBlogBound ? NAV_ICONS.modules : NAV_ICONS.pageDoc}</AdminIcon>
-        {isBlogBound ? (
-          <Link to="/modules/blog/binding" onClick={(e) => e.stopPropagation()}>
-            <strong>{node.title}</strong>
-          </Link>
-        ) : (
-          <span>{node.title}</span>
-        )}
-        {isBlogBound ? <span className="badge green">Модуль: Блог</span> : null}
-        <code className="small muted">/{node.full_path}</code>
+      <div className={`tree-row-wrap ${levelClass} ${isSelected ? 'drop-target' : ''}`}>
+        <button
+          type="button"
+          className="tree-row-main"
+          data-testid={`page-tree-node-${node.slug}`}
+          onClick={() => onSelect(node)}
+        >
+          <span className="grip" aria-hidden="true">
+            ⠿
+          </span>
+          <AdminIcon>{isBlogBound ? NAV_ICONS.modules : NAV_ICONS.pageDoc}</AdminIcon>
+          {isBlogBound ? (
+            <Link to="/modules/blog/binding" onClick={(e) => e.stopPropagation()}>
+              <strong>{node.title}</strong>
+            </Link>
+          ) : (
+            <span>{node.title}</span>
+          )}
+          {isBlogBound ? <span className="badge green">Модуль: Блог</span> : null}
+          <code className="small muted tree-path">/{node.full_path}</code>
+        </button>
         <span className="tree-status">
           <span className={`badge ${node.activity === 'active' ? 'green' : ''}`}>{activityLabel}</span>
         </span>
-      </button>
+      </div>
       {node.children.length > 0 ? (
         <PageTreeRows
           nodes={node.children}

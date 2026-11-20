@@ -13,6 +13,7 @@ export function AdminLayout(): React.JSX.Element {
   const location = useLocation();
   const operationsCount = useOperationsCount(authenticated);
   const [postsCount, setPostsCount] = useState<number | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const segment = location.pathname.replace(/^\//, '').split('/')[0] ?? 'dashboard';
   const pageTitle = ROUTE_TITLES[segment] ?? 'Админка';
@@ -48,9 +49,14 @@ export function AdminLayout(): React.JSX.Element {
       <span data-testid="admin-authenticated" hidden aria-hidden="true">
         session
       </span>
-      <AdminSidebar postsCount={postsCount} operationsCount={operationsCount} />
-      <div className="admin-body">
-        <AdminTopBar pageTitle={pageTitle} />
+      <AdminSidebar
+        postsCount={postsCount}
+        operationsCount={operationsCount}
+        mobileOpen={sidebarOpen}
+        onNavClick={() => setSidebarOpen(false)}
+      />
+      <div className={`admin-body ${sidebarOpen ? 'sidebar-open' : ''}`}>
+        <AdminTopBar pageTitle={pageTitle} onMenuToggle={() => setSidebarOpen((open) => !open)} />
         <main className="admin-main">
           <AdminBanners />
           <Outlet />

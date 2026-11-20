@@ -4,20 +4,48 @@ import { AdminIcon, NAV_ICONS } from '../components/AdminIcons';
 import { useAdmin } from '../context/AdminContext';
 import { AdminFooter } from '../components/AdminFooter';
 import { useBlogPosts } from '../hooks/useBlogPosts';
+import { formatMskDateTime } from '../lib/formatMsk';
 
 type ActivityFilter = 'all' | 'active' | 'inactive';
+type SortKey = 'title' | 'updated' | 'activity';
+type SortDir = 'asc' | 'desc';
+
+const PAGE_SIZE = 10;
+const AUTHOR_LABEL = 'Служебный админ';
+
+const DEMO_CATEGORY: Record<string, string> = {
+  'space-for-clarity': 'Мысли',
+  'preserve-work-context': 'Процесс',
+  'observe-to-notice': 'Наблюдение',
+  'order-for-ideas': 'Практика',
+};
+
+type PostRow = {
+  id: string;
+  title: string;
+  slug: string;
+  activity: string;
+  updated_at: string;
+};
 
 export function PostsPage(): React.JSX.Element {
   const { authenticated } = useAdmin();
   const { posts, loading, error, refresh } = useBlogPosts();
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<ActivityFilter>('all');
+  const [sortKey, setSortKey] = useState<SortKey>('updated');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [page, setPage] = useState(0);
 
   useEffect(() => {
     if (authenticated) {
       void refresh();
     }
   }, [authenticated, refresh]);
+
+  useEffect(() => {
+    setPage(0);
+  }, [query, filter, sortKey, sortDir]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -35,8 +63,37 @@ export function PostsPage(): React.JSX.Element {
     });
   }, [posts, query, filter]);
 
+  const sorted = useMemo(() => {
+    const copy = [...filtered];
+    copy.sort((a, b) => {
+      let cmp = 0;
+      if (sortKey === 'title') {
+        cmp = a.title.localeCompare(b.title, 'ru');
+      } else if (sortKey === 'activity') {
+        cmp = a.activity.localeCompare(b.activity);
+      } else {
+        cmp = a.updated_at.localeCompare(b.updated_at);
+      }
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+    return copy;
+  }, [filtered, sortKey, sortDir]);
+
+  const pageCount = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
+  const pageSafe = Math.min(page, pageCount - 1);
+  const slice = sorted.slice(pageSafe * PAGE_SIZE, pageSafe * PAGE_SIZE + PAGE_SIZE);
+
   const activeCount = posts.filter((p) => p.activity === 'active').length;
   const inactiveCount = posts.length - activeCount;
+
+  function toggleSort(key: SortKey): void {
+    if (sortKey === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir(key === 'title' ? 'asc' : 'desc');
+    }
+  }
 
   return (
     <>
@@ -85,6 +142,7 @@ export function PostsPage(): React.JSX.Element {
           placeholder="Поиск по заголовку…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          data-testid="posts-search"
         />
       </div>
 
@@ -95,7 +153,7 @@ export function PostsPage(): React.JSX.Element {
               Загрузка…
             </p>
           </div>
-        ) : filtered.length === 0 ? (
+        ) : sorted.length === 0 ? (
           <div className="table-card">
             <div className="empty-state">
               <h2 className="mb16">Пока нет записей</h2>
@@ -106,7 +164,17 @@ export function PostsPage(): React.JSX.Element {
             </div>
           </div>
         ) : (
-          <PostsTable posts={filtered} total={posts.length} />
+          <PostsTable
+            posts={slice}
+            total={posts.length}
+            filteredTotal={sorted.length}
+            sortKey={sortKey}
+            sortDir={sortDir}
+            onSort={toggleSort}
+            page={pageSafe}
+            pageCount={pageCount}
+            onPageChange={setPage}
+          />
         )}
       </section>
 
@@ -119,15 +187,33 @@ export function PostsPage(): React.JSX.Element {
   );
 }
 
-type PostRow = {
-  id: string;
-  title: string;
-  slug: string;
-  activity: string;
-  updated_at: string;
-};
+function categoryForSlug(slug: string): string {
+  return DEMO_CATEGORY[slug] ?? 'Общее';
+}
 
-function PostsTable({ posts, total }: { posts: PostRow[]; total: number }): React.JSX.Element {
+function PostsTable({
+  posts,
+  total,
+  filteredTotal,
+  sortKey,
+  sortDir,
+  onSort,
+  page,
+  pageCount,
+  onPageChange,
+}: {
+  posts: PostRow[];
+  total: number;
+  filteredTotal: number;
+  sortKey: SortKey;
+  sortDir: SortDir;
+  onSort: (key: SortKey) => void;
+  page: number;
+  pageCount: number;
+  onPageChange: (page: number) => void;
+}): React.JSX.Element {
+  const sortMark = (key: SortKey): string => (sortKey === key ? (sortDir === 'asc' ? ' ↑' : ' ↓') : '');
+
   return (
     <div className="table-card">
       <table className="data">
@@ -136,11 +222,23 @@ function PostsTable({ posts, total }: { posts: PostRow[]; total: number }): Reac
             <th scope="col" className="sr-only">
               Выбор
             </th>
-            <th scope="col">Заголовок</th>
-            <th scope="col">Активность</th>
+            <th scope="col">
+              <button type="button" className="sort-header" onClick={() => onSort('title')}>
+                Заголовок{sortMark('title')}
+              </button>
+            </th>
+            <th scope="col">
+              <button type="button" className="sort-header" onClick={() => onSort('activity')}>
+                Активность{sortMark('activity')}
+              </button>
+            </th>
             <th scope="col">Категории</th>
             <th scope="col">Автор</th>
-            <th scope="col">Изменена</th>
+            <th scope="col">
+              <button type="button" className="sort-header" onClick={() => onSort('updated')}>
+                Изменена{sortMark('updated')}
+              </button>
+            </th>
             <th scope="col">Действия</th>
           </tr>
         </thead>
@@ -161,10 +259,10 @@ function PostsTable({ posts, total }: { posts: PostRow[]; total: number }): Reac
                   {post.activity === 'active' ? 'Активна' : 'Неактивна'}
                 </span>
               </td>
-              <td className="muted">—</td>
-              <td className="muted">—</td>
+              <td className="muted">{categoryForSlug(post.slug)}</td>
+              <td className="muted">{AUTHOR_LABEL}</td>
               <td className="date-cell">
-                <strong>{post.updated_at}</strong>
+                <strong>{formatMskDateTime(post.updated_at)}</strong>
               </td>
               <td>
                 <Link className="btn quiet small" to={`/posts/${post.id}/history`} data-testid={`post-history-link-${post.slug}`}>
@@ -175,10 +273,33 @@ function PostsTable({ posts, total }: { posts: PostRow[]; total: number }): Reac
           ))}
         </tbody>
       </table>
-      <div className="table-footer">
+      <div className="table-footer row between wrap gap8">
         <span>
-          {posts.length} из {total} · даты из API
+          {filteredTotal} из {total} · время МСК
         </span>
+        <div className="row gap8">
+          <button
+            type="button"
+            className="btn quiet small"
+            disabled={page <= 0}
+            onClick={() => onPageChange(page - 1)}
+            data-testid="posts-page-prev"
+          >
+            Назад
+          </button>
+          <span className="small muted">
+            {page + 1} / {pageCount}
+          </span>
+          <button
+            type="button"
+            className="btn quiet small"
+            disabled={page >= pageCount - 1}
+            onClick={() => onPageChange(page + 1)}
+            data-testid="posts-page-next"
+          >
+            Вперёд
+          </button>
+        </div>
       </div>
     </div>
   );

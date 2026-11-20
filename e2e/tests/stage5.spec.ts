@@ -7,10 +7,10 @@ test.describe('Karkas Stage 5', () => {
     await bootstrapBlogAdmin(page);
     await page.goto('/admin/core-update');
     await expect(page.getByTestId('core-plan-preview')).toBeVisible({ timeout: 30_000 });
-    const summary = (await page.getByTestId('core-version-summary').textContent()) ?? '';
-    if (summary.includes('1.0.0') && summary.includes('1.1.0')) {
+    const upgrade = page.getByTestId('upgrade-core');
+    if ((await upgrade.count()) > 0 && (await upgrade.isVisible())) {
       await page.getByTestId('core-upgrade-confirm').check();
-      await page.getByTestId('upgrade-core').click();
+      await upgrade.click();
       await expect(page.getByTestId('admin-message')).toContainText('Core обновлён', { timeout: 60_000 });
     }
   });
