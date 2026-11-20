@@ -8,7 +8,6 @@ use Karkas\Application\Admin\AdminAuthException;
 use Karkas\Application\Admin\AdminAuthService;
 use Karkas\Application\Admin\AdminDemoResetService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use Throwable;
@@ -18,17 +17,12 @@ final class AdminDemoResetController extends AbstractController
     public function __construct(
         private readonly AdminAuthService $adminAuth,
         private readonly AdminDemoResetService $demoReset,
-        #[Autowire('%kernel.debug%')]
-        private readonly bool $debug,
     ) {
     }
 
     #[Route('/api/v1/admin/demo/reset', name: 'api_admin_demo_reset', methods: ['POST'])]
     public function reset(): JsonResponse
     {
-        if (!$this->debug && '1' !== getenv('KARKAS_ALLOW_DEMO_SEED')) {
-            return new JsonResponse(['error' => 'forbidden'], 403);
-        }
         try {
             $this->adminAuth->assertAuthenticated();
         } catch (AdminAuthException $e) {

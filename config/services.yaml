@@ -39,6 +39,9 @@ services:
 
     Karkas\Adapters\Entry\Http\Controller\:
         resource: '../src/Adapters/Entry/Http/Controller/'
+        exclude:
+            - '../src/Adapters/Entry/Http/Controller/AdminDemoSeedController.php'
+            - '../src/Adapters/Entry/Http/Controller/AdminDemoResetController.php'
         tags: ['controller.service_arguments']
 
     Karkas\Adapters\Infrastructure\Persistence\MysqlConnectivityProbe:

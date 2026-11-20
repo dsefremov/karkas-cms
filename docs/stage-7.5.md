@@ -19,8 +19,8 @@
 | Стили admin-ui | `admin-ui/src/tokens.css`, `admin-ui/src/admin-ui.css` |
 | SPA fallback | `AdminSpaController` + `public/admin/.htaccess` |
 | Скриншоты | `docs/stage-7.5/screenshots/` (Docker Apache :8080) |
-| Demo seed (dev/test) | `POST /api/v1/admin/demo/seed` (`kernel.debug` или `KARKAS_ALLOW_DEMO_SEED`) |
-| **Чистая база для скринов** | `POST /api/v1/admin/demo/reset` + `scripts/reset-demo-database.sh` (`api` \| `volume`) |
+| Demo seed (dev/test) | `POST /api/v1/admin/demo/seed` — только `APP_ENV=dev|test` **и** `KARKAS_ALLOW_DEMO_SEED=1`; в **prod** маршрута нет (404) |
+| **Чистая база для скринов** | `POST /api/v1/admin/demo/reset` (те же guard) + `scripts/reset-demo-database.sh` (`api` \| `volume`) |
 
 ### Чистая демо-база (скриншоты, не e2e)
 

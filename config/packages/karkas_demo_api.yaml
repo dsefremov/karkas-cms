@@ -1,0 +1,23 @@
+# POST /api/v1/admin/demo/{seed,reset} — только dev/test и KARKAS_ALLOW_DEMO_SEED=1 (см. .env.dist).
+parameters:
+    karkas.allow_demo_seed.default: '0'
+
+when@dev:
+    services:
+        Karkas\Adapters\Entry\Http\Controller\AdminDemoSeedController:
+            tags: ['controller.service_arguments']
+            condition: '%env(default:karkas.allow_demo_seed.default:bool:KARKAS_ALLOW_DEMO_SEED)%'
+
+        Karkas\Adapters\Entry\Http\Controller\AdminDemoResetController:
+            tags: ['controller.service_arguments']
+            condition: '%env(default:karkas.allow_demo_seed.default:bool:KARKAS_ALLOW_DEMO_SEED)%'
+
+when@test:
+    services:
+        Karkas\Adapters\Entry\Http\Controller\AdminDemoSeedController:
+            tags: ['controller.service_arguments']
+            condition: '%env(default:karkas.allow_demo_seed.default:bool:KARKAS_ALLOW_DEMO_SEED)%'
+
+        Karkas\Adapters\Entry\Http\Controller\AdminDemoResetController:
+            tags: ['controller.service_arguments']
+            condition: '%env(default:karkas.allow_demo_seed.default:bool:KARKAS_ALLOW_DEMO_SEED)%'

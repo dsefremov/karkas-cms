@@ -34,9 +34,7 @@ export function SitesPage(): React.JSX.Element {
         <table className="data">
           <thead>
             <tr>
-              <th scope="col">ID</th>
-              <th scope="col">Ключ</th>
-              <th scope="col">Название</th>
+              <th scope="col">Сайт</th>
               <th scope="col">Host</th>
               <th scope="col">Default</th>
               <th scope="col">Блог</th>
@@ -46,16 +44,19 @@ export function SitesPage(): React.JSX.Element {
           <tbody>
             {sites.length === 0 ? (
               <tr>
-                <td colSpan={7}>
+                <td colSpan={5}>
                   <div className="empty-state">Сайтов пока нет.</div>
                 </td>
               </tr>
             ) : (
               sites.map((site) => (
                 <tr key={site.id} data-testid={`site-row-${site.site_key}`}>
-                  <td>{site.id}</td>
-                  <td>{site.site_key}</td>
-                  <td>{site.label}</td>
+                  <td>
+                    <strong data-testid={`site-label-${site.site_key}`}>
+                      {site.label.trim() !== '' ? site.label : site.site_key}
+                    </strong>
+                    <div className="small muted">{site.site_key}</div>
+                  </td>
                   <td>{site.canonical_host ?? '—'}</td>
                   <td data-testid={`site-default-${site.site_key}`}>{site.is_default ? 'да' : '—'}</td>
                   <td data-testid={`site-blog-${site.site_key}`}>{site.blog_enabled ? 'да' : '—'}</td>
