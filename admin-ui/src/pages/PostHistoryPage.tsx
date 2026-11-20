@@ -1,3 +1,4 @@
+import { formatMskDateTime } from '../lib/formatMsk';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import type { BlogVersionRow } from '../types/admin';
@@ -55,7 +56,7 @@ export function PostHistoryPage(): React.JSX.Element {
             <tr>
               <th scope="col">#</th>
               <th scope="col">Заголовок</th>
-              <th scope="col">Activity</th>
+              <th scope="col">Активность</th>
               <th scope="col">Сохранено</th>
               <th scope="col">Действия</th>
             </tr>
@@ -65,8 +66,8 @@ export function PostHistoryPage(): React.JSX.Element {
               <tr key={row.version_seq} data-testid={`blog-version-row-${row.version_seq}`}>
                 <td>{row.version_seq}</td>
                 <td>{row.title}</td>
-                <td>{row.activity}</td>
-                <td className="date-cell">{row.saved_at}</td>
+                <td>{row.activity === 'active' ? 'Активна' : row.activity === 'inactive' ? 'Неактивна' : row.activity}</td>
+                <td className="date-cell">{formatMskDateTime(row.saved_at)} МСК</td>
                 <td>
                   <button
                     type="button"

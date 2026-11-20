@@ -88,7 +88,7 @@ export function PagesPage(): React.JSX.Element {
             onChange={(value) => setPageTreeSiteId(Number(value))}
             options={sites.map((site) => ({
               value: site.id,
-              label: siteDisplayLabel(site),
+              label: siteDisplayLabel(site, sites),
             }))}
           />
         </div>

@@ -35,8 +35,8 @@ export function SitesPage(): React.JSX.Element {
           <thead>
             <tr>
               <th scope="col">Сайт</th>
-              <th scope="col">Host</th>
-              <th scope="col">Default</th>
+              <th scope="col">Домен</th>
+              <th scope="col">По умолчанию</th>
               <th scope="col">Блог</th>
               <th scope="col">Действия</th>
             </tr>
@@ -106,7 +106,7 @@ export function SitesPage(): React.JSX.Element {
           </div>
           <div className="field">
             <label htmlFor="new-site-host">
-              Canonical host
+              Домен (canonical host)
               <input
                 id="new-site-host"
                 data-testid="new-site-host"
@@ -129,7 +129,7 @@ export function SitesPage(): React.JSX.Element {
       <section className="card">
         <h2 className="mb16">Правила шаблонов</h2>
         <p className="small muted mb16">
-          Как в макете <code>site-templates.html</code> — API правил нет (этап 8). Показана структура без демо-данных.
+          Правила выбора шаблона по сайту и пути появятся вместе с их API (этап 8).
         </p>
         <div className="notice warning">
           <AdminIcon>{NAV_ICONS.shield}</AdminIcon>

@@ -23,7 +23,12 @@ export function AdminSidebar({
   const defaultSite = sites.find((s) => s.is_default) ?? sites[0];
 
   return (
-    <aside className={`sidebar ${mobileOpen ? 'sidebar-mobile-open' : ''}`} aria-label="Навигация">
+    <aside
+      id="admin-sidebar"
+      className={`sidebar ${mobileOpen ? 'sidebar-mobile-open' : ''}`}
+      aria-label="Навигация"
+      data-testid="admin-sidebar"
+    >
       <NavLink to="/dashboard" className="brand">
         <span className="brand-mark">/</span>
         Каркас{' '}
@@ -34,7 +39,9 @@ export function AdminSidebar({
       {defaultSite !== undefined && (
         <div className="workspace">
           <div>
-            <strong style={{ fontSize: 12 }}>{defaultSite.label || defaultSite.site_key}</strong>
+            <strong style={{ fontSize: 12 }} data-testid="workspace-site-label">
+              {defaultSite.label.trim() !== '' ? defaultSite.label : defaultSite.site_key}
+            </strong>
             <div className="small muted">{defaultSite.is_default ? 'Сайт по умолчанию' : 'Рабочее пространство'}</div>
           </div>
         </div>

@@ -43,6 +43,7 @@ export type CorePlanPayload = {
   compatible: boolean;
   errors: string[];
   plan: {
+    /** Текущая версия ядра, от которой строится план. */
     core_version?: string;
     targets?: Array<{ package_id: string; version: string }>;
   };

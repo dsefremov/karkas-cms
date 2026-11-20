@@ -1,39 +1,46 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AdminIcon, NAV_ICONS } from '../components/AdminIcons';
+import { AdminSelect } from '../components/AdminSelect';
 import { useAdmin } from '../context/AdminContext';
 import { AdminFooter } from '../components/AdminFooter';
-import { useBlogPosts } from '../hooks/useBlogPosts';
-import { formatMskDateTime } from '../lib/formatMsk';
+import { useBlogPosts, type BlogPostRow } from '../hooks/useBlogPosts';
+import { formatMskParts, utcSortKey } from '../lib/formatMsk';
 
 type ActivityFilter = 'all' | 'active' | 'inactive';
-type SortKey = 'title' | 'updated' | 'activity';
+type SortKey = 'created' | 'updated' | 'title';
 type SortDir = 'asc' | 'desc';
 
 const PAGE_SIZE = 10;
+/**
+ * На этапе 7.5 записи создаёт только служебный админ (одна учётная запись, API пользователей — этап 8),
+ * а таксономии категорий в схеме блога ещё нет. Поэтому значения ниже — реальные, а не демо-подстановка.
+ */
 const AUTHOR_LABEL = 'Служебный админ';
+const NO_CATEGORY = 'Без категории';
 
-const DEMO_CATEGORY: Record<string, string> = {
-  'space-for-clarity': 'Мысли',
-  'preserve-work-context': 'Процесс',
-  'observe-to-notice': 'Наблюдение',
-  'order-for-ideas': 'Практика',
-};
+const SORT_OPTIONS: Array<{ value: SortKey; label: string }> = [
+  { value: 'created', label: 'Создана' },
+  { value: 'updated', label: 'Изменена' },
+  { value: 'title', label: 'Заголовок' },
+];
 
-type PostRow = {
-  id: string;
-  title: string;
-  slug: string;
-  activity: string;
-  updated_at: string;
-};
+function postCategory(post: BlogPostRow): string {
+  return post.category ?? NO_CATEGORY;
+}
+
+function postAuthor(post: BlogPostRow): string {
+  return post.author ?? AUTHOR_LABEL;
+}
 
 export function PostsPage(): React.JSX.Element {
   const { authenticated } = useAdmin();
   const { posts, loading, error, refresh } = useBlogPosts();
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<ActivityFilter>('all');
-  const [sortKey, setSortKey] = useState<SortKey>('updated');
+  const [category, setCategory] = useState('all');
+  const [author, setAuthor] = useState('all');
+  const [sortKey, setSortKey] = useState<SortKey>('created');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [page, setPage] = useState(0);
 
@@ -45,7 +52,22 @@ export function PostsPage(): React.JSX.Element {
 
   useEffect(() => {
     setPage(0);
-  }, [query, filter, sortKey, sortDir]);
+  }, [query, filter, category, author, sortKey, sortDir]);
+
+  const categoryOptions = useMemo(
+    () => [
+      { value: 'all', label: 'Все категории' },
+      ...[...new Set(posts.map(postCategory))].sort((a, b) => a.localeCompare(b, 'ru')).map((c) => ({ value: c, label: c })),
+    ],
+    [posts],
+  );
+  const authorOptions = useMemo(
+    () => [
+      { value: 'all', label: 'Все авторы' },
+      ...[...new Set(posts.map(postAuthor))].sort((a, b) => a.localeCompare(b, 'ru')).map((a) => ({ value: a, label: a })),
+    ],
+    [posts],
+  );
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -56,12 +78,18 @@ export function PostsPage(): React.JSX.Element {
       if (filter === 'inactive' && post.activity === 'active') {
         return false;
       }
+      if (category !== 'all' && postCategory(post) !== category) {
+        return false;
+      }
+      if (author !== 'all' && postAuthor(post) !== author) {
+        return false;
+      }
       if (q === '') {
         return true;
       }
       return post.title.toLowerCase().includes(q) || post.slug.toLowerCase().includes(q);
     });
-  }, [posts, query, filter]);
+  }, [posts, query, filter, category, author]);
 
   const sorted = useMemo(() => {
     const copy = [...filtered];
@@ -69,10 +97,10 @@ export function PostsPage(): React.JSX.Element {
       let cmp = 0;
       if (sortKey === 'title') {
         cmp = a.title.localeCompare(b.title, 'ru');
-      } else if (sortKey === 'activity') {
-        cmp = a.activity.localeCompare(b.activity);
+      } else if (sortKey === 'created') {
+        cmp = utcSortKey(a.created_at ?? a.updated_at).localeCompare(utcSortKey(b.created_at ?? b.updated_at));
       } else {
-        cmp = a.updated_at.localeCompare(b.updated_at);
+        cmp = utcSortKey(a.updated_at).localeCompare(utcSortKey(b.updated_at));
       }
       return sortDir === 'asc' ? cmp : -cmp;
     });
@@ -116,26 +144,39 @@ export function PostsPage(): React.JSX.Element {
         </div>
       )}
 
-      <div className="tabs">
-        <button type="button" className={`tab ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>
+      <div className="tabs" role="tablist" aria-label="Фильтр по активности">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={filter === 'all'}
+          className={`tab ${filter === 'all' ? 'active' : ''}`}
+          onClick={() => setFilter('all')}
+          data-testid="posts-tab-all"
+        >
           Все статьи <span className="badge">{posts.length}</span>
         </button>
         <button
           type="button"
+          role="tab"
+          aria-selected={filter === 'active'}
           className={`tab ${filter === 'active' ? 'active' : ''}`}
           onClick={() => setFilter('active')}
+          data-testid="posts-tab-active"
         >
           Активна {activeCount}
         </button>
         <button
           type="button"
+          role="tab"
+          aria-selected={filter === 'inactive'}
           className={`tab ${filter === 'inactive' ? 'active' : ''}`}
           onClick={() => setFilter('inactive')}
+          data-testid="posts-tab-inactive"
         >
           Неактивна {inactiveCount}
         </button>
       </div>
-      <div className="toolbar">
+      <div className="toolbar posts-toolbar">
         <input
           className="input"
           aria-label="Поиск статей"
@@ -144,6 +185,43 @@ export function PostsPage(): React.JSX.Element {
           onChange={(e) => setQuery(e.target.value)}
           data-testid="posts-search"
         />
+        <AdminSelect
+          id="posts-filter-category"
+          testId="posts-filter-category"
+          aria-label="Фильтр по категории"
+          className="inline"
+          value={category}
+          onChange={setCategory}
+          options={categoryOptions}
+        />
+        <AdminSelect
+          id="posts-filter-author"
+          testId="posts-filter-author"
+          aria-label="Фильтр по автору"
+          className="inline"
+          value={author}
+          onChange={setAuthor}
+          options={authorOptions}
+        />
+      </div>
+      <div className="posts-sortbar">
+        <span className="small muted">Сортировка</span>
+        <div className="segmented" role="group" aria-label="Сортировка">
+          {SORT_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              className={sortKey === option.value ? 'active' : ''}
+              aria-pressed={sortKey === option.value}
+              onClick={() => toggleSort(option.value)}
+              data-testid={`posts-sort-${option.value}`}
+            >
+              {option.label}
+              {sortKey === option.value ? (sortDir === 'asc' ? ' ↑' : ' ↓') : ''}
+            </button>
+          ))}
+        </div>
+        <span className="small muted posts-sort-hint">Нажмите заголовок, дату или повторно — сменить направление</span>
       </div>
 
       <section className="article-list" data-testid="posts-list-panel">
@@ -156,11 +234,17 @@ export function PostsPage(): React.JSX.Element {
         ) : sorted.length === 0 ? (
           <div className="table-card">
             <div className="empty-state">
-              <h2 className="mb16">Пока нет записей</h2>
-              <p className="small muted mb24">Создайте статью или включите blog на сайте в разделе «Модули».</p>
-              <Link className="btn primary" to="/posts/new">
-                Новая статья
-              </Link>
+              <h2 className="mb16">{posts.length === 0 ? 'Пока нет записей' : 'Ничего не найдено'}</h2>
+              <p className="small muted mb24">
+                {posts.length === 0
+                  ? 'Создайте статью или включите blog на сайте в разделе «Модули».'
+                  : 'Измените поиск или фильтры.'}
+              </p>
+              {posts.length === 0 ? (
+                <Link className="btn primary" to="/posts/new">
+                  Новая статья
+                </Link>
+              ) : null}
             </div>
           </div>
         ) : (
@@ -187,8 +271,18 @@ export function PostsPage(): React.JSX.Element {
   );
 }
 
-function categoryForSlug(slug: string): string {
-  return DEMO_CATEGORY[slug] ?? 'Общее';
+function DateCell({ raw, by }: { raw: string | undefined; by: string }): React.JSX.Element {
+  const parts = formatMskParts(raw ?? '');
+  if (parts === null) {
+    return <span className="muted">—</span>;
+  }
+  return (
+    <>
+      <strong>{parts.date}</strong>
+      <span className="sub">{parts.time}</span>
+      <span className="sub">{by}</span>
+    </>
+  );
 }
 
 function PostsTable({
@@ -202,7 +296,7 @@ function PostsTable({
   pageCount,
   onPageChange,
 }: {
-  posts: PostRow[];
+  posts: BlogPostRow[];
   total: number;
   filteredTotal: number;
   sortKey: SortKey;
@@ -212,59 +306,63 @@ function PostsTable({
   pageCount: number;
   onPageChange: (page: number) => void;
 }): React.JSX.Element {
+  const ariaSort = (key: SortKey): 'ascending' | 'descending' | 'none' =>
+    sortKey === key ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none';
   const sortMark = (key: SortKey): string => (sortKey === key ? (sortDir === 'asc' ? ' ↑' : ' ↓') : '');
 
   return (
-    <div className="table-card">
+    <div className="table-card posts-table">
       <table className="data">
         <thead>
           <tr>
-            <th scope="col" className="sr-only">
-              Выбор
-            </th>
-            <th scope="col">
+            <th scope="col" aria-sort={ariaSort('title')}>
               <button type="button" className="sort-header" onClick={() => onSort('title')}>
                 Заголовок{sortMark('title')}
               </button>
             </th>
-            <th scope="col">
-              <button type="button" className="sort-header" onClick={() => onSort('activity')}>
-                Активность{sortMark('activity')}
+            <th scope="col">Активность</th>
+            <th scope="col">Категория</th>
+            <th scope="col">Автор</th>
+            <th scope="col" aria-sort={ariaSort('created')}>
+              <button type="button" className="sort-header" onClick={() => onSort('created')} data-testid="posts-sort-created-header">
+                Создана{sortMark('created')}
               </button>
             </th>
-            <th scope="col">Категории</th>
-            <th scope="col">Автор</th>
-            <th scope="col">
+            <th scope="col" aria-sort={ariaSort('updated')}>
               <button type="button" className="sort-header" onClick={() => onSort('updated')}>
                 Изменена{sortMark('updated')}
               </button>
             </th>
-            <th scope="col">Действия</th>
+            <th scope="col">
+              <span className="sr-only">Действия</span>
+            </th>
           </tr>
         </thead>
         <tbody>
           {posts.map((post) => (
             <tr key={post.id} data-testid={`post-row-${post.slug}`}>
-              <td>
-                <span className="box" />
-              </td>
-              <td>
+              <td data-label="Заголовок">
                 <Link className="title" to={`/posts/${post.id}`}>
                   {post.title}
                 </Link>
                 <span className="sub">/{post.slug}</span>
               </td>
-              <td>
+              <td data-label="Активность">
                 <span className={`badge ${post.activity === 'active' ? 'green' : ''}`}>
                   {post.activity === 'active' ? 'Активна' : 'Неактивна'}
                 </span>
               </td>
-              <td className="muted">{categoryForSlug(post.slug)}</td>
-              <td className="muted">{AUTHOR_LABEL}</td>
-              <td className="date-cell">
-                <strong>{formatMskDateTime(post.updated_at)}</strong>
+              <td data-label="Категория" className="muted">
+                {postCategory(post)}
               </td>
-              <td>
+              <td data-label="Автор">{postAuthor(post)}</td>
+              <td data-label="Создана" className="date-cell" data-testid={`post-created-${post.slug}`}>
+                <DateCell raw={post.created_at} by={postAuthor(post)} />
+              </td>
+              <td data-label="Изменена" className="date-cell" data-testid={`post-updated-${post.slug}`}>
+                <DateCell raw={post.updated_at} by={postAuthor(post)} />
+              </td>
+              <td data-label="Действия">
                 <Link className="btn quiet small" to={`/posts/${post.id}/history`} data-testid={`post-history-link-${post.slug}`}>
                   История
                 </Link>
@@ -274,32 +372,35 @@ function PostsTable({
         </tbody>
       </table>
       <div className="table-footer row between wrap gap8">
-        <span>
-          {filteredTotal} из {total} · время МСК
+        <span data-testid="posts-count">
+          {filteredTotal === 0
+            ? 'Нет записей'
+            : `${page * PAGE_SIZE + 1}–${page * PAGE_SIZE + posts.length} из ${filteredTotal}`}
+          {filteredTotal !== total ? ` (всего ${total})` : ''} · даты и время МСК
         </span>
-        <div className="row gap8">
+        <nav className="row gap8 pager" aria-label="Страницы списка">
           <button
             type="button"
-            className="btn quiet small"
+            className="btn small"
             disabled={page <= 0}
             onClick={() => onPageChange(page - 1)}
             data-testid="posts-page-prev"
           >
             Назад
           </button>
-          <span className="small muted">
+          <span className="pager-current" data-testid="posts-page-indicator">
             {page + 1} / {pageCount}
           </span>
           <button
             type="button"
-            className="btn quiet small"
+            className="btn small"
             disabled={page >= pageCount - 1}
             onClick={() => onPageChange(page + 1)}
             data-testid="posts-page-next"
           >
-            Вперёд
+            Далее
           </button>
-        </div>
+        </nav>
       </div>
     </div>
   );

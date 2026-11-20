@@ -40,6 +40,23 @@ export function AdminLayout(): React.JSX.Element {
     })();
   }, [authenticated, location.pathname]);
 
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!sidebarOpen) {
+      return;
+    }
+    const onKey = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') {
+        setSidebarOpen(false);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [sidebarOpen]);
+
   if (!sessionReady || !authenticated) {
     return <></>;
   }
@@ -55,8 +72,20 @@ export function AdminLayout(): React.JSX.Element {
         mobileOpen={sidebarOpen}
         onNavClick={() => setSidebarOpen(false)}
       />
+      <button
+        type="button"
+        className={`sidebar-backdrop ${sidebarOpen ? 'open' : ''}`}
+        aria-label="Закрыть меню"
+        tabIndex={sidebarOpen ? 0 : -1}
+        hidden={!sidebarOpen}
+        onClick={() => setSidebarOpen(false)}
+      />
       <div className={`admin-body ${sidebarOpen ? 'sidebar-open' : ''}`}>
-        <AdminTopBar pageTitle={pageTitle} onMenuToggle={() => setSidebarOpen((open) => !open)} />
+        <AdminTopBar
+          pageTitle={pageTitle}
+          menuOpen={sidebarOpen}
+          onMenuToggle={() => setSidebarOpen((open) => !open)}
+        />
         <main className="admin-main">
           <AdminBanners />
           <Outlet />

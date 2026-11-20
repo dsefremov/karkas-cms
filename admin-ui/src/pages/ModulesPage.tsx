@@ -1,3 +1,4 @@
+import { packageLabel } from '../lib/packageLabels';
 import { Link } from 'react-router-dom';
 import { AdminIcon, NAV_ICONS } from '../components/AdminIcons';
 import { AdminSelect } from '../components/AdminSelect';
@@ -74,7 +75,7 @@ export function ModulesPage(): React.JSX.Element {
           <tbody>
             <tr data-testid="module-row-karkas-core">
               <td>
-                Каркас Core
+                Ядро
                 <div className="small muted">karkas/core</div>
               </td>
               <td>{coreCurrent ?? 'Не установлена'}</td>
@@ -160,8 +161,8 @@ export function ModulesPage(): React.JSX.Element {
             </tr>
             <tr data-testid="site-blog-panel">
               <td>
-                Blog на сайте
-                <div className="small muted">enable + mount /blog</div>
+                Блог на сайте
+                <div className="small muted">включение и адрес /blog</div>
               </td>
               <td colSpan={2}>
                 <AdminSelect
@@ -173,7 +174,7 @@ export function ModulesPage(): React.JSX.Element {
                   disabled={!authenticated || sites.length === 0}
                   options={sites.map((site) => ({
                     value: site.id,
-                    label: siteDisplayLabel(site),
+                    label: siteDisplayLabel(site, sites),
                   }))}
                 />
               </td>
@@ -244,7 +245,10 @@ export function ModulesPage(): React.JSX.Element {
             <tbody>
               {versions?.packages.map((row) => (
                 <tr key={row.package_id} data-testid={`version-row-${row.package_id.replace('/', '-')}`}>
-                  <td>{row.package_id}</td>
+                  <td>
+                    <strong>{packageLabel(row.package_id)}</strong>
+                    <div className="sub">{row.package_id}</div>
+                  </td>
                   <td>{row.current ?? '—'}</td>
                   <td>{row.available ?? '—'}</td>
                 </tr>

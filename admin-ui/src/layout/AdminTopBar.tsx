@@ -2,17 +2,21 @@ import { AdminIcon, NAV_ICONS } from '../components/AdminIcons';
 
 type AdminTopBarProps = {
   pageTitle: string;
+  menuOpen?: boolean;
   onMenuToggle?: () => void;
 };
 
-export function AdminTopBar({ pageTitle, onMenuToggle }: AdminTopBarProps): React.JSX.Element {
+export function AdminTopBar({ pageTitle, menuOpen = false, onMenuToggle }: AdminTopBarProps): React.JSX.Element {
   return (
     <header className="admin-top">
       <div className="row admin-top-crumb">
         <button
           type="button"
           className="btn quiet admin-menu-toggle"
-          aria-label="Меню"
+          aria-label={menuOpen ? 'Закрыть меню' : 'Меню'}
+          aria-expanded={menuOpen}
+          aria-controls="admin-sidebar"
+          data-testid="admin-menu-toggle"
           onClick={() => onMenuToggle?.()}
         >
           <AdminIcon>{NAV_ICONS.menu}</AdminIcon>

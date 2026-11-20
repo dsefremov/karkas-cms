@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AdminIcon, NAV_ICONS } from '../AdminIcons';
 import type { PageTreeNode } from '../../types/admin';
@@ -10,6 +11,11 @@ type PageTreeRowsProps = {
   depth?: number;
 };
 
+/**
+ * Дерево страниц по макету tree.html: строка на всю ширину карточки,
+ * отступ по уровню вложенности с направляющей, «название + адрес» в одной строке,
+ * статус — в отдельной колонке справа.
+ */
 export function PageTreeRows({
   nodes,
   blogBoundPageId,
@@ -19,70 +25,91 @@ export function PageTreeRows({
 }: PageTreeRowsProps): React.JSX.Element {
   return (
     <>
-      {nodes.map((node) => {
-        const levelClass = `level${Math.min(depth, 3)}`;
-        const isBlogBound = blogBoundPageId === node.id;
-        const isSelected = selectedPageId === node.id;
-        return (
-          <TreeRowFragment
-            key={node.id}
-            node={node}
-            levelClass={levelClass}
-            isBlogBound={isBlogBound}
-            isSelected={isSelected}
-            onSelect={onSelect}
-            blogBoundPageId={blogBoundPageId}
-            selectedPageId={selectedPageId}
-            depth={depth}
-          />
-        );
-      })}
+      {nodes.map((node) => (
+        <TreeRow
+          key={node.id}
+          node={node}
+          depth={depth}
+          blogBoundPageId={blogBoundPageId}
+          selectedPageId={selectedPageId}
+          onSelect={onSelect}
+        />
+      ))}
     </>
   );
 }
 
-function TreeRowFragment(props: {
+function TreeRow({
+  node,
+  depth,
+  blogBoundPageId,
+  selectedPageId,
+  onSelect,
+}: {
   node: PageTreeNode;
-  levelClass: string;
-  isBlogBound: boolean;
-  isSelected: boolean;
-  onSelect: (node: PageTreeNode) => void;
+  depth: number;
   blogBoundPageId: string | null;
   selectedPageId: string | null;
-  depth: number;
+  onSelect: (node: PageTreeNode) => void;
 }): React.JSX.Element {
-  const { node, levelClass, isBlogBound, isSelected, onSelect, blogBoundPageId, selectedPageId, depth } =
-    props;
+  const [expanded, setExpanded] = useState(true);
+  const isBlogBound = blogBoundPageId === node.id;
+  const isSelected = selectedPageId === node.id;
+  const hasChildren = node.children.length > 0;
+  const level = Math.min(depth, 6);
   const activityLabel = node.activity === 'active' ? 'Опубликовано' : 'Черновик';
 
   return (
     <>
-      <div className={`tree-row-wrap ${levelClass} ${isSelected ? 'drop-target' : ''}`}>
-        <button
-          type="button"
-          className="tree-row-main"
-          data-testid={`page-tree-node-${node.slug}`}
-          onClick={() => onSelect(node)}
-        >
+      <div
+        className={`tree-row-wrap ${isSelected ? 'drop-target' : ''}`}
+        style={{ '--tree-level': level } as React.CSSProperties}
+        data-level={level}
+      >
+        <div className="tree-row-name">
+          {depth > 0 ? <span className="tree-guide" aria-hidden="true" /> : null}
           <span className="grip" aria-hidden="true">
             ⠿
           </span>
-          <AdminIcon>{isBlogBound ? NAV_ICONS.modules : NAV_ICONS.pageDoc}</AdminIcon>
-          {isBlogBound ? (
-            <Link to="/modules/blog/binding" onClick={(e) => e.stopPropagation()}>
-              <strong>{node.title}</strong>
-            </Link>
+          {hasChildren ? (
+            <button
+              type="button"
+              className="tree-toggle"
+              aria-expanded={expanded}
+              aria-label={expanded ? `Свернуть «${node.title}»` : `Развернуть «${node.title}»`}
+              data-testid={`page-tree-toggle-${node.slug}`}
+              onClick={() => setExpanded((value) => !value)}
+            >
+              <AdminIcon className={`icon ${expanded ? '' : 'collapsed'}`}>{NAV_ICONS.chevronDown}</AdminIcon>
+            </button>
           ) : (
-            <span>{node.title}</span>
+            <span className="tree-toggle-spacer" aria-hidden="true" />
           )}
-          {isBlogBound ? <span className="badge green">Модуль: Блог</span> : null}
-          <code className="small muted tree-path">/{node.full_path}</code>
-        </button>
+          <button
+            type="button"
+            className="tree-row-main"
+            aria-pressed={isSelected}
+            data-testid={`page-tree-node-${node.slug}`}
+            onClick={() => onSelect(node)}
+          >
+            <span className="tree-label">
+              <AdminIcon>{isBlogBound ? NAV_ICONS.modules : NAV_ICONS.pageDoc}</AdminIcon>
+              <span className={`tree-title ${isBlogBound ? 'strong' : ''}`}>{node.title}</span>
+            </span>
+            {isBlogBound ? <span className="badge green">Модуль: Блог</span> : null}
+            <code className="tree-path">/{node.full_path}</code>
+          </button>
+          {isBlogBound ? (
+            <Link className="small tree-binding-link" to="/modules/blog/binding">
+              Привязка
+            </Link>
+          ) : null}
+        </div>
         <span className="tree-status">
           <span className={`badge ${node.activity === 'active' ? 'green' : ''}`}>{activityLabel}</span>
         </span>
       </div>
-      {node.children.length > 0 ? (
+      {hasChildren && expanded ? (
         <PageTreeRows
           nodes={node.children}
           blogBoundPageId={blogBoundPageId}

@@ -320,44 +320,233 @@ button.btn.primary:disabled {
 .tree-panel .tree-heading,
 .tree-panel .tree-row-wrap {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(112px, auto);
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  column-gap: 12px;
+  column-gap: 16px;
   width: 100%;
+}
+
+.tree-panel .tree-heading {
+  padding: 16px 24px;
+}
+
+.tree-panel .tree-row-wrap {
+  position: relative;
+  min-height: 56px;
+  padding: 0 24px 0 calc(24px + var(--tree-level, 0) * 24px);
+  border-bottom: 1px solid #edf0eb;
+  background: #fff;
+}
+
+.tree-panel .tree-row-wrap:last-child {
+  border-bottom: 0;
+}
+
+.tree-panel .tree-row-wrap.drop-target {
+  background: var(--tint);
+}
+
+.tree-row-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.tree-guide {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(18px + var(--tree-level, 0) * 24px - 12px);
+  width: 1px;
+  background: #e0e7df;
+}
+
+.tree-toggle,
+.tree-toggle-spacer {
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+}
+
+.tree-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.tree-toggle:hover {
+  background: #eef3ef;
+}
+
+.tree-toggle .icon {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.15s ease;
+}
+
+.tree-toggle .icon.collapsed {
+  transform: rotate(-90deg);
 }
 
 .tree-row-wrap .tree-row-main {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
-  width: 100%;
+  gap: 10px;
+  min-width: 0;
+  flex: 1 1 auto;
   border: none;
   background: transparent;
   text-align: left;
   cursor: pointer;
-  padding: 12px 16px;
-  min-height: 48px;
+  padding: 16px 0;
   font: inherit;
+  font-size: 13px;
   color: inherit;
 }
 
+.tree-row-wrap .tree-row-main .icon {
+  align-self: center;
+  flex-shrink: 0;
+}
+
+.tree-row-wrap .tree-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.tree-row-wrap .tree-label .icon {
+  flex-shrink: 0;
+}
+
+.tree-row-wrap .tree-title {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.tree-row-wrap .tree-title.strong {
+  font-weight: 650;
+}
+
 .tree-row-wrap .tree-path {
-  flex: 1 1 100%;
-  max-width: 100%;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.tree-row-wrap .tree-status {
+  justify-self: end;
 }
 
 .mini-tree .tree-row-wrap .tree-path {
   flex: 0 1 auto;
 }
 
-.admin-select select {
+.admin-select {
+  position: relative;
+  min-width: 0;
+}
+
+.admin-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   width: 100%;
-  min-height: 40px;
-  padding: 10px 12px;
-  border: 1px solid var(--line);
+  min-height: 42px;
+  padding: 9px 12px 9px 14px;
+  border: 1px solid #d3dbd4;
   border-radius: 8px;
   background: #fff;
+  color: var(--ink, #17211b);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-select-trigger:hover {
+  border-color: #a9b8ad;
+}
+
+.admin-select-trigger:focus-visible,
+.admin-select.open .admin-select-trigger {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px #1f6f5c26;
+}
+
+.admin-select-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.admin-select-chevron {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  color: var(--muted);
+  transition: transform 0.15s ease;
+}
+
+.admin-select.open .admin-select-chevron {
+  transform: rotate(180deg);
+}
+
+.admin-select-list {
+  position: fixed;
+  z-index: 80;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  overflow-y: auto;
+  max-width: calc(100vw - 16px);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px #15302629;
+  font-size: 13px;
+}
+
+.admin-select-list[hidden] {
+  display: none;
+}
+
+.admin-select-option {
+  padding: 9px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.admin-select-option.active {
+  background: #f0f5f1;
+}
+
+.admin-select-option.selected {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.admin-select-option.selected::after {
+  content: ' ✓';
+}
+
+.admin-select.inline .admin-select-trigger {
+  min-height: 42px;
+  min-width: 180px;
 }
 
 .sort-header {
@@ -398,7 +587,6 @@ button.btn.primary:disabled {
 
   .admin-main {
     max-width: 100%;
-    overflow-x: hidden;
   }
 
   .tree-layout {
@@ -415,5 +603,315 @@ button.btn.primary:disabled {
   .actions .btn,
   .actions button {
     width: 100%;
+  }
+}
+
+/* ---- Stage 7.5 review: posts list (v16 posts.html) ---- */
+.posts-toolbar {
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.posts-toolbar .input {
+  flex: 1 1 240px;
+}
+
+.posts-sortbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.posts-sortbar .segmented {
+  margin-bottom: 0;
+}
+
+.segmented button {
+  padding: 7px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.segmented button.active {
+  background: #fff;
+  box-shadow: 0 1px 3px #263b1e12;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.posts-sort-hint {
+  margin-left: auto;
+}
+
+.data .date-cell strong {
+  display: block;
+  font-size: 12px;
+}
+
+.data .date-cell .sub {
+  display: block;
+  font-weight: 400;
+}
+
+.pager-current {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+}
+
+/* Таблицы не обрезаются: при нехватке ширины прокручивается только карточка таблицы, не страница. */
+.table-card {
+  overflow-x: auto;
+}
+
+/* ---- Core update (v16 core-update.html) ---- */
+.compat-status.ok {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.compat-status.update {
+  color: #806224;
+  font-weight: 600;
+}
+
+.compat-status.blocked {
+  color: #9b4c40;
+  font-weight: 600;
+}
+
+.plan-steps {
+  margin: 0;
+  padding-left: 24px;
+  line-height: 1.9;
+  font-size: 13px;
+}
+
+.kv strong {
+  text-align: right;
+}
+
+/* ---- Shell: collapsible sidebar ---- */
+.sidebar-backdrop {
+  display: none;
+}
+
+@media (max-width: 960px) {
+  .sidebar {
+    visibility: hidden;
+    transition:
+      transform 0.2s ease,
+      visibility 0s linear 0.2s;
+  }
+
+  .sidebar.sidebar-mobile-open {
+    visibility: visible;
+    transition: transform 0.2s ease;
+  }
+
+  .sidebar-backdrop.open {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    border: 0;
+    padding: 0;
+    background: #142d2333;
+  }
+
+  .admin-top {
+    padding: 0 16px;
+    gap: 12px;
+  }
+
+  .admin-top-crumb {
+    min-width: 0;
+    gap: 8px;
+  }
+
+  .admin-top-crumb > .muted,
+  .admin-top-crumb > .icon {
+    display: none;
+  }
+
+  .admin-main {
+    padding: 24px 16px;
+  }
+}
+
+/* ---- 390px: без горизонтального вылета ---- */
+@media (max-width: 640px) {
+  .page-head {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .page-head h1 {
+    font-size: 26px;
+  }
+
+  .page-head > .row {
+    flex-wrap: wrap;
+  }
+
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-grid,
+  .grid2,
+  .settings-layout,
+  .editor-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tabs {
+    gap: 16px;
+    overflow-x: auto;
+  }
+
+  .tab {
+    white-space: nowrap;
+  }
+
+  .posts-toolbar .input,
+  .posts-toolbar .admin-select {
+    flex: 1 1 100%;
+    max-width: none;
+  }
+
+  .posts-sort-hint {
+    display: none;
+  }
+
+  .kv {
+    flex-wrap: wrap;
+    gap: 4px 16px;
+  }
+
+  .tree-panel .tree-heading {
+    padding: 12px 16px;
+  }
+
+  .tree-panel .tree-row-wrap {
+    padding: 0 12px 0 calc(12px + var(--tree-level, 0) * 14px);
+    column-gap: 8px;
+  }
+
+  .tree-guide {
+    left: calc(6px + var(--tree-level, 0) * 14px - 7px);
+  }
+
+  .tree-row-wrap .tree-row-main {
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+
+  .tree-panel .grip {
+    display: none;
+  }
+
+  .tree-row-wrap .tree-status .badge {
+    padding: 3px 6px;
+    font-size: 10px;
+  }
+
+  /* Список записей: строки таблицы превращаются в карточки с подписями полей. */
+  .posts-table .data thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+  }
+
+  .posts-table .data,
+  .posts-table .data tbody,
+  .posts-table .data tr,
+  .posts-table .data td {
+    display: block;
+    width: 100%;
+  }
+
+  .posts-table .data tr {
+    padding: 12px 16px;
+    border-bottom: 1px solid #e9ede9;
+  }
+
+  .posts-table .data td {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 8px;
+    padding: 6px 0;
+    border: 0;
+  }
+
+  .posts-table .data td::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: 11px;
+  }
+
+  .posts-table .data td > * {
+    grid-column: 2;
+  }
+
+  .posts-table .data td[data-label='Заголовок'],
+  .posts-table .data td[data-label='Действия'] {
+    display: block;
+  }
+
+  .posts-table .data td[data-label='Заголовок']::before,
+  .posts-table .data td[data-label='Действия']::before {
+    content: none;
+  }
+
+  .posts-table .data td.date-cell {
+    white-space: normal;
+  }
+
+  .posts-table .data td.date-cell > strong,
+  .posts-table .data td.date-cell > .sub:nth-of-type(1) {
+    display: inline;
+    grid-row: 1;
+  }
+
+  .posts-table .data td.date-cell {
+    grid-template-columns: 96px auto minmax(0, 1fr);
+    align-items: baseline;
+  }
+
+  .posts-table .data td.date-cell > strong {
+    grid-column: 2;
+  }
+
+  .posts-table .data td.date-cell > .sub:nth-of-type(1) {
+    grid-column: 3;
+  }
+
+  /* Автор уже показан строкой выше — в карточке не повторяем его под датами. */
+  .posts-table .data td.date-cell > .sub:nth-of-type(2) {
+    display: none;
+  }
+
+  .posts-table .data td > .badge,
+  .posts-table .data td > .btn {
+    justify-self: start;
+  }
+
+  .table-footer {
+    flex-wrap: wrap;
+    gap: 8px;
   }
 }

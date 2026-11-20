@@ -94,12 +94,12 @@ function MotionSettingsLayout({
             <strong>{maintenance ? 'активен' : 'выключен'}</strong>
           </div>
           <p className="small muted mt24">
-            <Link to="/core-update">Обновление Core и версии пакетов</Link>
+            <Link to="/core-update">Обновление ядра и версии пакетов</Link>
           </p>
         </section>
         <div className="notice">
           <AdminIcon>{NAV_ICONS.shield}</AdminIcon>
-          <div>Секреты, SMTP и доставка писем — в макете; API появится на этапе 8. Поля показаны read-only без выдуманных значений.</div>
+          <div>Секреты, SMTP и доставка писем настраиваются после появления их API (этап 8). Поля показаны только для чтения, без выдуманных значений.</div>
         </div>
       </div>
     </div>
