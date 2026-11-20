@@ -7,6 +7,7 @@ namespace Karkas\Application\Admin;
 use Doctrine\DBAL\Connection;
 use Karkas\Adapters\Infrastructure\Persistence\DatabaseConnectionFactory;
 use Karkas\Adapters\Infrastructure\Persistence\PlatformSiteRepository;
+use Throwable;
 
 /**
  * Dev/test: remove multisite clutter from e2e, then re-seed demo content.
@@ -46,7 +47,7 @@ final class AdminDemoResetService
             try {
                 $this->sites->delete($id);
                 ++$removed;
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 $this->deleteSiteRow($connection, $id);
                 ++$removed;
             }
