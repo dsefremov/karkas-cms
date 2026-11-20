@@ -3,6 +3,13 @@ import AxeBuilder from '@axe-core/playwright';
 import { bootstrapBlogAdmin } from './helpers/admin-bootstrap';
 import { gotoAdminPath } from './helpers/admin-nav';
 import { ensurePageTreeSite, seedE2ePageTree } from './helpers/page-tree-seed';
+import {
+  adminSelectValue,
+  chooseAdminSelectLabel,
+  chooseAdminSelectValue,
+  openAdminSelect,
+  siteIdByKey,
+} from './helpers/admin-select';
 
 test.describe('Karkas Stage 6', () => {
   test('blog enable site selector lists sites', async ({ page }) => {
@@ -15,11 +22,17 @@ test.describe('Karkas Stage 6', () => {
     await page.getByTestId('create-site').click();
     await expect(page.getByTestId('admin-message')).toContainText('создан', { timeout: 30_000 });
     await gotoAdminPath(page, 'modules');
-    const select = page.getByTestId('enable-blog-site');
-    await expect(select).toBeVisible();
-    await expect(select.getByRole('option', { name: 'Селектор E2E' })).toHaveCount(1);
-    await select.selectOption({ label: 'Селектор E2E' });
-    expect(Number(await select.inputValue())).toBeGreaterThan(0);
+    await expect(page.getByTestId('enable-blog-site')).toBeVisible();
+    const siteId = await siteIdByKey(page, siteKey);
+    const listbox = await openAdminSelect(page, 'enable-blog-site');
+    // В списке — название сайта, а не id/ключ.
+    const option = listbox.locator(`[role="option"][data-value="${siteId}"]`);
+    await expect(option).toHaveCount(1);
+    await expect(option).toContainText('Селектор E2E');
+    expect((await option.textContent())?.trim()).not.toBe(siteId);
+    await chooseAdminSelectValue(page, 'enable-blog-site', siteId);
+    await expect(page.getByTestId('enable-blog-site')).toContainText('Селектор E2E');
+    expect(Number(await adminSelectValue(page, 'enable-blog-site'))).toBeGreaterThan(0);
   });
 
   test('page tree seed and move preview', async ({ page }, testInfo) => {
@@ -36,7 +49,7 @@ test.describe('Karkas Stage 6', () => {
     await expect(page.getByRole('button', { name: /Переместить через форму/ })).toBeEnabled({ timeout: 10_000 });
     await page.getByRole('button', { name: /Переместить через форму/ }).click();
     await expect(page.getByTestId('page-move-modal')).toBeVisible();
-    await page.getByTestId('move-parent-select').selectOption({ label: 'Корень сайта' });
+    await chooseAdminSelectLabel(page, 'move-parent-select', 'Корень сайта');
     await page.getByTestId('page-move-preview').click();
     await expect(page.getByTestId('page-move-impact')).toContainText('Затронуто', { timeout: 10_000 });
   });
@@ -69,7 +82,7 @@ test.describe('Karkas Stage 6', () => {
     await teamRow.click();
     await page.getByRole('button', { name: /Переместить через форму/ }).click();
     await expect(page.getByTestId('page-move-modal')).toBeVisible();
-    await page.getByTestId('move-parent-select').selectOption({ label: 'Корень сайта' });
+    await chooseAdminSelectLabel(page, 'move-parent-select', 'Корень сайта');
     await page.getByTestId('page-move-preview').click();
     await expect(page.getByTestId('page-move-impact')).toContainText('Затронуто');
     await page.screenshot({ path: testInfo.outputPath('tree-move-1440.png'), fullPage: true });

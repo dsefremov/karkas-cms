@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { chooseAdminSelectValue, siteIdByKey } from './helpers/admin-select';
 
 const ADMIN_PASSWORD = process.env.KARKAS_ADMIN_PASSWORD ?? 'test-admin-password-stage2';
 
@@ -28,7 +29,8 @@ test.describe('Stage 7.5 blog admin fixes', () => {
     await expect(page.getByTestId('admin-authenticated')).toBeAttached();
 
     await page.goto('/admin/modules');
-    await page.getByTestId('enable-blog-site').selectOption({ label: 'Reauth E2E' });
+    await chooseAdminSelectValue(page, 'enable-blog-site', await siteIdByKey(page, siteKey));
+    await expect(page.getByTestId('enable-blog-site')).toContainText('Reauth E2E');
     await page.getByTestId('enable-blog').click();
     await expect(page.getByTestId('reauth-modal-backdrop')).toBeVisible();
     await page.getByTestId('reauth-password').fill(ADMIN_PASSWORD);

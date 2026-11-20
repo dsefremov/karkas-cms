@@ -2,17 +2,15 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { bootstrapBlogAdmin } from './helpers/admin-bootstrap';
 import { createAndPublishPostViaEditor } from './helpers/blog-editor';
-import {
-  expectCoreUpgradeIdle,
-  runCoreUpgradeIfOffered,
-} from './helpers/core-upgrade-flow';
+import { runCoreUpgradeFlow } from './helpers/core-upgrade-flow';
 
 test.describe('Karkas Stage 4', () => {
-  test('core upgrade button updates Core version', async ({ page }) => {
+  test('core upgrade button updates Core version', async ({ page }, testInfo) => {
     await bootstrapBlogAdmin(page);
     await page.goto('/admin/core-update');
-    await runCoreUpgradeIfOffered(page);
-    await expectCoreUpgradeIdle(page);
+    const outcome = await runCoreUpgradeFlow(page);
+    testInfo.annotations.push({ type: 'core-upgrade', description: outcome });
+    console.log(`[core-upgrade] ${testInfo.project.name}: ${outcome}`);
   });
 
   test('blog version history shows at most ten rows', async ({ page }) => {

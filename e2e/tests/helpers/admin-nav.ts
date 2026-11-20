@@ -24,3 +24,17 @@ export async function openAdminAuthed(page: Page, path = 'dashboard'): Promise<v
   await ensureAdminLogin(page);
   await gotoAdminPath(page, path);
 }
+
+/** Клик по пункту сайдбара. На узкой ширине сайдбар свёрнут: сначала открыть его кнопкой «Меню». */
+export async function clickSidebarNav(page: Page, testId: string): Promise<void> {
+  const toggle = page.getByTestId('admin-menu-toggle');
+  if (await toggle.isVisible()) {
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.getByTestId('admin-sidebar')).toHaveClass(/sidebar-mobile-open/);
+  }
+  await page.getByTestId(testId).click();
+  if (await toggle.isVisible()) {
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  }
+}
