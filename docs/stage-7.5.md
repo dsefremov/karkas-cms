@@ -2,8 +2,8 @@
 
 Ветка **`grok_bot` → `develop`**, PR **#19** (доработка после ревью 12.11), **не мержить** до ревью Den.
 
-**code-head:** `e41f631`  
-**docs-head:** `e41f631`
+**code-head:** `bcf04ff`  
+**docs-head:** `bcf04ff`
 
 ---
 
