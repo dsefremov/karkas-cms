@@ -111,6 +111,9 @@ final class AdminDashboardService
             }
         }
 
-        return $dt->setTimezone(new DateTimeZone(self::TZ))->format('j M Y, H:i').' МСК';
+        $local = $dt->setTimezone(new DateTimeZone(self::TZ));
+        $months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+
+        return sprintf('%d %s %s, %s МСК', (int) $local->format('j'), $months[(int) $local->format('n') - 1], $local->format('Y'), $local->format('H:i'));
     }
 }

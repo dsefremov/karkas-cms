@@ -112,7 +112,7 @@ final class PackageCatalogRepository
 
     private function loadAtPath(string $path): PackageManifest
     {
-        $json = file_get_contents($path);
+        $json = is_file($path) && is_readable($path) ? file_get_contents($path) : false;
         if (false === $json) {
             throw new RuntimeException('Cannot read catalog manifest.');
         }

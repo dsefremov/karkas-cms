@@ -43,6 +43,10 @@ final class Stage75BlogPostsHttpTest extends WebTestCase
         self::assertResponseIsSuccessful();
         $list = json_decode($client->getResponse()->getContent() ?: '', true, 512, JSON_THROW_ON_ERROR);
         self::assertNotEmpty($list['posts']);
+        $row = $list['posts'][0];
+        self::assertArrayHasKey('created_at', $row);
+        self::assertArrayHasKey('updated_at', $row);
+        self::assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/', (string) $row['created_at']);
 
         $client->request('POST', '/api/v1/blog/posts/'.$postId.'/save', [], [], [
             'CONTENT_TYPE' => 'application/json',
