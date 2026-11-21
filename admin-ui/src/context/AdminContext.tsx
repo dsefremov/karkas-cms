@@ -10,6 +10,8 @@ import {
 } from 'react';
 import { ReauthModal } from '../components/ReauthModal';
 import { formatApiError } from '../lib/apiError';
+
+const CORE_PLAN_ERROR = 'Не удалось построить план обновления Core';
 import {
   clearStoredReauth,
   effectiveReauth,
@@ -402,16 +404,15 @@ export function AdminProvider({ children }: { children: ReactNode }): React.JSX.
   }
 
   async function loadCorePlan(): Promise<void> {
-    setMessage(null);
-    setError(null);
+    // Silent data load: must not overwrite the result message of a preceding action (e.g. upgradeCore).
     const response = await fetch('/api/v1/platform/plan?include_core=1');
     if (!response.ok) {
-      setError('Не удалось построить план обновления Core');
+      setError(CORE_PLAN_ERROR);
       setCorePlan(null);
       return;
     }
     setCorePlan((await response.json()) as CorePlanPayload);
-    setMessage('План обновления Core загружен (include_core).');
+    setError((current) => (current === CORE_PLAN_ERROR ? null : current));
   }
 
   async function loadSites(): Promise<void> {
@@ -487,9 +488,11 @@ export function AdminProvider({ children }: { children: ReactNode }): React.JSX.
       setError('Обновление Core отклонено');
       return;
     }
-    setMessage('Core обновлён по плану (include_core).');
     setCoreUpgradeConfirm(false);
+    const target = coreRow?.available ?? null;
     await loadVersions();
+    await loadCorePlan();
+    setMessage(target !== null ? `Core обновлён до ${target}.` : 'Core обновлён.');
   }
 
   async function loadBlogFacade(): Promise<void> {
@@ -800,6 +803,16 @@ export function AdminProvider({ children }: { children: ReactNode }): React.JSX.
         ? 'Шаг 3: blog уже включён на выбранном сайте.'
         : 'Шаг 3: включите blog на выбранном сайте (миграции + mount /blog).';
 
+  // Загрузчики данных вызываются из useEffect страниц. Их идентичность должна быть стабильной,
+  // иначе каждое обновление состояния (новый corePlan / pageTree) пересоздаёт функцию и эффект
+  // запускает запрос снова — бесконечный цикл запросов к API.
+  const loadCorePlanRef = useRef(loadCorePlan);
+  loadCorePlanRef.current = loadCorePlan;
+  const stableLoadCorePlan = useCallback(() => loadCorePlanRef.current(), []);
+  const loadPageTreeRef = useRef(loadPageTree);
+  loadPageTreeRef.current = loadPageTree;
+  const stableLoadPageTree = useCallback(() => loadPageTreeRef.current(), []);
+
   const value = useMemo<AdminContextValue>(
     () => ({
       password,
@@ -866,12 +879,12 @@ export function AdminProvider({ children }: { children: ReactNode }): React.JSX.
       scanIncoming,
       enableBlog,
       saveDemoPost,
-      loadCorePlan,
+      loadCorePlan: stableLoadCorePlan,
       createSite,
       makeDefaultSite,
       deleteSite,
       upgradeCore,
-      loadPageTree,
+      loadPageTree: stableLoadPageTree,
       bindBlogToSelectedPage,
       unbindBlogFacade,
       seedDemoPages,
@@ -885,6 +898,8 @@ export function AdminProvider({ children }: { children: ReactNode }): React.JSX.
       renderTreeNodes,
     }),
     [
+      stableLoadCorePlan,
+      stableLoadPageTree,
       password,
       authenticated,
       sessionReady,

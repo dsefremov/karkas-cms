@@ -135,8 +135,9 @@ export function BlogBindingPage(): React.JSX.Element {
             <span className="badge green">Включён</span>
             <hr className="rule" />
             <div className="small muted mb8">SiteModule / instance</div>
-            <strong>{site?.label ?? '—'}</strong>
-            <div className="small muted">{site?.site_key ?? '—'}</div>
+            <strong>
+              {site !== undefined && site.label.trim() !== '' ? site.label : site?.site_key ?? '—'}
+            </strong>
             <hr className="rule" />
             <div className="small muted mb8">Canonical mount</div>
             <code>/blog</code>

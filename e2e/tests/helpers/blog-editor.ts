@@ -1,4 +1,5 @@
 import { expect, type Page } from '@playwright/test';
+import { chooseAdminSelectValue } from './admin-select';
 
 export async function createAndPublishPostViaEditor(
   page: Page,
@@ -10,7 +11,7 @@ export async function createAndPublishPostViaEditor(
   await page.getByTestId('post-editor-title').fill(options.title);
   await page.getByTestId('post-editor-slug').fill(options.slug);
   await page.getByTestId('post-editor-body').fill(options.body);
-  await page.getByTestId('post-editor-activity').selectOption('active');
+  await chooseAdminSelectValue(page, 'post-editor-activity', 'active');
   const createResponse = page.waitForResponse(
     (response) => response.url().includes('/api/v1/blog/posts') && response.request().method() === 'POST',
   );

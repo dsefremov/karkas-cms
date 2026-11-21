@@ -19,6 +19,7 @@ type DashboardPayload = {
     summary: string;
     type_label: string;
     status: string;
+    status_label: string;
     created_at: string;
   }>;
 };
@@ -140,12 +141,14 @@ export function DashboardPage(): React.JSX.Element {
                 {data.recent_operations.slice(0, 3).map((op) => (
                   <div className="kv" key={op.id}>
                     <span>{op.type_label}</span>
-                    <span className="badge outline">{op.status}</span>
+                    <span className={`badge ${op.status === 'succeeded' ? 'green' : op.status === 'failed' ? 'red' : 'amber'}`}>
+                      {op.status_label}
+                    </span>
                   </div>
                 ))}
                 <div className="notice mt24">
                   <AdminIcon>{NAV_ICONS.shield}</AdminIcon>
-                  <div>Cron, очередь писем и DLQ — отдельного API нет; показаны записи журнала платформы.</div>
+                  <div>Cron, очередь писем и DLQ появятся вместе с их API (этап 8); здесь — журнал платформы.</div>
                 </div>
               </section>
               <section className="card">

@@ -1,6 +1,9 @@
+import { packageLabel } from '../lib/packageLabels';
 import { Link } from 'react-router-dom';
 import { AdminIcon, NAV_ICONS } from '../components/AdminIcons';
+import { AdminSelect } from '../components/AdminSelect';
 import { useAdmin } from '../context/AdminContext';
+import { siteDisplayLabel } from '../lib/siteLabel';
 
 export function ModulesPage(): React.JSX.Element {
   const {
@@ -72,7 +75,7 @@ export function ModulesPage(): React.JSX.Element {
           <tbody>
             <tr data-testid="module-row-karkas-core">
               <td>
-                Каркас Core
+                Ядро
                 <div className="small muted">karkas/core</div>
               </td>
               <td>{coreCurrent ?? 'Не установлена'}</td>
@@ -158,24 +161,22 @@ export function ModulesPage(): React.JSX.Element {
             </tr>
             <tr data-testid="site-blog-panel">
               <td>
-                Blog на сайте
-                <div className="small muted">enable + mount /blog</div>
+                Блог на сайте
+                <div className="small muted">включение и адрес /blog</div>
               </td>
               <td colSpan={2}>
-                <select
+                <AdminSelect
                   id="enable-blog-site"
-                  data-testid="enable-blog-site"
+                  testId="enable-blog-site"
                   aria-label="Сайт для включения blog"
                   value={enableBlogSiteId}
-                  onChange={(e) => setEnableBlogSiteId(Number(e.target.value))}
+                  onChange={(value) => setEnableBlogSiteId(Number(value))}
                   disabled={!authenticated || sites.length === 0}
-                >
-                  {sites.map((site) => (
-                    <option key={site.id} value={site.id}>
-                      {site.site_key} ({site.label}){site.is_default ? ' — default' : ''}
-                    </option>
-                  ))}
-                </select>
+                  options={sites.map((site) => ({
+                    value: site.id,
+                    label: siteDisplayLabel(site, sites),
+                  }))}
+                />
               </td>
               <td>
                 {blogEnabledOnTarget ? (
@@ -216,7 +217,7 @@ export function ModulesPage(): React.JSX.Element {
         </p>
         <div className="row gap8 wrap">
           <Link className="btn" to="/modules/blog/binding">
-            Привязка к странице (макет v16)
+            Привязка к странице
           </Link>
           <Link className="btn quiet" to="/pages">
             Дерево страниц
@@ -244,7 +245,10 @@ export function ModulesPage(): React.JSX.Element {
             <tbody>
               {versions?.packages.map((row) => (
                 <tr key={row.package_id} data-testid={`version-row-${row.package_id.replace('/', '-')}`}>
-                  <td>{row.package_id}</td>
+                  <td>
+                    <strong>{packageLabel(row.package_id)}</strong>
+                    <div className="sub">{row.package_id}</div>
+                  </td>
                   <td>{row.current ?? '—'}</td>
                   <td>{row.available ?? '—'}</td>
                 </tr>

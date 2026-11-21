@@ -107,13 +107,13 @@ final class BlogPostSaveService
     }
 
     /**
-     * @return list<array{id: string, slug: string, title: string, activity: string, updated_at: string}>
+     * @return list<array{id: string, slug: string, title: string, activity: string, created_at: string, updated_at: string}>
      */
     public function listPostsForAdmin(): array
     {
         $instance = $this->requireBlogInstance();
         $rows = $this->posts->listForAdmin((int) $instance['site_id'], (string) $instance['id']);
-        /** @var list<array{id: string, slug: string, title: string, activity: string, updated_at: string}> $normalized */
+        /** @var list<array{id: string, slug: string, title: string, activity: string, created_at: string, updated_at: string}> $normalized */
         $normalized = [];
         foreach ($rows as $row) {
             $normalized[] = [
@@ -121,6 +121,7 @@ final class BlogPostSaveService
                 'slug' => (string) $row['slug'],
                 'title' => (string) $row['title'],
                 'activity' => (string) $row['activity'],
+                'created_at' => (string) $row['created_at'],
                 'updated_at' => (string) $row['updated_at'],
             ];
         }

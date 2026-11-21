@@ -2,19 +2,15 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { bootstrapBlogAdmin } from './helpers/admin-bootstrap';
 import { createAndPublishPostViaEditor } from './helpers/blog-editor';
+import { runCoreUpgradeFlow } from './helpers/core-upgrade-flow';
 
 test.describe('Karkas Stage 4', () => {
-  test('core upgrade button updates Core version', async ({ page }) => {
+  test('core upgrade button updates Core version', async ({ page }, testInfo) => {
     await bootstrapBlogAdmin(page);
     await page.goto('/admin/core-update');
-    const summary = (await page.getByTestId('core-version-summary').textContent()) ?? '';
-    if (summary.includes('1.0.0') && summary.includes('1.1.0')) {
-      await page.getByTestId('core-upgrade-confirm').check();
-      await page.getByTestId('upgrade-core').click();
-      await expect(page.getByTestId('admin-message')).toContainText('Core обновлён', { timeout: 60_000 });
-      await expect(page.getByTestId('version-row-karkas-core')).toContainText('1.1.0');
-    }
-    await expect(page.getByTestId('core-upgrade-idle')).toContainText('не требуется');
+    const outcome = await runCoreUpgradeFlow(page);
+    testInfo.annotations.push({ type: 'core-upgrade', description: outcome });
+    console.log(`[core-upgrade] ${testInfo.project.name}: ${outcome}`);
   });
 
   test('blog version history shows at most ten rows', async ({ page }) => {

@@ -1,4 +1,5 @@
 import { expect, type Page } from '@playwright/test';
+import { chooseAdminSelectValue } from './admin-select';
 const ADMIN_PASSWORD = process.env.KARKAS_ADMIN_PASSWORD ?? 'test-admin-password-stage2';
 
 const authHeaders = (): Record<string, string> => ({
@@ -53,5 +54,5 @@ export async function ensurePageTreeSite(page: Page, siteId: number): Promise<vo
   if ((await siteSelect.count()) === 0) {
     return;
   }
-  await siteSelect.selectOption(String(siteId));
+  await chooseAdminSelectValue(page, 'page-tree-site', String(siteId));
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAdmin } from '../context/AdminContext';
 import { useBlogPosts } from '../hooks/useBlogPosts';
+import { AdminSelect } from '../components/AdminSelect';
 
 export function PostEditorPage(): React.JSX.Element {
   const { postId } = useParams<{ postId?: string }>();
@@ -87,16 +88,17 @@ export function PostEditorPage(): React.JSX.Element {
           <textarea id="post-editor-body" data-testid="post-editor-body" rows={12} value={bodyText} onChange={(e) => setBodyText(e.target.value)} />
         </div>
         <div className="field">
-          <label htmlFor="post-editor-activity">Activity</label>
-          <select
+          <label htmlFor="post-editor-activity">Статус</label>
+          <AdminSelect
             id="post-editor-activity"
-            data-testid="post-editor-activity"
+            testId="post-editor-activity"
             value={activity}
-            onChange={(e) => setActivity(e.target.value === 'active' ? 'active' : 'inactive')}
-          >
-            <option value="inactive">inactive</option>
-            <option value="active">active</option>
-          </select>
+            onChange={(v) => setActivity(v === 'active' ? 'active' : 'inactive')}
+            options={[
+              { value: 'inactive', label: 'Неактивна' },
+              { value: 'active', label: 'Активна' },
+            ]}
+          />
         </div>
       </section>
     </>

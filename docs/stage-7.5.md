@@ -1,161 +1,159 @@
-# Stage 7.5 — Admin shell по макетам Дизайнера
+# Stage 7.5 — админка по макету v16
 
-Ветка **`grok_bot` → `develop`**, PR **#17**, **не мержить** до ревью Den.
+Ветка **`grok_bot`** (база `develop`), **не мержить** до ревью Den. Этап 8 не начат.
 
-**code-head:** `1a4fd3e`  
-**docs-head:** `b249ad5`
+**code-head:** `4bd831c` (коммиты этого прохода — см. `git log 43ef5a8..grok_bot`)
 
 ---
 
-## Цель
+## Что сделано в этом проходе
 
-Светлая админка на `tokens.css`, роутинг `/admin/...`, сайдбар как в макете v16, экраны на существующем API (этапы 3–7), сохранение фиксов blog (п. 4).
+| # | Пункт | Статус | Как проверено |
+|---|---|---|---|
+| 1 | e2e stage4/stage5: обновление ядра | **готово** | `CoreUpdatePage` показывает текущую и доступную версию ядра. `helpers/core-upgrade-flow.ts` ждёт данные (`core-version-summary` / `core-version-available`) и ветвится: на чистой базе (Core 1.0.0, в каталоге 1.1.0) — полное обновление (кнопка disabled → чекбокс → enabled, шаг плана `karkas/core 1.0.0 → 1.1.0`, сообщение «Core обновлён до 1.1.0», summary, пустой план); если ядро уже обновлено — проверяется idle-состояние. В прогоне: desktop — `upgraded`, mobile — `already-current` (та же база). |
+| 2 | Flake `stage75-blog-admin` | **готово** | Перед `/admin/modules` ждём `admin-authenticated`, URL и `admin-shell` (без force/таймаутов). |
+| 3 | Скриншоты только на свежей демо-базе | **готово** | `stage75-screenshots.spec.ts` пропускается без `KARKAS_SCREENSHOTS=1`, поэтому в обычном `npm test` (и в CI) не трогает e2e-базу. Снимки делает `scripts/capture-stage75-screenshots.sh`: `down -v` → `up mysql app` → reset+seed демо → снимки 1440/390. |
+| 4 | Соответствие макету v16 | **готово, с оговорками ниже** | Дерево: строки на всю ширину, отступ по уровню, свёртка, статус в отдельной колонке. Записи: категория, автор, дата/время МСК, поиск + фильтры, сортировка, пагинация по 10. Обновление ядра: таблица совместимости, требования, план, `karkas/core` один раз. Операции: человекочитаемые типы и статусы, МСК. |
+| 5 | Названия вместо ID, компоненты вместо `<select>`, без «(макет v16)» | **готово** | Сайт везде — по названию (при дублях названия добавляется домен). Нативные `select` заменены на `AdminSelect` (combobox + listbox, клавиатура). Подписи «(макет v16)» и упоминания макета в UI убраны. |
+| 6 | 390: без горизонтального вылета, сворачиваемый сайдбар | **готово** | Новый `stage75-layout-overflow.spec.ts` проверяет все экраны админки на 1440 и 390. `overflow-x: hidden` с `.admin-main` **убран**; широкие таблицы на 390 прокручиваются внутри своей карточки (`.table-card { overflow-x: auto }`), записи на 390 — карточками. Сайдбар на ≤960px — выезжающий, кнопка `admin-menu-toggle`, закрытие по Esc/подложке/смене маршрута. |
+| 7 | Этот документ | **готово** | Пары макет/результат ниже; ссылка на CI — плейсхолдер. |
 
-## Артефакты
+### Оговорки (честно)
 
-| Артефакт | Путь |
-|----------|------|
-| HTML + `tokens.css` + `png/` | `docs/mockups/` |
-| Стили admin-ui | `admin-ui/src/tokens.css`, `admin-ui/src/admin-ui.css` |
-| SPA fallback | `AdminSpaController` + `public/admin/.htaccess` |
-| Скриншоты | `docs/stage-7.5/screenshots/` (Docker Apache :8080) |
-| Demo seed (dev/test) | `POST /api/v1/admin/demo/seed` (`kernel.debug` или `KARKAS_ALLOW_DEMO_SEED`) |
+- **Категории и авторы:** API нет до этапа 8. В списке записей колонка «Категория» показывает «Без категории», «Автор» — «Служебный админ» (единственный пользователь); фильтры работают по этим полям, когда API их отдаст (поля `category?` / `author?` уже в типе).
+- **Дерево страниц:** в демо-данных нет «Главной» и узла «Журнал (Модуль: Блог)» из макета — показано реальное дерево из API. Drag-and-drop — этап 8, перемещение через форму.
+- **Пользователи / Роли / Категории:** экраны-заглушки «нет API (этап 8)».
+- **390:** макетов 390 в наборе нет — сравнивали с 1440-макетом по структуре. Таблицы модулей/сайтов/совместимости на 390 прокручиваются внутри карточки — это допустимо, страница целиком по ширине не вылезает (проверяется тестом).
+- **Операции:** отдельного макета нет; `mock-1440-operations.png` раньше был копией макета обзора — удалён, чтобы не вводить в заблуждение.
+- Запись журнала `package.install` для ядра называется «Установка пакетов» (по payload нельзя отличить первую установку от обновления).
+
+### Demo reset / seed
+
+`POST /api/v1/admin/demo/seed` и `/demo/reset` работают **только** при `APP_ENV=dev|test` **и** `KARKAS_ALLOW_DEMO_SEED=1` (`DemoApiGate`); иначе **404**, в prod — всегда 404 (`AdminDemoRoutesEnvironmentTest`: матрица gate, prod-kernel → 404, test+флаг → 401 без сессии). В CI-джобе Playwright флаг приходит из `docker-compose.yml` (`KARKAS_ALLOW_DEMO_SEED: ${KARKAS_ALLOW_DEMO_SEED:-1}` в env сервиса app) — workflow не менялся.
+
+Ручной сброс демо-базы: `./scripts/reset-demo-database.sh api|volume`; снимки целиком — `./scripts/capture-stage75-screenshots.sh` (на этом боксе: `DOCKER_COMPOSE="sudo docker compose" COMPOSE_FILES="-f docker-compose.yml -f docker-compose.mysql84.yml"`).
 
 ---
 
 ## Скриншоты: макет / результат
 
-Макет **390** у Дизайнера в png-наборе **нет** — в колонке «Макет 390» помечено **—**.
-
-Снято на **чистой демо-базе**: `bootstrapBlogAdmin` + `POST /api/v1/admin/demo/seed` → `e2e/tests/stage75-screenshots.spec.ts` (1440×900 / 390×844).
+Результаты сняты на **свежей демо-базе** (`capture-stage75-screenshots.sh`, MySQL 8.4), не на e2e-базе. Макетов 390 нет.
 
 ### Вход
 
-| | 1440 | 390 |
-|---|------|-----|
-| **Макет** | ![mock login 1440](screenshots/mock-1440-login.png) | — |
-| **Результат** | ![result login 1440](screenshots/result-1440-login.png) | ![result login 390](screenshots/result-390-login.png) |
+| Макет 1440 | Результат 1440 | Результат 390 |
+|---|---|---|
+| ![макет login 1440](screenshots/mock-1440-login.png) | ![результат login 1440](screenshots/result-1440-login.png) | ![результат login 390](screenshots/result-390-login.png) |
 
 ### Обзор
 
-| | 1440 | 390 |
-|---|------|-----|
-| **Макет** | ![mock dashboard 1440](screenshots/mock-1440-dashboard.png) | — |
-| **Результат** | ![result dashboard 1440](screenshots/result-1440-dashboard.png) | ![result dashboard 390](screenshots/result-390-dashboard.png) |
+| Макет 1440 | Результат 1440 | Результат 390 |
+|---|---|---|
+| ![макет dashboard 1440](screenshots/mock-1440-dashboard.png) | ![результат dashboard 1440](screenshots/result-1440-dashboard.png) | ![результат dashboard 390](screenshots/result-390-dashboard.png) |
 
 ### Записи
 
-| | 1440 | 390 |
-|---|------|-----|
-| **Макет** | ![mock posts 1440](screenshots/mock-1440-posts.png) | — |
-| **Результат** | ![result posts 1440](screenshots/result-1440-posts.png) | ![result posts 390](screenshots/result-390-posts.png) |
+| Макет 1440 | Результат 1440 | Результат 390 |
+|---|---|---|
+| ![макет posts 1440](screenshots/mock-1440-posts.png) | ![результат posts 1440](screenshots/result-1440-posts.png) | ![результат posts 390](screenshots/result-390-posts.png) |
 
-### Редактор / история записи
+### Редактор записи
 
-| | 1440 | 390 |
-|---|------|-----|
-| **Макет** | — (editor / history в наборе v16 частично) | — |
-| **Результат** | ![result post editor 1440](screenshots/result-1440-post-editor.png) | ![result post editor 390](screenshots/result-390-post-editor.png) |
-| | ![result post history 1440](screenshots/result-1440-post-history.png) | ![result post history 390](screenshots/result-390-post-history.png) |
+| Макет 1440 | Результат 1440 | Результат 390 |
+|---|---|---|
+| ![макет post-editor 1440](screenshots/mock-1440-post-editor.png) | ![результат post-editor 1440](screenshots/result-1440-post-editor.png) | ![результат post-editor 390](screenshots/result-390-post-editor.png) |
 
-### Страницы / модули / сайты / настройки / операции / core / users / roles
+### История версий
 
-Пары `mock-1440-*` / `result-1440-*` и `result-390-*` для: `categories`, `pages`, `modules`, `sites`, `settings`, `operations`, `core-update`, `users`, `roles` — каталог `docs/stage-7.5/screenshots/`.
+| Макет 1440 | Результат 1440 | Результат 390 |
+|---|---|---|
+| ![макет post-history 1440](screenshots/mock-1440-post-history.png) | ![результат post-history 1440](screenshots/result-1440-post-history.png) | ![результат post-history 390](screenshots/result-390-post-history.png) |
 
----
+### Категории
 
-## Blog п. 4 (кратко)
+| Макет 1440 | Результат 1440 | Результат 390 |
+|---|---|---|
+| ![макет categories 1440](screenshots/mock-1440-categories.png) | ![результат categories 1440](screenshots/result-1440-categories.png) | ![результат categories 390](screenshots/result-390-categories.png) |
 
-| # | Причина | Фикс | Тест |
-|---|---------|------|------|
-| 1 | API-ошибки не показывались | `apiError.ts` | HTTP + UI |
-| 2 | Пустой `X-Karkas-Reauth` после reload | `ReauthModal` + sessionStorage | `stage75-blog-admin.spec.ts` |
-| 3 | Нет порядка шагов | wizard hints на `/modules` | `stage75-admin-navigation` |
-| 4 | plan/sites API | backend try/catch + 401 | `Stage75BlogAdminHttpTest` |
-| 5 | duplicate mount | idempotent enable | double enable HTTP |
-| 6 | `site_label` хардкод | label из сайта | e2e multisite |
-| 7 | Привязка blog | экраны `/modules/blog/*` (v16) | `stage7-blog-facade.spec.ts` (desktop) |
+### Страницы (дерево)
 
----
+| Макет 1440 | Результат 1440 | Результат 390 |
+|---|---|---|
+| ![макет pages 1440](screenshots/mock-1440-pages.png) | ![результат pages 1440](screenshots/result-1440-pages.png) | ![результат pages 390](screenshots/result-390-pages.png) |
 
-## Роуты admin-ui
+### Модули
 
-| Путь | Экран | API |
-|------|--------|-----|
-| `/admin/login` | staff-login карточка | session |
-| `/admin/dashboard` | Обзор (stats, ops, posts) | `GET /api/v1/admin/dashboard` |
-| `/admin/posts` | Таблица + поиск (client) | `GET /api/v1/blog/posts` |
-| `/admin/posts/new`, `/:id`, `/:id/history` | Редактор / история | blog posts API |
-| `/admin/categories` | Заглушка этап 8 | **нет API** |
-| `/admin/pages` | tree-layout, move modal, preview | sites/pages API |
-| `/admin/modules` | installer + ссылка на binding | platform/install |
-| `/admin/modules/blog/{binding,unbind,unbind-ready,conflict,address-change,settings}` | v16 binding flows | bind/unbind API |
-| `/admin/sites` | multisite + notice шаблонов | `/api/v1/sites` |
-| `/admin/settings` | settings-layout (read-only поля) | ZIP/maintenance + multisite read |
-| `/admin/core-update` | план совместимости | platform/plan |
-| `/admin/operations` | log-entry карточки | `GET /api/v1/admin/platform/operations` |
-| `/admin/users`, `/admin/roles` | Заглушка этап 8 | **нет API** |
+| Макет 1440 | Результат 1440 | Результат 390 |
+|---|---|---|
+| ![макет modules 1440](screenshots/mock-1440-modules.png) | ![результат modules 1440](screenshots/result-1440-modules.png) | ![результат modules 390](screenshots/result-390-modules.png) |
 
----
+### Сайты и шаблоны
 
-## Вердикт по экранам (v16)
+| Макет 1440 | Результат 1440 | Результат 390 |
+|---|---|---|
+| ![макет sites 1440](screenshots/mock-1440-sites.png) | ![результат sites 1440](screenshots/result-1440-sites.png) | ![результат sites 390](screenshots/result-390-sites.png) |
 
-| Экран | Вердикт | Комментарий |
-|-------|---------|-------------|
-| Shell (sidebar, topbar) | **как в макете** | Без шеврона workspace; футер «Ядро Каркас …» |
-| Вход (`staff-login`) | **как в макете** | Карточка, поля столбцом; 2FA не делали (этап 8) |
-| Обзор | **как в макете** (данные API) | `GET /api/v1/admin/dashboard`; нет графиков из макета |
-| Записи | **как в макете** (список) | Client-поиск/вкладки; WYSIWYG **отложено** |
-| Редактор / история | **частично** | Plain text API, не article-editor.html |
-| Категории | **нет API** | Заглушка этап 8 |
-| Страницы (`tree.html`) | **как в макете** (без DnD) | Отступы, бейджи, move modal, preview; DnD **этап 8** |
-| Модули | **частично** | Installer + panel binding; полный ZIP UI **отложено** |
-| Blog binding (v16_1…) | **как в макете** (сценарии) | Отдельные routes; конфликт — UI без live conflict API |
-| Сайты и шаблоны | **частично** | Multisite таблица + notice; вкладки шаблонов **нет API** |
-| Настройки | **частично** | Секции макета; SMTP/secrets read-only «этап 8» |
-| Core update | **как в макете** (idle/plan) | Мастер шагов без progress-bar CI |
-| Операции | **как в макете** (журнал) | Человекочитаемые типы, МСК; cron/DLQ **нет API** |
-| Пользователи / Роли | **нет API** | Заглушка |
+### Настройки
+
+| Макет 1440 | Результат 1440 | Результат 390 |
+|---|---|---|
+| ![макет settings 1440](screenshots/mock-1440-settings.png) | ![результат settings 1440](screenshots/result-1440-settings.png) | ![результат settings 390](screenshots/result-390-settings.png) |
+
+### Операции
+
+| Макет 1440 | Результат 1440 | Результат 390 |
+|---|---|---|
+| — (отдельного макета нет в наборе v16; ближайший — блок «Фоновые операции» на обзоре) | ![результат operations 1440](screenshots/result-1440-operations.png) | ![результат operations 390](screenshots/result-390-operations.png) |
+
+### Обновление ядра
+
+| Макет 1440 | Результат 1440 | Результат 390 |
+|---|---|---|
+| ![макет core-update 1440](screenshots/mock-1440-core-update.png) | ![результат core-update 1440](screenshots/result-1440-core-update.png) | ![результат core-update 390](screenshots/result-390-core-update.png) |
+
+### Пользователи
+
+| Макет 1440 | Результат 1440 | Результат 390 |
+|---|---|---|
+| ![макет users 1440](screenshots/mock-1440-users.png) | ![результат users 1440](screenshots/result-1440-users.png) | ![результат users 390](screenshots/result-390-users.png) |
+
+### Роли и доступ
+
+| Макет 1440 | Результат 1440 | Результат 390 |
+|---|---|---|
+| ![макет roles 1440](screenshots/mock-1440-roles.png) | ![результат roles 1440](screenshots/result-1440-roles.png) | ![результат roles 390](screenshots/result-390-roles.png) |
 
 ---
 
-## Тесты
+## Локальная проверка (как CI, Docker Compose, PHP 8.4 + MySQL 8.4)
 
-- PHPUnit: `Stage75AdminDashboardHttpTest` (2), `Stage75BlogAdminHttpTest`, `Stage75BlogPostsHttpTest`, `Stage75AdminSpaHttpTest`
-- Playwright: navigation, blog, screenshots, stage4–7 regressions
+Финальные два раунда на коде `4bd831c` (тот же код, что в коммитах; 21.11.2026 ночью по МСК). Скрипт раунда — локальный (`/workspace/karkas-proof/ci-round.sh`, не в репозитории); шаги повторяют джобы `.github/workflows/ci.yml`.
 
-### Локальный Playwright + axe
+| Шаг | Команда | Раунд 1 | Раунд 2 |
+|---|---|---|---|
+| php-static | `composer phpstan && composer lint:php` (образ `karkas-cms-cli`, PHP 8.4) | phpstan `[OK] No errors`, cs-fixer 0 файлов | то же |
+| PHPUnit | `vendor/bin/phpunit` с `DATABASE_URL=mysql://…/karkas_test?serverVersion=8.4`, `APP_SECRET` как в CI | Tests 74, Assertions 257, Skipped 1 (`ApacheWebSapiProbeTest` — нужен `STAGE0_HTTP_PROBE_BASE_URL`), 0 failures | то же |
+| admin-ui | `npm run lint && npm run typecheck && npm run build` | 0 errors, 2 warnings (уже были до прохода: react-refresh, exhaustive-deps в AdminContext) | то же |
+| Playwright + axe | свежий стек `docker compose up -d mysql app` (MySQL 8.4), `CI=1 npx playwright test --retries=0 --workers=1`, проекты desktop-chrome 1440 и mobile-chrome 390 | **89 passed, 31 skipped, 0 failed** | **89 passed, 31 skipped, 0 failed** |
 
-`docker compose up`, `KARKAS_ADMIN_PASSWORD=test-admin-password-stage2`, `admin-ui` `npm run build`, `e2e`: `BASE_URL=http://127.0.0.1:8080 npm test`.
+31 skipped = 28 снимков `stage75-screenshots` (opt-in, `KARKAS_SCREENSHOTS=1`) + 3 desktop-only теста на mobile (`stage6` ×2, `stage7-blog-facade`). Retries выключены (в CI — 1). Обновление ядра: desktop — `upgraded` (1.0.0 → 1.1.0), mobile — `already-current`.
 
-**Итог (96 specs): 93 passed, 3 skipped, 0 failed** (~49s, SHA `1a4fd3e`).
+Скриншоты: `./scripts/capture-stage75-screenshots.sh` на свежей демо-базе — 30 passed (28 снимков + 2 проверки).
 
-Skip:
-
-- `stage6` move preview — mobile (форма проверена на desktop)
-- `stage7-blog-facade` — mobile (bind/unbind на desktop)
-- `stage6` move screenshot — mobile (как раньше)
-
-Axe: `stage4`, `stage6` (modules panel), `stage7` search, smoke — **0 violations** (footer contrast `#4a5750`).
-
-```
-  3 skipped
-  93 passed (48.5s)
-```
+Отличия от CI: Playwright-джоба CI использует MySQL 8.0 (локально 8.4); Node локально 24, в CI 22.
 
 ---
 
 ## CI
 
-PR **#17**, после push `1a4fd3e` — смотреть актуальный run в GitHub Actions. На `3b8b6f4` **playwright** падал на `apt/DNS` (`azure.archive.ubuntu.com`), тесты не стартовали; **Re-run** — Den. Workflow не меняли.
+Зелёный run GitHub Actions для этого head: **_ссылка на CI run — добавить после push_**. Workflow-файлы не менялись; Actions в этом проходе не запускались.
 
 ---
 
 ## Вопросы к Den (с предложениями)
 
-1. **Категории** — минимальный read-only API в 7.5.1 или ждать этап 8?
-2. **Шаблоны сайтов** — отдельный экран при появлении API или вкладка на `/sites`?
-3. **Binding conflict** — нужен ли live API конфликта или достаточно статического `conflict` route для дизайна?
-4. **Dashboard** — какие ещё агрегаты (графики, «сегодня») кроме текущего JSON?
-5. **Дерево на mobile** — приоритет адаптации move-form под 390 или ждать макеты 390?
-6. **Demo seed в prod** — достаточно ли `kernel.debug` + opt-in env, или нужен отдельный guard?
+1. **Категории и авторы записей** — в списке пока «Без категории» / «Служебный админ». *Предложение:* отдать `category`/`author` в `GET /api/v1/blog/posts` на этапе 8 вместе с API категорий и пользователей; UI уже готов.
+2. **Узел «Журнал (Модуль: Блог)» в демо-дереве** — *предложение:* в демо-seed привязывать блог к странице, чтобы дерево совпадало с макетом.
+3. **Подключения к БД** — `DatabaseConnectionFactory::create()` открывает новое соединение на каждый вызов (66 мест). Не менял (риск для транзакций). *Предложение:* отдельной задачей сделать request-scoped соединение.
+4. **MySQL в CI** — Playwright-джоба CI использует MySQL 8.0 (default compose), локально гоняли 8.4. *Предложение:* оставить как есть (PHPUnit-матрица CI покрывает обе версии).
+5. **Node** — локально Node 24, в CI 22. *Предложение:* ничего не менять; если появятся расхождения сборки — зафиксировать `engines`.

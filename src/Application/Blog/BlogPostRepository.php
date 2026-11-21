@@ -40,7 +40,7 @@ final class BlogPostRepository
     {
         $connection = $this->connections->create();
         $rows = $connection->fetchAllAssociative(
-            'SELECT id, slug, title, activity, updated_at FROM blog_post
+            'SELECT id, slug, title, activity, created_at, updated_at FROM blog_post
              WHERE site_id = :site AND module_instance_id = :instance
              ORDER BY updated_at DESC',
             ['site' => $siteId, 'instance' => $instanceId],

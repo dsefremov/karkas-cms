@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { AdminIcon, NAV_ICONS } from '../AdminIcons';
+import { AdminSelect } from '../AdminSelect';
 import { parentSelectOptions, siblingPositionOptions } from '../../lib/pageTree';
 import type { PageTreeNode } from '../../types/admin';
 type TreeMoveModalProps = {
@@ -47,41 +48,30 @@ export function TreeMoveModal({
         <h2>Переместить «{pageTitle}»</h2>
         <p className="mb24">Выберите родителя и положение страницы.</p>
         <div className="field">
-          <label htmlFor="move-parent-select">
-            Новый родитель
-            <select
-              id="move-parent-select"
-              data-testid="move-parent-select"
-              value={moveParentId}
-              onChange={(e) => {
-                setMoveParentId(e.target.value);
-                setMoveSortOrder(0);
-              }}
-            >
-              {parentOptions.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          <label htmlFor="move-parent-select">Новый родитель</label>
+          <AdminSelect
+            id="move-parent-select"
+            testId="move-parent-select"
+            value={moveParentId}
+            onChange={(value) => {
+              setMoveParentId(value);
+              setMoveSortOrder(0);
+            }}
+            options={parentOptions.map((option) => ({ value: option.id, label: option.label }))}
+          />
         </div>
         <div className="field">
-          <label htmlFor="move-position-select">
-            Положение
-            <select
-              id="move-position-select"
-              data-testid="move-position-select"
-              value={moveSortOrder}
-              onChange={(e) => setMoveSortOrder(Number(e.target.value))}
-            >
-              {positionOptions.map((option) => (
-                <option key={`${option.sortOrder}-${option.label}`} value={option.sortOrder}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          <label htmlFor="move-position-select">Положение</label>
+          <AdminSelect
+            id="move-position-select"
+            testId="move-position-select"
+            value={moveSortOrder}
+            onChange={(value) => setMoveSortOrder(Number(value))}
+            options={positionOptions.map((option) => ({
+              value: option.sortOrder,
+              label: option.label,
+            }))}
+          />
         </div>
         <div className="notice">
           <AdminIcon>{NAV_ICONS.shield}</AdminIcon>

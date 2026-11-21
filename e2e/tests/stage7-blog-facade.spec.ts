@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { bootstrapBlogAdmin } from './helpers/admin-bootstrap';
 import { gotoAdminPath } from './helpers/admin-nav';
 import { ensurePageTreeSite, seedE2ePageTree } from './helpers/page-tree-seed';
+import { adminSelectValue } from './helpers/admin-select';
 
 const ADMIN_PASSWORD = process.env.KARKAS_ADMIN_PASSWORD ?? 'test-admin-password-stage2';
 
@@ -11,7 +12,7 @@ test.describe('Karkas Stage 7 blog facade', () => {
     await bootstrapBlogAdmin(page);
     await gotoAdminPath(page, 'pages');
     await expect(page.getByTestId('page-tree-site')).toBeVisible();
-    const siteId = await page.getByTestId('page-tree-site').inputValue();
+    const siteId = await adminSelectValue(page, 'page-tree-site');
     expect(Number(siteId)).toBeGreaterThan(0);
     const facadeProbe = await page.request.get(`/api/v1/sites/${siteId}/modules/karkas/blog/facade`);
     expect(facadeProbe.ok(), await facadeProbe.text()).toBeTruthy();

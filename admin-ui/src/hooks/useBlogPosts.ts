@@ -6,7 +6,12 @@ export type BlogPostRow = {
   slug: string;
   title: string;
   activity: string;
+  /** Есть в списке (GET /api/v1/blog/posts); в карточке записи не приходит. */
+  created_at?: string;
   updated_at: string;
+  /** Поля появятся с API категорий/пользователей (этап 8); сейчас API их не отдаёт. */
+  category?: string | null;
+  author?: string | null;
 };
 
 export type BlogPostDetail = BlogPostRow & {

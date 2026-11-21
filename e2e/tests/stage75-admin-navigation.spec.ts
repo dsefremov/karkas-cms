@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { bootstrapBlogAdmin, ensureAdminLogin } from './helpers/admin-bootstrap';
-import { ADMIN_ROUTES, gotoAdminPath } from './helpers/admin-nav';
+import { ADMIN_ROUTES, clickSidebarNav, gotoAdminPath } from './helpers/admin-nav';
 
 const DIRECT_PATHS = [
   { path: 'core-update', marker: 'core-upgrade-panel' },
@@ -23,7 +23,7 @@ test.describe('Stage 7.5 admin navigation', () => {
   test('sidebar opens each screen', async ({ page }) => {
     await gotoAdminPath(page, 'dashboard');
     for (const route of ADMIN_ROUTES) {
-      await page.getByTestId(route.testId).click();
+      await clickSidebarNav(page, route.testId);
       await expect(page).toHaveURL(new RegExp(`/admin/${route.path}`));
       await expect(page.getByTestId(route.marker)).toBeVisible();
     }

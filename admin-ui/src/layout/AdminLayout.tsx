@@ -13,6 +13,7 @@ export function AdminLayout(): React.JSX.Element {
   const location = useLocation();
   const operationsCount = useOperationsCount(authenticated);
   const [postsCount, setPostsCount] = useState<number | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const segment = location.pathname.replace(/^\//, '').split('/')[0] ?? 'dashboard';
   const pageTitle = ROUTE_TITLES[segment] ?? 'Админка';
@@ -39,6 +40,23 @@ export function AdminLayout(): React.JSX.Element {
     })();
   }, [authenticated, location.pathname]);
 
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!sidebarOpen) {
+      return;
+    }
+    const onKey = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') {
+        setSidebarOpen(false);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [sidebarOpen]);
+
   if (!sessionReady || !authenticated) {
     return <></>;
   }
@@ -48,9 +66,26 @@ export function AdminLayout(): React.JSX.Element {
       <span data-testid="admin-authenticated" hidden aria-hidden="true">
         session
       </span>
-      <AdminSidebar postsCount={postsCount} operationsCount={operationsCount} />
-      <div className="admin-body">
-        <AdminTopBar pageTitle={pageTitle} />
+      <AdminSidebar
+        postsCount={postsCount}
+        operationsCount={operationsCount}
+        mobileOpen={sidebarOpen}
+        onNavClick={() => setSidebarOpen(false)}
+      />
+      <button
+        type="button"
+        className={`sidebar-backdrop ${sidebarOpen ? 'open' : ''}`}
+        aria-label="Закрыть меню"
+        tabIndex={sidebarOpen ? 0 : -1}
+        hidden={!sidebarOpen}
+        onClick={() => setSidebarOpen(false)}
+      />
+      <div className={`admin-body ${sidebarOpen ? 'sidebar-open' : ''}`}>
+        <AdminTopBar
+          pageTitle={pageTitle}
+          menuOpen={sidebarOpen}
+          onMenuToggle={() => setSidebarOpen((open) => !open)}
+        />
         <main className="admin-main">
           <AdminBanners />
           <Outlet />
